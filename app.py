@@ -3,8 +3,11 @@ import requests
 from bs4 import BeautifulSoup
 import sys
 import os
-
+import subprocess
 from flask import Flask, request, jsonify
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -137,46 +140,74 @@ def get_recent_form(TEAM_NAME):
         print(f"Form verisi alınamadı: {e}", file=sys.stderr)
         return {}
 
+@app.route("/")
+def index():
+    return "API çalışıyor"
+
 @app.route("/generate-json", methods=["POST"])
 def generate_json_api():
-    data = request.get_json()
-    home_team_key = data.get("home_team")
-    away_team_key = data.get("away_team")
-
-    if not home_team_key or not away_team_key:
-        return jsonify({"error": "Ev sahibi ve deplasman takımları belirtilmeli."}), 400
     try:
-        home_team_info = get_team_info(home_team_key)
-        away_team_info = get_team_info(away_team_key)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 404
+        data = request.get_json()
+        home_team_key = data.get("home_team")
+        away_team_key = data.get("away_team")
 
-    HOME_TEAM_NAME = home_team_info["name"]
-    HOME_TEAM_SLUG = home_team_info["slug"]
-    HOME_TEAM_ID = home_team_info["id"]
+        if not home_team_key or not away_team_key:
+            return jsonify({"error": "Ev sahibi ve deplasman takımları belirtilmeli."}), 400
+        try:
+            home_team_info = get_team_info(home_team_key)
+            away_team_info = get_team_info(away_team_key)
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 404
 
-    AWAY_TEAM_NAME = away_team_info["name"]
-    AWAY_TEAM_SLUG = away_team_info["slug"]
-    AWAY_TEAM_ID = away_team_info["id"]
+        HOME_TEAM_NAME = home_team_info["name"]
+        HOME_TEAM_SLUG = home_team_info["slug"]
+        HOME_TEAM_ID = home_team_info["id"]
 
-    HOME_URL_SQUAD = f"https://www.transfermarkt.com.tr/{HOME_TEAM_SLUG}/startseite/verein/{HOME_TEAM_ID}"
-    HOME_URL_INJURIES = f"https://www.transfermarkt.com.tr/{HOME_TEAM_SLUG}/sperrenundverletzungen/verein/{HOME_TEAM_ID}"
+        AWAY_TEAM_NAME = away_team_info["name"]
+        AWAY_TEAM_SLUG = away_team_info["slug"]
+        AWAY_TEAM_ID = away_team_info["id"]
 
-    squad = scrape_squad(HOME_URL_SQUAD)
-    data = {
-        "team": HOME_TEAM_NAME,
-        "position_in_league": get_league_position(HOME_TEAM_NAME),
-        "recent_form": get_recent_form(HOME_TEAM_NAME),
-        "injuries": scrape_injuries(HOME_URL_INJURIES, squad),
-        "squad": squad
-    }
+        HOME_URL_SQUAD = f"https://www.transfermarkt.com.tr/{HOME_TEAM_SLUG}/startseite/verein/{HOME_TEAM_ID}"
+        HOME_URL_INJURIES = f"https://www.transfermarkt.com.tr/{HOME_TEAM_SLUG}/sperrenundverletzungen/verein/{HOME_TEAM_ID}"
 
-    filename = f"{HOME_TEAM_NAME.lower()}.json"
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        squad = scrape_squad(HOME_URL_SQUAD)
+        output_data = {
+            "team": HOME_TEAM_NAME,
+            "position_in_league": get_league_position(HOME_TEAM_NAME),
+            "recent_form": get_recent_form(HOME_TEAM_NAME),
+            "injuries": scrape_injuries(HOME_URL_INJURIES, squad),
+            "squad": squad
+        }
 
-    print(f"✅ {filename} oluşturuldu.")
-    return jsonify({"message": f"{filename} başarıyla oluşturuldu."}), 200
+        filename = f"{HOME_TEAM_NAME.lower()}.json"
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(output_data, f, ensure_ascii=False, indent=2)
+
+        # GitHub push operations
+        github_token = os.getenv("GITHUB_TOKEN")
+        if not github_token:
+            return jsonify({"status": "error", "message": "GitHub token bulunamadı."}), 500
+
+        repo_url = f"https://{github_token}@github.com/providedtroubleshoot/json_api_server.git"
+
+        subprocess.run(["git", "checkout", "main"])
+        subprocess.run(["git", "config", "--local", "user.email", "bot@render.com"])
+        subprocess.run(["git", "config", "--local", "user.name", "Render Bot"])
+        subprocess.run(["git", "remote", "remove", "origin"], stderr=subprocess.DEVNULL)
+        subprocess.run(["git", "remote", "add", "origin", repo_url])
+        subprocess.run(["git", "add", filename])
+        subprocess.run(["git", "commit", "-m", f"Auto update {filename}"], check=True)
+
+        push_result = subprocess.run(["git", "push", "origin", "main"], capture_output=True, text=True)
+
+        if push_result.returncode != 0:
+            return jsonify({"status": "error", "message": push_result.stderr}), 500
+
+        print(f"✅ {filename} oluşturuldu ve pushlandı.")
+        return jsonify({"status": "success", "message": f"{filename} başarıyla oluşturuldu ve pushlandı."}), 200
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
