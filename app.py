@@ -140,33 +140,38 @@ def get_recent_form(TEAM_NAME):
 @app.route("/generate-json", methods=["POST"])
 def generate_json_api():
     data = request.get_json()
-    team_key = data.get("team")
+    home_team_key = data.get("home_team")
+    away_team_key = data.get("away_team")
 
-    if not team_key:
-        return jsonify({"error": "Takım adı belirtilmeli."}), 400
-
+    if not home_team_key or not away_team_key:
+        return jsonify({"error": "Ev sahibi ve deplasman takımları belirtilmeli."}), 400
     try:
-        team_info = get_team_info(team_key)
+        home_team_info = get_team_info(home_team_key)
+        away_team_info = get_team_info(away_team_key)
     except ValueError as e:
         return jsonify({"error": str(e)}), 404
 
-    TEAM_NAME = team_info["name"]
-    TEAM_SLUG = team_info["slug"]
-    TEAM_ID = team_info["id"]
+    HOME_TEAM_NAME = home_team_info["name"]
+    HOME_TEAM_SLUG = home_team_info["slug"]
+    HOME_TEAM_ID = home_team_info["id"]
 
-    URL_SQUAD = f"https://www.transfermarkt.com.tr/{TEAM_SLUG}/startseite/verein/{TEAM_ID}"
-    URL_INJURIES = f"https://www.transfermarkt.com.tr/{TEAM_SLUG}/sperrenundverletzungen/verein/{TEAM_ID}"
+    AWAY_TEAM_NAME = away_team_info["name"]
+    AWAY_TEAM_SLUG = away_team_info["slug"]
+    AWAY_TEAM_ID = away_team_info["id"]
 
-    squad = scrape_squad(URL_SQUAD)
+    HOME_URL_SQUAD = f"https://www.transfermarkt.com.tr/{HOME_TEAM_SLUG}/startseite/verein/{HOME_TEAM_ID}"
+    HOME_URL_INJURIES = f"https://www.transfermarkt.com.tr/{HOME_TEAM_SLUG}/sperrenundverletzungen/verein/{HOME_TEAM_ID}"
+
+    squad = scrape_squad(HOME_URL_SQUAD)
     data = {
-        "team": TEAM_NAME,
-        "position_in_league": get_league_position(TEAM_NAME),
-        "recent_form": get_recent_form(TEAM_NAME),
-        "injuries": scrape_injuries(URL_INJURIES, squad),
+        "team": HOME_TEAM_NAME,
+        "position_in_league": get_league_position(HOME_TEAM_NAME),
+        "recent_form": get_recent_form(HOME_TEAM_NAME),
+        "injuries": scrape_injuries(HOME_URL_INJURIES, squad),
         "squad": squad
     }
 
-    filename = f"{TEAM_NAME.lower()}.json"
+    filename = f"{HOME_TEAM_NAME.lower()}.json"
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
