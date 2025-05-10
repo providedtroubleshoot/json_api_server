@@ -4,7 +4,6 @@ import subprocess
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
-# Ortam değişkenlerini yükle (Render'da .env değil, doğrudan panel kullanılır)
 load_dotenv()
 
 app = Flask(__name__)
