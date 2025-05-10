@@ -1,0 +1,179 @@
+{
+  "team": "Göztepe",
+  "position_in_league": 7,
+  "recent_form": {
+    "wins": 2,
+    "draws": 2,
+    "losses": 1,
+    "last_matches": [
+      "B",
+      "M",
+      "B",
+      "G",
+      "G"
+    ]
+  },
+  "injuries": [
+    {
+      "name": "Isaac Solet",
+      "position": "Merkez Orta Saha"
+    },
+    {
+      "name": "Djalma Silva",
+      "position": "Orta Saha Sol"
+    },
+    {
+      "name": "Novatus Miroshi",
+      "position": "Ön Libero"
+    },
+    {
+      "name": "Kuryu Matsuki",
+      "position": "On Numara"
+    },
+    {
+      "name": "Doğan Erdoğan",
+      "position": "Ön Libero"
+    },
+    {
+      "name": "İsmail Köybaşı",
+      "position": "Orta Saha Sol"
+    }
+  ],
+  "squad": [
+    {
+      "name": "Mateusz Lis",
+      "position": "Kaleci",
+      "market_value": "1.80 mil. €"
+    },
+    {
+      "name": "Arda Özçimen",
+      "position": "Kaleci",
+      "market_value": "200 bin €"
+    },
+    {
+      "name": "Emircan Seçgin",
+      "position": "Kaleci",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Taha Altıkardeş",
+      "position": "Stoper",
+      "market_value": "5.50 mil. €"
+    },
+    {
+      "name": "Malcom Bokele",
+      "position": "Stoper",
+      "market_value": "2.40 mil. €"
+    },
+    {
+      "name": "Furkan Bayır",
+      "position": "Stoper",
+      "market_value": "1.50 mil. €"
+    },
+    {
+      "name": "Héliton",
+      "position": "Stoper",
+      "market_value": "950 bin €"
+    },
+    {
+      "name": "Koray Günter",
+      "position": "Stoper",
+      "market_value": "700 bin €"
+    },
+    {
+      "name": "Ege Yıldırım",
+      "position": "Stoper",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Anthony Dennis",
+      "position": "Ön Libero",
+      "market_value": "2.00 mil. €"
+    },
+    {
+      "name": "Novatus Miroshi",
+      "position": "Ön Libero",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Doğan Erdoğan",
+      "position": "Ön Libero",
+      "market_value": "300 bin €"
+    },
+    {
+      "name": "Isaac Solet",
+      "position": "Merkez Orta Saha",
+      "market_value": "800 bin €"
+    },
+    {
+      "name": "Ahmed Ildız",
+      "position": "Merkez Orta Saha",
+      "market_value": "325 bin €"
+    },
+    {
+      "name": "Ogün Bayrak",
+      "position": "Orta Saha Sağ",
+      "market_value": "800 bin €"
+    },
+    {
+      "name": "Nazım Sangaré",
+      "position": "Orta Saha Sağ",
+      "market_value": "375 bin €"
+    },
+    {
+      "name": "Lasse Nielsen",
+      "position": "Orta Saha Sağ",
+      "market_value": "75 bin €"
+    },
+    {
+      "name": "Djalma Silva",
+      "position": "Orta Saha Sol",
+      "market_value": "650 bin €"
+    },
+    {
+      "name": "İsmail Köybaşı",
+      "position": "Orta Saha Sol",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Victor Hugo",
+      "position": "On Numara",
+      "market_value": "4.50 mil. €"
+    },
+    {
+      "name": "Kuryu Matsuki",
+      "position": "On Numara",
+      "market_value": "2.50 mil. €"
+    },
+    {
+      "name": "David Tijanic",
+      "position": "On Numara",
+      "market_value": "1.40 mil. €"
+    },
+    {
+      "name": "Emir Enes Araz",
+      "position": "On Numara",
+      "market_value": "-"
+    },
+    {
+      "name": "Rômulo",
+      "position": "Santrafor",
+      "market_value": "7.00 mil. €"
+    },
+    {
+      "name": "Juan",
+      "position": "Santrafor",
+      "market_value": "2.50 mil. €"
+    },
+    {
+      "name": "Emersonn",
+      "position": "Santrafor",
+      "market_value": "1.20 mil. €"
+    },
+    {
+      "name": "Kubilay Kanatsızkuş",
+      "position": "Santrafor",
+      "market_value": "300 bin €"
+    }
+  ]
+}
