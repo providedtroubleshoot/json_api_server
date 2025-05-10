@@ -30,6 +30,8 @@ def generate_json():
         repo_url = f"https://{github_token}@github.com/providedtroubleshoot/json_api_server.git"
 
         # Git ayarları
+
+        subprocess.run(["git", "checkout", "main"])
         subprocess.run(["git", "config", "--local", "user.email", "bot@render.com"])
         subprocess.run(["git", "config", "--local", "user.name", "Render Bot"])
         subprocess.run(["git", "remote", "remove", "origin"], stderr=subprocess.DEVNULL)
