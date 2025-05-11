@@ -47,8 +47,9 @@ def get_soup(url):
     res.raise_for_status()
     return BeautifulSoup(res.text, "lxml")
 
-def scrape_squad(URL_SQUAD):
-    soup = get_soup(URL_SQUAD)
+def scrape_squad(team_slug, team_id):
+    url_squad = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
+    soup = get_soup(url_squad)
     table = soup.find("table", class_="items")
     rows = table.find_all("tr", class_=["odd", "even"])
 
@@ -67,9 +68,10 @@ def scrape_squad(URL_SQUAD):
 
     return players
 
-def scrape_injuries(URL_INJURIES, squad):
+def scrape_injuries(team_slug, team_id, squad):
     try:
-        soup_inj = get_soup(URL_INJURIES)
+        url_injuries = f"https://www.transfermarkt.com.tr/{team_slug}/sperrenundverletzungen/verein/{team_id}"
+        soup_inj = get_soup(url_injuries)
         injuries = []
 
         inj_header = soup_inj.find('td', string="Sakatlıklar")
@@ -94,10 +96,10 @@ def scrape_injuries(URL_INJURIES, squad):
         print(f"Sakat/Cezalı oyuncu verisi alınamadı: {e}", file=sys.stderr)
         return []
 
-def get_league_position(TEAM_NAME):
+def get_league_position(team_name):
     try:
-        URL_LEAGUE = "https://www.transfermarkt.com.tr/super-lig/tabelle/wettbewerb/TR1"
-        soup = get_soup(URL_LEAGUE)
+        url_league = "https://www.transfermarkt.com.tr/super-lig/tabelle/wettbewerb/TR1"
+        soup = get_soup(url_league)
         table = soup.find('table', class_='items')
         rows = table.find('tbody').find_all('tr', recursive=False)
         for row in rows:
@@ -106,23 +108,23 @@ def get_league_position(TEAM_NAME):
                 continue
             pos_text = cells[0].get_text(strip=True)
             name_text = cells[2].get_text(strip=True)
-            if name_text.lower() == TEAM_NAME.lower():
+            if name_text.lower() == team_name.lower():
                 return int(pos_text) if pos_text.isdigit() else pos_text
         return None
     except Exception as e:
         print(f"Lig sıralaması alınamadı: {e}", file=sys.stderr)
         return None
 
-def get_recent_form(TEAM_NAME):
+def get_recent_form(team_name):
     try:
-        URL_FORM = "https://www.transfermarkt.com.tr/super-lig/formtabelle/wettbewerb/TR1/"
-        res = requests.get(URL_FORM, headers=HEADERS)
+        url_form = "https://www.transfermarkt.com.tr/super-lig/formtabelle/wettbewerb/TR1/"
+        res = requests.get(url_form, headers=HEADERS)
         res.raise_for_status()
         soup = BeautifulSoup(res.text, "lxml")
         form_rows = soup.select("div.responsive-table table tbody tr")
         for row in form_rows:
             team_cell = row.select_one("td.no-border-links.hauptlink a")
-            if team_cell and TEAM_NAME.lower() in team_cell.text.lower():
+            if team_cell and team_name.lower() in team_cell.text.lower():
                 tds = row.find_all("td")
                 wins = int(tds[4].get_text(strip=True))
                 draws = int(tds[5].get_text(strip=True))
@@ -140,6 +142,21 @@ def get_recent_form(TEAM_NAME):
         print(f"Form verisi alınamadı: {e}", file=sys.stderr)
         return {}
 
+def generate_team_data(team_info):
+    team_name = team_info["name"]
+    team_slug = team_info["slug"]
+    team_id = team_info["id"]
+
+    squad = scrape_squad(team_slug, team_id)
+    output_data = {
+        "team": team_name,
+        "position_in_league": get_league_position(team_name),
+        "recent_form": get_recent_form(team_name),
+        "injuries": scrape_injuries(team_slug, team_id, squad),
+        "squad": squad
+    }
+    return output_data, f"{team_name.lower()}.json"
+
 @app.route("/")
 def index():
     return "API çalışıyor"
@@ -153,35 +170,25 @@ def generate_json_api():
 
         if not home_team_key or not away_team_key:
             return jsonify({"error": "Ev sahibi ve deplasman takımları belirtilmeli."}), 400
+
         try:
             home_team_info = get_team_info(home_team_key)
             away_team_info = get_team_info(away_team_key)
         except ValueError as e:
             return jsonify({"error": str(e)}), 404
 
-        HOME_TEAM_NAME = home_team_info["name"]
-        HOME_TEAM_SLUG = home_team_info["slug"]
-        HOME_TEAM_ID = home_team_info["id"]
+        # Generate data for both teams
+        teams_data = [
+            generate_team_data(home_team_info),
+            generate_team_data(away_team_info)
+        ]
 
-        AWAY_TEAM_NAME = away_team_info["name"]
-        AWAY_TEAM_SLUG = away_team_info["slug"]
-        AWAY_TEAM_ID = away_team_info["id"]
-
-        HOME_URL_SQUAD = f"https://www.transfermarkt.com.tr/{HOME_TEAM_SLUG}/startseite/verein/{HOME_TEAM_ID}"
-        HOME_URL_INJURIES = f"https://www.transfermarkt.com.tr/{HOME_TEAM_SLUG}/sperrenundverletzungen/verein/{HOME_TEAM_ID}"
-
-        squad = scrape_squad(HOME_URL_SQUAD)
-        output_data = {
-            "team": HOME_TEAM_NAME,
-            "position_in_league": get_league_position(HOME_TEAM_NAME),
-            "recent_form": get_recent_form(HOME_TEAM_NAME),
-            "injuries": scrape_injuries(HOME_URL_INJURIES, squad),
-            "squad": squad
-        }
-
-        filename = f"{HOME_TEAM_NAME.lower()}.json"
-        with open(filename, "w", encoding="utf-8") as f:
-            json.dump(output_data, f, ensure_ascii=False, indent=2)
+        # Write JSON files
+        generated_files = []
+        for output_data, filename in teams_data:
+            with open(filename, "w", encoding="utf-8") as f:
+                json.dump(output_data, f, ensure_ascii=False, indent=2)
+            generated_files.append(filename)
 
         # GitHub push operations
         github_token = os.getenv("GITHUB_TOKEN")
@@ -195,16 +202,23 @@ def generate_json_api():
         subprocess.run(["git", "config", "--local", "user.name", "Render Bot"])
         subprocess.run(["git", "remote", "remove", "origin"], stderr=subprocess.DEVNULL)
         subprocess.run(["git", "remote", "add", "origin", repo_url])
-        subprocess.run(["git", "add", filename])
-        subprocess.run(["git", "commit", "-m", f"Auto update {filename}"], check=True)
+
+        # Add all generated files
+        for filename in generated_files:
+            subprocess.run(["git", "add", filename])
+
+        subprocess.run(["git", "commit", "-m", f"Auto update {', '.join(generated_files)}"], check=True)
 
         push_result = subprocess.run(["git", "push", "origin", "main"], capture_output=True, text=True)
 
         if push_result.returncode != 0:
             return jsonify({"status": "error", "message": push_result.stderr}), 500
 
-        print(f"✅ {filename} oluşturuldu ve pushlandı.")
-        return jsonify({"status": "success", "message": f"{filename} başarıyla oluşturuldu ve pushlandı."}), 200
+        print(f"✅ {', '.join(generated_files)} oluşturuldu ve pushlandı.")
+        return jsonify({
+            "status": "success",
+            "message": f"{', '.join(generated_files)} başarıyla oluşturuldu ve pushlandı."
+        }), 200
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
