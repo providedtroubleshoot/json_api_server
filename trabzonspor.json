@@ -1,0 +1,172 @@
+{
+  "team": "Trabzonspor",
+  "position_in_league": 9,
+  "recent_form": {
+    "wins": 3,
+    "draws": 1,
+    "losses": 2,
+    "last_matches": [
+      "M",
+      "G",
+      "G",
+      "G",
+      "B",
+      "M"
+    ]
+  },
+  "injuries": [
+    {
+      "name": "Onuralp Çevikkan",
+      "position": "Kaleci"
+    },
+    {
+      "name": "Hüseyin Türkmen",
+      "position": "Stoper"
+    },
+    {
+      "name": "Tim Jabol-Folcarelli",
+      "position": "Merkez Orta Saha"
+    },
+    {
+      "name": "Stefan Savic",
+      "position": "Stoper"
+    }
+  ],
+  "squad": [
+    {
+      "name": "Uğurcan Çakır",
+      "position": "Kaleci",
+      "market_value": "8.00 mil. €"
+    },
+    {
+      "name": "Onuralp Çevikkan",
+      "position": "Kaleci",
+      "market_value": "1.20 mil. €"
+    },
+    {
+      "name": "Taha Tepe",
+      "position": "Kaleci",
+      "market_value": "100 bin €"
+    },
+    {
+      "name": "Ahmet Yıldırım",
+      "position": "Kaleci",
+      "market_value": "-"
+    },
+    {
+      "name": "Arseniy Batagov",
+      "position": "Stoper",
+      "market_value": "3.50 mil. €"
+    },
+    {
+      "name": "Serdar Saatçı",
+      "position": "Stoper",
+      "market_value": "3.00 mil. €"
+    },
+    {
+      "name": "Stefan Savic",
+      "position": "Stoper",
+      "market_value": "1.10 mil. €"
+    },
+    {
+      "name": "Hüseyin Türkmen",
+      "position": "Stoper",
+      "market_value": "150 bin €"
+    },
+    {
+      "name": "Ali Şahin Yılmaz",
+      "position": "Stoper",
+      "market_value": "100 bin €"
+    },
+    {
+      "name": "Mustafa Eskihellaç",
+      "position": "Sol Bek",
+      "market_value": "1.50 mil. €"
+    },
+    {
+      "name": "Arif Boşluk",
+      "position": "Sol Bek",
+      "market_value": "275 bin €"
+    },
+    {
+      "name": "Pedro Malheiro",
+      "position": "Sağ Bek",
+      "market_value": "5.50 mil. €"
+    },
+    {
+      "name": "Batista Mendy",
+      "position": "Ön Libero",
+      "market_value": "10.00 mil. €"
+    },
+    {
+      "name": "John Lundstram",
+      "position": "Ön Libero",
+      "market_value": "3.20 mil. €"
+    },
+    {
+      "name": "Okay Yokuşlu",
+      "position": "Ön Libero",
+      "market_value": "2.70 mil. €"
+    },
+    {
+      "name": "Salih Malkoçoğlu",
+      "position": "Ön Libero",
+      "market_value": "600 bin €"
+    },
+    {
+      "name": "Ozan Tufan",
+      "position": "Merkez Orta Saha",
+      "market_value": "2.40 mil. €"
+    },
+    {
+      "name": "Tim Jabol-Folcarelli",
+      "position": "Merkez Orta Saha",
+      "market_value": "2.00 mil. €"
+    },
+    {
+      "name": "Muhammed Cham",
+      "position": "On Numara",
+      "market_value": "5.50 mil. €"
+    },
+    {
+      "name": "Anthony Nwakaeme",
+      "position": "Sol Kanat",
+      "market_value": "800 bin €"
+    },
+    {
+      "name": "Oleksandr Zubkov",
+      "position": "Sağ Kanat",
+      "market_value": "8.00 mil. €"
+    },
+    {
+      "name": "Cihan Çanak",
+      "position": "Sağ Kanat",
+      "market_value": "3.70 mil. €"
+    },
+    {
+      "name": "Edin Visca",
+      "position": "Sağ Kanat",
+      "market_value": "1.60 mil. €"
+    },
+    {
+      "name": "Simon Banza",
+      "position": "Santrafor",
+      "market_value": "15.00 mil. €"
+    },
+    {
+      "name": "Danylo Sikan",
+      "position": "Santrafor",
+      "market_value": "6.00 mil. €"
+    },
+    {
+      "name": "Enis Destan",
+      "position": "Santrafor",
+      "market_value": "4.00 mil. €"
+    },
+    {
+      "name": "Denis Drăguș",
+      "position": "Santrafor",
+      "market_value": "3.80 mil. €"
+    }
+  ]
+}
