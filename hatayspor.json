@@ -1,0 +1,162 @@
+{
+  "team": "Hatayspor",
+  "position_in_league": 18,
+  "recent_form": {
+    "wins": 0,
+    "draws": 1,
+    "losses": 5,
+    "last_matches": [
+      "M",
+      "M",
+      "M",
+      "M",
+      "M",
+      "B"
+    ]
+  },
+  "injuries": [
+    {
+      "name": "Lamine Diack",
+      "position": "Ön Libero"
+    },
+    {
+      "name": "Rui Pedro",
+      "position": "On Numara"
+    },
+    {
+      "name": "Funsho Bamgboye",
+      "position": "Sağ Kanat"
+    },
+    {
+      "name": "Abdulkadir Parmak",
+      "position": "Merkez Orta Saha"
+    }
+  ],
+  "squad": [
+    {
+      "name": "Visar Bekaj",
+      "position": "Kaleci",
+      "market_value": "450 bin €"
+    },
+    {
+      "name": "Emir Dadük",
+      "position": "Kaleci",
+      "market_value": "100 bin €"
+    },
+    {
+      "name": "Demir Sarıcalı",
+      "position": "Kaleci",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Guy-Marcelin Kilama",
+      "position": "Stoper",
+      "market_value": "1.50 mil. €"
+    },
+    {
+      "name": "Francisco Calvo",
+      "position": "Stoper",
+      "market_value": "900 bin €"
+    },
+    {
+      "name": "Cengiz Demir",
+      "position": "Stoper",
+      "market_value": "300 bin €"
+    },
+    {
+      "name": "Burak Yılmaz",
+      "position": "Stoper",
+      "market_value": "175 bin €"
+    },
+    {
+      "name": "Yiğit Ali Buz",
+      "position": "Stoper",
+      "market_value": "-"
+    },
+    {
+      "name": "Cemali Sertel",
+      "position": "Sol Bek",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Kerim Alıcı",
+      "position": "Sağ Bek",
+      "market_value": "200 bin €"
+    },
+    {
+      "name": "Kamil Ahmet Çörekçi",
+      "position": "Sağ Bek",
+      "market_value": "150 bin €"
+    },
+    {
+      "name": "Chandrel Massanga",
+      "position": "Ön Libero",
+      "market_value": "1.20 mil. €"
+    },
+    {
+      "name": "Lamine Diack",
+      "position": "Ön Libero",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Selimcan Temel",
+      "position": "Ön Libero",
+      "market_value": "100 bin €"
+    },
+    {
+      "name": "Görkem Sağlam",
+      "position": "Merkez Orta Saha",
+      "market_value": "1.10 mil. €"
+    },
+    {
+      "name": "Abdulkadir Parmak",
+      "position": "Merkez Orta Saha",
+      "market_value": "175 bin €"
+    },
+    {
+      "name": "Ali Yıldız",
+      "position": "Merkez Orta Saha",
+      "market_value": "75 bin €"
+    },
+    {
+      "name": "Rui Pedro",
+      "position": "On Numara",
+      "market_value": "600 bin €"
+    },
+    {
+      "name": "Baran Sarka",
+      "position": "On Numara",
+      "market_value": "75 bin €"
+    },
+    {
+      "name": "Joelson Fernandes",
+      "position": "Sol Kanat",
+      "market_value": "1.60 mil. €"
+    },
+    {
+      "name": "Bilal Boutobba",
+      "position": "Sağ Kanat",
+      "market_value": "1.40 mil. €"
+    },
+    {
+      "name": "Funsho Bamgboye",
+      "position": "Sağ Kanat",
+      "market_value": "650 bin €"
+    },
+    {
+      "name": "Carlos Strandberg",
+      "position": "Santrafor",
+      "market_value": "1.40 mil. €"
+    },
+    {
+      "name": "Jonathan Okoronkwo",
+      "position": "Santrafor",
+      "market_value": "900 bin €"
+    },
+    {
+      "name": "Deniz Aksoy",
+      "position": "Santrafor",
+      "market_value": "-"
+    }
+  ]
+}

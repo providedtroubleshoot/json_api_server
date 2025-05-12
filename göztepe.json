@@ -3,14 +3,15 @@
   "position_in_league": 7,
   "recent_form": {
     "wins": 2,
-    "draws": 2,
+    "draws": 3,
     "losses": 1,
     "last_matches": [
       "B",
       "M",
       "B",
       "G",
-      "G"
+      "G",
+      "B"
     ]
   },
   "injuries": [
