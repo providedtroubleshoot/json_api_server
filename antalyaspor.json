@@ -1,0 +1,172 @@
+{
+  "team": "Antalyaspor",
+  "position_in_league": 11,
+  "recent_form": {
+    "wins": 2,
+    "draws": 1,
+    "losses": 1,
+    "last_matches": [
+      "G",
+      "B",
+      "M",
+      "G"
+    ]
+  },
+  "injuries": [
+    {
+      "name": "Erdoğan Yeşilyurt",
+      "position": "Sağ Bek"
+    },
+    {
+      "name": "Emre Uzun",
+      "position": "On Numara"
+    }
+  ],
+  "squad": [
+    {
+      "name": "Kenan Piric",
+      "position": "Kaleci",
+      "market_value": "600 bin €"
+    },
+    {
+      "name": "Abdullah Yiğiter",
+      "position": "Kaleci",
+      "market_value": "125 bin €"
+    },
+    {
+      "name": "Doğukan Özkan",
+      "position": "Kaleci",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Thalisson",
+      "position": "Stoper",
+      "market_value": "700 bin €"
+    },
+    {
+      "name": "Emrecan Uzunhan",
+      "position": "Stoper",
+      "market_value": "500 bin €"
+    },
+    {
+      "name": "Bahadır Öztürk",
+      "position": "Stoper",
+      "market_value": "375 bin €"
+    },
+    {
+      "name": "Amar Gerxhaliu",
+      "position": "Stoper",
+      "market_value": "300 bin €"
+    },
+    {
+      "name": "Veysel Sarı",
+      "position": "Stoper",
+      "market_value": "125 bin €"
+    },
+    {
+      "name": "Abdurrahim Dursun",
+      "position": "Sol Bek",
+      "market_value": "250 bin €"
+    },
+    {
+      "name": "Güray Vural",
+      "position": "Sol Bek",
+      "market_value": "100 bin €"
+    },
+    {
+      "name": "Bünyamin Balcı",
+      "position": "Sağ Bek",
+      "market_value": "2.00 mil. €"
+    },
+    {
+      "name": "Erdoğan Yeşilyurt",
+      "position": "Sağ Bek",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Mert Yılmaz",
+      "position": "Sağ Bek",
+      "market_value": "225 bin €"
+    },
+    {
+      "name": "Jakub Kaluzinski",
+      "position": "Ön Libero",
+      "market_value": "3.50 mil. €"
+    },
+    {
+      "name": "Oleksandr Petrusenko",
+      "position": "Ön Libero",
+      "market_value": "1.20 mil. €"
+    },
+    {
+      "name": "Soner Dikmen",
+      "position": "Merkez Orta Saha",
+      "market_value": "1.20 mil. €"
+    },
+    {
+      "name": "Erdal Rakip",
+      "position": "Merkez Orta Saha",
+      "market_value": "800 bin €"
+    },
+    {
+      "name": "Burak İngenç",
+      "position": "Merkez Orta Saha",
+      "market_value": "200 bin €"
+    },
+    {
+      "name": "Mevlüt Han Ekelik",
+      "position": "Merkez Orta Saha",
+      "market_value": "75 bin €"
+    },
+    {
+      "name": "Sam Larsson",
+      "position": "On Numara",
+      "market_value": "1.40 mil. €"
+    },
+    {
+      "name": "Ramzi Safuri",
+      "position": "On Numara",
+      "market_value": "1.30 mil. €"
+    },
+    {
+      "name": "Sander van de Streek",
+      "position": "On Numara",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Emre Uzun",
+      "position": "On Numara",
+      "market_value": "900 bin €"
+    },
+    {
+      "name": "Deni Milosevic",
+      "position": "On Numara",
+      "market_value": "150 bin €"
+    },
+    {
+      "name": "Moussa Djenepo",
+      "position": "Sol Kanat",
+      "market_value": "2.30 mil. €"
+    },
+    {
+      "name": "Taha Osman Özmert",
+      "position": "Sol Kanat",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Andros Townsend",
+      "position": "Sağ Kanat",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Adolfo Gaich",
+      "position": "Santrafor",
+      "market_value": "1.40 mil. €"
+    },
+    {
+      "name": "Braian Samudio",
+      "position": "Santrafor",
+      "market_value": "1.20 mil. €"
+    }
+  ]
+}

@@ -1,0 +1,168 @@
+{
+  "team": "Kayserispor",
+  "position_in_league": 13,
+  "recent_form": {
+    "wins": 3,
+    "draws": 2,
+    "losses": 0,
+    "last_matches": [
+      "G",
+      "G",
+      "B",
+      "G",
+      "B"
+    ]
+  },
+  "injuries": [
+    {
+      "name": "Yaw Ackah",
+      "position": "Ön Libero"
+    },
+    {
+      "name": "Stéphane Bahoken",
+      "position": "Santrafor"
+    }
+  ],
+  "squad": [
+    {
+      "name": "Bilal Bayazıt",
+      "position": "Kaleci",
+      "market_value": "2.00 mil. €"
+    },
+    {
+      "name": "Onurcan Piri",
+      "position": "Kaleci",
+      "market_value": "200 bin €"
+    },
+    {
+      "name": "Şamil Öztürk",
+      "position": "Kaleci",
+      "market_value": "100 bin €"
+    },
+    {
+      "name": "Majid Hosseini",
+      "position": "Stoper",
+      "market_value": "1.30 mil. €"
+    },
+    {
+      "name": "Arif Kocaman",
+      "position": "Stoper",
+      "market_value": "1.30 mil. €"
+    },
+    {
+      "name": "Joseph Attamah",
+      "position": "Stoper",
+      "market_value": "500 bin €"
+    },
+    {
+      "name": "Julian Jeanvier",
+      "position": "Stoper",
+      "market_value": "500 bin €"
+    },
+    {
+      "name": "Dimitrios Kolovetsios",
+      "position": "Stoper",
+      "market_value": "325 bin €"
+    },
+    {
+      "name": "Bilal Ceylan",
+      "position": "Stoper",
+      "market_value": "-"
+    },
+    {
+      "name": "Batuhan Özgan",
+      "position": "Stoper",
+      "market_value": "-"
+    },
+    {
+      "name": "Lionel Carole",
+      "position": "Sol Bek",
+      "market_value": "400 bin €"
+    },
+    {
+      "name": "Hasan Ali Kaldırım",
+      "position": "Sol Bek",
+      "market_value": "100 bin €"
+    },
+    {
+      "name": "Gökhan Sazdağı",
+      "position": "Sağ Bek",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Anthony Uzodimma",
+      "position": "Sağ Bek",
+      "market_value": "225 bin €"
+    },
+    {
+      "name": "Kartal Yılmaz",
+      "position": "Ön Libero",
+      "market_value": "2.50 mil. €"
+    },
+    {
+      "name": "Baran Gezek",
+      "position": "Ön Libero",
+      "market_value": "900 bin €"
+    },
+    {
+      "name": "Yaw Ackah",
+      "position": "Ön Libero",
+      "market_value": "325 bin €"
+    },
+    {
+      "name": "Berat Eskin",
+      "position": "Ön Libero",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Mehdi Bourabia",
+      "position": "Merkez Orta Saha",
+      "market_value": "650 bin €"
+    },
+    {
+      "name": "Ali Karimi",
+      "position": "Merkez Orta Saha",
+      "market_value": "500 bin €"
+    },
+    {
+      "name": "Eray Özbek",
+      "position": "On Numara",
+      "market_value": "325 bin €"
+    },
+    {
+      "name": "Miguel Cardoso",
+      "position": "Sol Kanat",
+      "market_value": "2.00 mil. €"
+    },
+    {
+      "name": "Carlos Mané",
+      "position": "Sol Kanat",
+      "market_value": "1.10 mil. €"
+    },
+    {
+      "name": "Nurettin Korkmaz",
+      "position": "Sol Kanat",
+      "market_value": "75 bin €"
+    },
+    {
+      "name": "Ramazan Civelek",
+      "position": "Sağ Kanat",
+      "market_value": "600 bin €"
+    },
+    {
+      "name": "Duckens Nazon",
+      "position": "Santrafor",
+      "market_value": "1.20 mil. €"
+    },
+    {
+      "name": "Stéphane Bahoken",
+      "position": "Santrafor",
+      "market_value": "550 bin €"
+    },
+    {
+      "name": "Talha Sarıarslan",
+      "position": "Santrafor",
+      "market_value": "250 bin €"
+    }
+  ]
+}
