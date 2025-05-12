@@ -1,0 +1,187 @@
+{
+  "team": "Beşiktaş",
+  "position_in_league": 3,
+  "recent_form": {
+    "wins": 3,
+    "draws": 2,
+    "losses": 1,
+    "last_matches": [
+      "B",
+      "M",
+      "B",
+      "G",
+      "G",
+      "G"
+    ]
+  },
+  "injuries": [
+    {
+      "name": "Bakhtiyor Zaynutdinov",
+      "position": "Sol Bek"
+    },
+    {
+      "name": "Élan Ricardo",
+      "position": "Merkez Orta Saha"
+    },
+    {
+      "name": "Emirhan Topçu",
+      "position": "Stoper"
+    },
+    {
+      "name": "Salih Uçan",
+      "position": "Merkez Orta Saha"
+    }
+  ],
+  "squad": [
+    {
+      "name": "Ersin Destanoğlu",
+      "position": "Kaleci",
+      "market_value": "2.00 mil. €"
+    },
+    {
+      "name": "Mert Günok",
+      "position": "Kaleci",
+      "market_value": "1.20 mil. €"
+    },
+    {
+      "name": "Emir Yaşar",
+      "position": "Kaleci",
+      "market_value": "175 bin €"
+    },
+    {
+      "name": "Göktuğ Baytekin",
+      "position": "Kaleci",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Felix Uduokhai",
+      "position": "Stoper",
+      "market_value": "8.00 mil. €"
+    },
+    {
+      "name": "Emirhan Topçu",
+      "position": "Stoper",
+      "market_value": "5.50 mil. €"
+    },
+    {
+      "name": "Tayyip Talha Sanuç",
+      "position": "Stoper",
+      "market_value": "2.50 mil. €"
+    },
+    {
+      "name": "Gabriel Paulista",
+      "position": "Stoper",
+      "market_value": "1.10 mil. €"
+    },
+    {
+      "name": "Necip Uysal",
+      "position": "Stoper",
+      "market_value": "500 bin €"
+    },
+    {
+      "name": "Bakhtiyor Zaynutdinov",
+      "position": "Sol Bek",
+      "market_value": "3.30 mil. €"
+    },
+    {
+      "name": "Arthur Masuaku",
+      "position": "Sol Bek",
+      "market_value": "3.20 mil. €"
+    },
+    {
+      "name": "Emrecan Terzi",
+      "position": "Sol Bek",
+      "market_value": "225 bin €"
+    },
+    {
+      "name": "Jonas Svensson",
+      "position": "Sağ Bek",
+      "market_value": "1.60 mil. €"
+    },
+    {
+      "name": "Onur Bulut",
+      "position": "Sağ Bek",
+      "market_value": "1.10 mil. €"
+    },
+    {
+      "name": "Arda Berk Özüarap",
+      "position": "Sağ Bek",
+      "market_value": "-"
+    },
+    {
+      "name": "Amir Hadziahmetovic",
+      "position": "Ön Libero",
+      "market_value": "5.00 mil. €"
+    },
+    {
+      "name": "Gedson Fernandes",
+      "position": "Merkez Orta Saha",
+      "market_value": "18.00 mil. €"
+    },
+    {
+      "name": "Salih Uçan",
+      "position": "Merkez Orta Saha",
+      "market_value": "2.20 mil. €"
+    },
+    {
+      "name": "Alex Oxlade-Chamberlain",
+      "position": "Merkez Orta Saha",
+      "market_value": "2.20 mil. €"
+    },
+    {
+      "name": "Élan Ricardo",
+      "position": "Merkez Orta Saha",
+      "market_value": "2.20 mil. €"
+    },
+    {
+      "name": "Fahri Ay",
+      "position": "Merkez Orta Saha",
+      "market_value": "200 bin €"
+    },
+    {
+      "name": "Ernest Muci",
+      "position": "Sol Kanat",
+      "market_value": "11.00 mil. €"
+    },
+    {
+      "name": "João Mário",
+      "position": "Sol Kanat",
+      "market_value": "2.30 mil. €"
+    },
+    {
+      "name": "Arda Kılıç",
+      "position": "Sol Kanat",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Milot Rashica",
+      "position": "Sağ Kanat",
+      "market_value": "7.50 mil. €"
+    },
+    {
+      "name": "Keny Arroyo",
+      "position": "Sağ Kanat",
+      "market_value": "7.00 mil. €"
+    },
+    {
+      "name": "Rafa Silva",
+      "position": "Forvet Arkası",
+      "market_value": "10.00 mil. €"
+    },
+    {
+      "name": "Semih Kılıçsoy",
+      "position": "Santrafor",
+      "market_value": "14.00 mil. €"
+    },
+    {
+      "name": "Mustafa Hekimoğlu",
+      "position": "Santrafor",
+      "market_value": "3.00 mil. €"
+    },
+    {
+      "name": "Ciro Immobile",
+      "position": "Santrafor",
+      "market_value": "2.80 mil. €"
+    }
+  ]
+}
