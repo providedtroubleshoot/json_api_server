@@ -155,7 +155,7 @@ def generate_team_data(team_info):
         "injuries": scrape_injuries(team_slug, team_id, squad),
         "squad": squad
     }
-    return output_data, f"team_status/{team_name.lower()}.json"
+    return output_data, f"{team_name.lower()}.json"
 
 @app.route("/")
 def index():
