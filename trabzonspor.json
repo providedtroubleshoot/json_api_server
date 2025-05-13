@@ -4,9 +4,8 @@
   "recent_form": {
     "wins": 3,
     "draws": 1,
-    "losses": 2,
+    "losses": 1,
     "last_matches": [
-      "M",
       "G",
       "G",
       "G",
@@ -28,8 +27,12 @@
       "position": "Merkez Orta Saha"
     },
     {
-      "name": "Stefan Savic",
-      "position": "Stoper"
+      "name": "Enis Destan",
+      "position": "Santrafor"
+    },
+    {
+      "name": "Ahmet Yıldırım",
+      "position": "Kaleci"
     }
   ],
   "squad": [
