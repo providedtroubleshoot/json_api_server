@@ -1,4 +1,4 @@
-import json
+	import json
 import requests
 from bs4 import BeautifulSoup
 import sys
@@ -155,7 +155,7 @@ def generate_team_data(team_info):
         "injuries": scrape_injuries(team_slug, team_id, squad),
         "squad": squad
     }
-    return output_data, f"{team_name.lower()}.json"
+    return output_data, f"team_status/{team_name.lower()}.json"
 
 @app.route("/")
 def index():
@@ -185,7 +185,11 @@ def generate_json_api():
 
         # Write JSON files
         generated_files = []
-        for output_data, filename in teams_data:
+        folder_path = "team_status"
+	os.makedirs(folder_path, exist_ok=True)
+
+	for output_data, filename in teams_data:
+	    file_path = os.path.join(folder_path, filename)
             with open(filename, "w", encoding="utf-8") as f:
                 json.dump(output_data, f, ensure_ascii=False, indent=2)
             generated_files.append(filename)
@@ -205,7 +209,7 @@ def generate_json_api():
 
         # Add all generated files
         for filename in generated_files:
-            subprocess.run(["git", "add", filename])
+            subprocess.run(["git", "add", file_path])
 
         subprocess.run(["git", "commit", "-m", f"Auto update {', '.join(generated_files)}"], check=True)
 
