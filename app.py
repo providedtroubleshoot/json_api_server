@@ -186,13 +186,13 @@ def generate_json_api():
         # Write JSON files
         generated_files = []
         folder_path = "team_status"
-	os.makedirs(folder_path, exist_ok=True)
+        os.makedirs(folder_path, exist_ok=True)
 
-	for output_data, filename in teams_data:
-	    file_path = os.path.join(folder_path, filename)
-            with open(filename, "w", encoding="utf-8") as f:
+        for output_data, filename in teams_data:
+            file_path = os.path.join(folder_path, filename)
+            with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(output_data, f, ensure_ascii=False, indent=2)
-            generated_files.append(filename)
+            generated_files.append(file_path)
 
         # GitHub push operations
         github_token = os.getenv("GITHUB_TOKEN")
@@ -208,7 +208,7 @@ def generate_json_api():
         subprocess.run(["git", "remote", "add", "origin", repo_url])
 
         # Add all generated files
-        for filename in generated_files:
+        for file_path in generated_files:
             subprocess.run(["git", "add", file_path])
 
         subprocess.run(["git", "commit", "-m", f"Auto update {', '.join(generated_files)}"], check=True)
