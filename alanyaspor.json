@@ -1,0 +1,143 @@
+{
+  "team": "Alanyaspor",
+  "position_in_league": 15,
+  "recent_form": {
+    "wins": 2,
+    "draws": 1,
+    "losses": 1,
+    "last_matches": [
+      "G",
+      "M",
+      "B",
+      "G"
+    ]
+  },
+  "injuries": [
+    {
+      "name": "Buluthan Bulut",
+      "position": "Merkez Orta Saha"
+    }
+  ],
+  "squad": [
+    {
+      "name": "Mert Bayram",
+      "position": "Kaleci",
+      "market_value": "100 bin €"
+    },
+    {
+      "name": "Ertuğrul Taşkıran",
+      "position": "Kaleci",
+      "market_value": "75 bin €"
+    },
+    {
+      "name": "Yusuf Karagöz",
+      "position": "Kaleci",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Fatih Aksoy",
+      "position": "Stoper",
+      "market_value": "1.50 mil. €"
+    },
+    {
+      "name": "Nuno Lima",
+      "position": "Stoper",
+      "market_value": "1.30 mil. €"
+    },
+    {
+      "name": "Fidan Aliti",
+      "position": "Stoper",
+      "market_value": "950 bin €"
+    },
+    {
+      "name": "Umut Mert Toy",
+      "position": "Stoper",
+      "market_value": "75 bin €"
+    },
+    {
+      "name": "Yusuf Özdemir",
+      "position": "Sol Bek",
+      "market_value": "2.60 mil. €"
+    },
+    {
+      "name": "Jure Balkovec",
+      "position": "Sol Bek",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Florent Hadergjonaj",
+      "position": "Sağ Bek",
+      "market_value": "1.60 mil. €"
+    },
+    {
+      "name": "Batuhan Yavuz",
+      "position": "Sağ Bek",
+      "market_value": "75 bin €"
+    },
+    {
+      "name": "Richard",
+      "position": "Ön Libero",
+      "market_value": "750 bin €"
+    },
+    {
+      "name": "Gaius Makouta",
+      "position": "Merkez Orta Saha",
+      "market_value": "2.30 mil. €"
+    },
+    {
+      "name": "Tonny Vilhena",
+      "position": "Merkez Orta Saha",
+      "market_value": "1.50 mil. €"
+    },
+    {
+      "name": "Nicolas Janvier",
+      "position": "Merkez Orta Saha",
+      "market_value": "750 bin €"
+    },
+    {
+      "name": "Enes Keskin",
+      "position": "Merkez Orta Saha",
+      "market_value": "500 bin €"
+    },
+    {
+      "name": "Buluthan Bulut",
+      "position": "Merkez Orta Saha",
+      "market_value": "75 bin €"
+    },
+    {
+      "name": "Efecan Karaca",
+      "position": "On Numara",
+      "market_value": "300 bin €"
+    },
+    {
+      "name": "Eren Altıntaş",
+      "position": "On Numara",
+      "market_value": "100 bin €"
+    },
+    {
+      "name": "Yusuf Kurt",
+      "position": "On Numara",
+      "market_value": "-"
+    },
+    {
+      "name": "Andraz Sporar",
+      "position": "Santrafor",
+      "market_value": "2.00 mil. €"
+    },
+    {
+      "name": "Sergio Córdova",
+      "position": "Santrafor",
+      "market_value": "1.80 mil. €"
+    },
+    {
+      "name": "Ui-jo Hwang",
+      "position": "Santrafor",
+      "market_value": "900 bin €"
+    },
+    {
+      "name": "Arda Usluoğlu",
+      "position": "Santrafor",
+      "market_value": "350 bin €"
+    }
+  ]
+}

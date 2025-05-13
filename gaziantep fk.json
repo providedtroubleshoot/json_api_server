@@ -1,0 +1,170 @@
+{
+  "team": "Gaziantep FK",
+  "position_in_league": 13,
+  "recent_form": {
+    "wins": 1,
+    "draws": 0,
+    "losses": 4,
+    "last_matches": [
+      "G",
+      "M",
+      "M",
+      "M",
+      "M"
+    ]
+  },
+  "injuries": [
+    {
+      "name": "Arda Kızıldağ",
+      "position": "Stoper"
+    },
+    {
+      "name": "Christopher Lungoyi",
+      "position": "Sol Kanat"
+    },
+    {
+      "name": "Furkan Soyalp",
+      "position": "Merkez Orta Saha"
+    },
+    {
+      "name": "Quentin Daubin",
+      "position": "Merkez Orta Saha"
+    },
+    {
+      "name": "Emre Taşdemir",
+      "position": "Sol Bek"
+    }
+  ],
+  "squad": [
+    {
+      "name": "Sokratis Dioudis",
+      "position": "Kaleci",
+      "market_value": "275 bin €"
+    },
+    {
+      "name": "Burak Bozan",
+      "position": "Kaleci",
+      "market_value": "275 bin €"
+    },
+    {
+      "name": "Halil Bağcı",
+      "position": "Kaleci",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Semih Güler",
+      "position": "Stoper",
+      "market_value": "1.10 mil. €"
+    },
+    {
+      "name": "Bruno Viana",
+      "position": "Stoper",
+      "market_value": "1.10 mil. €"
+    },
+    {
+      "name": "Arda Kızıldağ",
+      "position": "Stoper",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Anel Husic",
+      "position": "Stoper",
+      "market_value": "700 bin €"
+    },
+    {
+      "name": "İzzet Erdal",
+      "position": "Stoper",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Godfrey Stephen",
+      "position": "Sol Bek",
+      "market_value": "275 bin €"
+    },
+    {
+      "name": "Emre Taşdemir",
+      "position": "Sol Bek",
+      "market_value": "125 bin €"
+    },
+    {
+      "name": "Salem M'Bakata",
+      "position": "Sağ Bek",
+      "market_value": "550 bin €"
+    },
+    {
+      "name": "Ömürcan Artan",
+      "position": "Sağ Bek",
+      "market_value": "225 bin €"
+    },
+    {
+      "name": "Badou Ndiaye",
+      "position": "Ön Libero",
+      "market_value": "425 bin €"
+    },
+    {
+      "name": "Ogün Özçiçek",
+      "position": "Ön Libero",
+      "market_value": "400 bin €"
+    },
+    {
+      "name": "Furkan Soyalp",
+      "position": "Merkez Orta Saha",
+      "market_value": "475 bin €"
+    },
+    {
+      "name": "Quentin Daubin",
+      "position": "Merkez Orta Saha",
+      "market_value": "350 bin €"
+    },
+    {
+      "name": "Kacper Kozlowski",
+      "position": "On Numara",
+      "market_value": "4.20 mil. €"
+    },
+    {
+      "name": "Alexandru Maxim",
+      "position": "On Numara",
+      "market_value": "600 bin €"
+    },
+    {
+      "name": "Muhammed Gümüşkaya",
+      "position": "On Numara",
+      "market_value": "400 bin €"
+    },
+    {
+      "name": "Burak Enes Yıkıcı",
+      "position": "On Numara",
+      "market_value": "-"
+    },
+    {
+      "name": "Christopher Lungoyi",
+      "position": "Sol Kanat",
+      "market_value": "800 bin €"
+    },
+    {
+      "name": "Deian Sorescu",
+      "position": "Sağ Kanat",
+      "market_value": "2.00 mil. €"
+    },
+    {
+      "name": "David Okereke",
+      "position": "Santrafor",
+      "market_value": "2.20 mil. €"
+    },
+    {
+      "name": "Emmanuel Boateng",
+      "position": "Santrafor",
+      "market_value": "1.50 mil. €"
+    },
+    {
+      "name": "Kenan Kodro",
+      "position": "Santrafor",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Halil Dervişoğlu",
+      "position": "Santrafor",
+      "market_value": "900 bin €"
+    }
+  ]
+}
