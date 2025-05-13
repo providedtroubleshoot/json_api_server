@@ -1,0 +1,181 @@
+{
+  "team": "Eyüpspor",
+  "position_in_league": 6,
+  "recent_form": {
+    "wins": 1,
+    "draws": 0,
+    "losses": 4,
+    "last_matches": [
+      "G",
+      "M",
+      "M",
+      "M",
+      "M"
+    ]
+  },
+  "injuries": [
+    {
+      "name": "Fredrik Midtsjø",
+      "position": "Merkez Orta Saha"
+    },
+    {
+      "name": "Taşkın İlter",
+      "position": "Ön Libero"
+    },
+    {
+      "name": "Sinan Gümüş",
+      "position": "Sağ Kanat"
+    },
+    {
+      "name": "Robin Yalçın",
+      "position": "Stoper"
+    }
+  ],
+  "squad": [
+    {
+      "name": "Berke Özer",
+      "position": "Kaleci",
+      "market_value": "5.00 mil. €"
+    },
+    {
+      "name": "Birkan Tetik",
+      "position": "Kaleci",
+      "market_value": "100 bin €"
+    },
+    {
+      "name": "Alp Köseer",
+      "position": "Kaleci",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Rúben Vezo",
+      "position": "Stoper",
+      "market_value": "1.40 mil. €"
+    },
+    {
+      "name": "Robin Yalçın",
+      "position": "Stoper",
+      "market_value": "650 bin €"
+    },
+    {
+      "name": "Luccas Claro",
+      "position": "Stoper",
+      "market_value": "400 bin €"
+    },
+    {
+      "name": "Umut Meraş",
+      "position": "Sol Bek",
+      "market_value": "400 bin €"
+    },
+    {
+      "name": "Caner Erkin",
+      "position": "Sol Bek",
+      "market_value": "150 bin €"
+    },
+    {
+      "name": "Léo Dubois",
+      "position": "Sağ Bek",
+      "market_value": "2.50 mil. €"
+    },
+    {
+      "name": "Erdem Gökçe",
+      "position": "Sağ Bek",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Taras Stepanenko",
+      "position": "Ön Libero",
+      "market_value": "1.10 mil. €"
+    },
+    {
+      "name": "Melih Kabasakal",
+      "position": "Ön Libero",
+      "market_value": "700 bin €"
+    },
+    {
+      "name": "Taşkın İlter",
+      "position": "Ön Libero",
+      "market_value": "225 bin €"
+    },
+    {
+      "name": "Fredrik Midtsjø",
+      "position": "Merkez Orta Saha",
+      "market_value": "1.40 mil. €"
+    },
+    {
+      "name": "Dorukhan Toköz",
+      "position": "Merkez Orta Saha",
+      "market_value": "1.20 mil. €"
+    },
+    {
+      "name": "Yalçın Kayan",
+      "position": "Merkez Orta Saha",
+      "market_value": "600 bin €"
+    },
+    {
+      "name": "Tayfur Bingöl",
+      "position": "Merkez Orta Saha",
+      "market_value": "550 bin €"
+    },
+    {
+      "name": "Hamza Akman",
+      "position": "Merkez Orta Saha",
+      "market_value": "300 bin €"
+    },
+    {
+      "name": "Erdem Çalık",
+      "position": "Merkez Orta Saha",
+      "market_value": "125 bin €"
+    },
+    {
+      "name": "İsmail Can Fidan",
+      "position": "Merkez Orta Saha",
+      "market_value": "-"
+    },
+    {
+      "name": "Emre Akbaba",
+      "position": "On Numara",
+      "market_value": "900 bin €"
+    },
+    {
+      "name": "Recep Niyaz",
+      "position": "On Numara",
+      "market_value": "400 bin €"
+    },
+    {
+      "name": "Prince Ampem",
+      "position": "Sol Kanat",
+      "market_value": "1.50 mil. €"
+    },
+    {
+      "name": "Emre Mor",
+      "position": "Sağ Kanat",
+      "market_value": "1.40 mil. €"
+    },
+    {
+      "name": "Halil Akbunar",
+      "position": "Sağ Kanat",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Hüseyin Maldar",
+      "position": "Sağ Kanat",
+      "market_value": "125 bin €"
+    },
+    {
+      "name": "Sinan Gümüş",
+      "position": "Sağ Kanat",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Mame Thiam",
+      "position": "Santrafor",
+      "market_value": "2.00 mil. €"
+    },
+    {
+      "name": "Umut Bozok",
+      "position": "Santrafor",
+      "market_value": "1.40 mil. €"
+    }
+  ]
+}
