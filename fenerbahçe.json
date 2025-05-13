@@ -1,0 +1,181 @@
+{
+  "team": "Fenerbahçe",
+  "position_in_league": 2,
+  "recent_form": {
+    "wins": 3,
+    "draws": 1,
+    "losses": 1,
+    "last_matches": [
+      "G",
+      "B",
+      "G",
+      "M",
+      "G"
+    ]
+  },
+  "injuries": [
+    {
+      "name": "Rodrigo Becão",
+      "position": "Stoper"
+    },
+    {
+      "name": "Mert Hakan Yandaş",
+      "position": "On Numara"
+    },
+    {
+      "name": "Jayden Oosterwolde",
+      "position": "Sol Bek"
+    },
+    {
+      "name": "Allan Saint-Maximin",
+      "position": "Sol Kanat"
+    }
+  ],
+  "squad": [
+    {
+      "name": "Dominik Livaković",
+      "position": "Kaleci",
+      "market_value": "10.00 mil. €"
+    },
+    {
+      "name": "İrfan Can Eğribayat",
+      "position": "Kaleci",
+      "market_value": "2.50 mil. €"
+    },
+    {
+      "name": "Ertuğrul Çetin",
+      "position": "Kaleci",
+      "market_value": "350 bin €"
+    },
+    {
+      "name": "Milan Škriniar",
+      "position": "Stoper",
+      "market_value": "15.00 mil. €"
+    },
+    {
+      "name": "Diego Carlos",
+      "position": "Stoper",
+      "market_value": "11.00 mil. €"
+    },
+    {
+      "name": "Çağlar Söyüncü",
+      "position": "Stoper",
+      "market_value": "8.00 mil. €"
+    },
+    {
+      "name": "Alexander Djiku",
+      "position": "Stoper",
+      "market_value": "7.50 mil. €"
+    },
+    {
+      "name": "Rodrigo Becão",
+      "position": "Stoper",
+      "market_value": "6.50 mil. €"
+    },
+    {
+      "name": "Yusuf Akçiçek",
+      "position": "Stoper",
+      "market_value": "5.50 mil. €"
+    },
+    {
+      "name": "Serdar Aziz",
+      "position": "Stoper",
+      "market_value": "100 bin €"
+    },
+    {
+      "name": "Jayden Oosterwolde",
+      "position": "Sol Bek",
+      "market_value": "14.00 mil. €"
+    },
+    {
+      "name": "Bright Osayi-Samuel",
+      "position": "Sağ Bek",
+      "market_value": "7.00 mil. €"
+    },
+    {
+      "name": "Mert Müldür",
+      "position": "Sağ Bek",
+      "market_value": "6.00 mil. €"
+    },
+    {
+      "name": "Sofyan Amrabat",
+      "position": "Ön Libero",
+      "market_value": "20.00 mil. €"
+    },
+    {
+      "name": "İsmail Yüksek",
+      "position": "Ön Libero",
+      "market_value": "12.00 mil. €"
+    },
+    {
+      "name": "Fred",
+      "position": "Merkez Orta Saha",
+      "market_value": "12.00 mil. €"
+    },
+    {
+      "name": "Filip Kostić",
+      "position": "Orta Saha Sol",
+      "market_value": "5.50 mil. €"
+    },
+    {
+      "name": "Levent Mercan",
+      "position": "Orta Saha Sol",
+      "market_value": "2.50 mil. €"
+    },
+    {
+      "name": "Sebastian Szymański",
+      "position": "On Numara",
+      "market_value": "17.00 mil. €"
+    },
+    {
+      "name": "Talisca",
+      "position": "On Numara",
+      "market_value": "11.00 mil. €"
+    },
+    {
+      "name": "Mert Hakan Yandaş",
+      "position": "On Numara",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Allan Saint-Maximin",
+      "position": "Sol Kanat",
+      "market_value": "15.00 mil. €"
+    },
+    {
+      "name": "Oğuz Aydın",
+      "position": "Sol Kanat",
+      "market_value": "8.00 mil. €"
+    },
+    {
+      "name": "İrfan Can Kahveci",
+      "position": "Sağ Kanat",
+      "market_value": "8.00 mil. €"
+    },
+    {
+      "name": "Dušan Tadić",
+      "position": "Sağ Kanat",
+      "market_value": "2.50 mil. €"
+    },
+    {
+      "name": "Burak Kapacak",
+      "position": "Sağ Kanat",
+      "market_value": "150 bin €"
+    },
+    {
+      "name": "Youssef En-Nesyri",
+      "position": "Santrafor",
+      "market_value": "24.00 mil. €"
+    },
+    {
+      "name": "Edin Džeko",
+      "position": "Santrafor",
+      "market_value": "2.00 mil. €"
+    },
+    {
+      "name": "Cenk Tosun",
+      "position": "Santrafor",
+      "market_value": "1.20 mil. €"
+    }
+  ]
+}

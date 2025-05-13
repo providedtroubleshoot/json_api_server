@@ -1,0 +1,164 @@
+{
+  "team": "Başakşehir",
+  "position_in_league": 5,
+  "recent_form": {
+    "wins": 3,
+    "draws": 0,
+    "losses": 2,
+    "last_matches": [
+      "G",
+      "G",
+      "M",
+      "G",
+      "M"
+    ]
+  },
+  "injuries": [],
+  "squad": [
+    {
+      "name": "Muhammed Şengezer",
+      "position": "Kaleci",
+      "market_value": "2.00 mil. €"
+    },
+    {
+      "name": "Deniz Dilmen",
+      "position": "Kaleci",
+      "market_value": "500 bin €"
+    },
+    {
+      "name": "Volkan Babacan",
+      "position": "Kaleci",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Yusuf Yılmaz",
+      "position": "Kaleci",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Jerome Opoku",
+      "position": "Stoper",
+      "market_value": "3.00 mil. €"
+    },
+    {
+      "name": "Léo Duarte",
+      "position": "Stoper",
+      "market_value": "3.00 mil. €"
+    },
+    {
+      "name": "Ousseynou Ba",
+      "position": "Stoper",
+      "market_value": "2.10 mil. €"
+    },
+    {
+      "name": "Hamza Güreler",
+      "position": "Stoper",
+      "market_value": "2.00 mil. €"
+    },
+    {
+      "name": "Halit Emre Acun",
+      "position": "Stoper",
+      "market_value": "-"
+    },
+    {
+      "name": "Christopher Operi",
+      "position": "Sol Bek",
+      "market_value": "4.00 mil. €"
+    },
+    {
+      "name": "Lucas Lima",
+      "position": "Sol Bek",
+      "market_value": "900 bin €"
+    },
+    {
+      "name": "Festy Ebosele",
+      "position": "Sağ Bek",
+      "market_value": "5.50 mil. €"
+    },
+    {
+      "name": "Ömer Ali Şahiner",
+      "position": "Sağ Bek",
+      "market_value": "350 bin €"
+    },
+    {
+      "name": "Berat Özdemir",
+      "position": "Ön Libero",
+      "market_value": "4.50 mil. €"
+    },
+    {
+      "name": "Onur Ergün",
+      "position": "Ön Libero",
+      "market_value": "400 bin €"
+    },
+    {
+      "name": "Miguel Crespo",
+      "position": "Merkez Orta Saha",
+      "market_value": "3.20 mil. €"
+    },
+    {
+      "name": "Olivier Kemen",
+      "position": "Merkez Orta Saha",
+      "market_value": "2.30 mil. €"
+    },
+    {
+      "name": "Umut Güneş",
+      "position": "Merkez Orta Saha",
+      "market_value": "2.30 mil. €"
+    },
+    {
+      "name": "Matchoi Djaló",
+      "position": "On Numara",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Ömer Beyaz",
+      "position": "On Numara",
+      "market_value": "450 bin €"
+    },
+    {
+      "name": "Abdoulaye Yoro",
+      "position": "On Numara",
+      "market_value": "-"
+    },
+    {
+      "name": "Ivan Brnic",
+      "position": "Sol Kanat",
+      "market_value": "1.50 mil. €"
+    },
+    {
+      "name": "Serdar Gürler",
+      "position": "Sol Kanat",
+      "market_value": "300 bin €"
+    },
+    {
+      "name": "Yusuf Sarı",
+      "position": "Sağ Kanat",
+      "market_value": "3.50 mil. €"
+    },
+    {
+      "name": "Deniz Türüç",
+      "position": "Sağ Kanat",
+      "market_value": "1.30 mil. €"
+    },
+    {
+      "name": "Patryk Szysz",
+      "position": "Sağ Kanat",
+      "market_value": "500 bin €"
+    },
+    {
+      "name": "Krzysztof Piatek",
+      "position": "Santrafor",
+      "market_value": "7.00 mil. €"
+    },
+    {
+      "name": "João Figueiredo",
+      "position": "Santrafor",
+      "market_value": "2.10 mil. €"
+    },
+    {
+      "name": "Philippe Keny",
+      "position": "Santrafor",
+      "market_value": "1.50 mil. €"
+    }
+  ]
+}
