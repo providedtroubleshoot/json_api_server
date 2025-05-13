@@ -1,15 +1,15 @@
 {
   "team": "Antalyaspor",
-  "position_in_league": 11,
+  "position_in_league": 12,
   "recent_form": {
-    "wins": 2,
+    "wins": 1,
     "draws": 1,
-    "losses": 1,
+    "losses": 2,
     "last_matches": [
-      "G",
       "B",
       "M",
-      "G"
+      "G",
+      "M"
     ]
   },
   "injuries": [
@@ -19,6 +19,14 @@
     },
     {
       "name": "Emre Uzun",
+      "position": "On Numara"
+    },
+    {
+      "name": "Ramzi Safuri",
+      "position": "On Numara"
+    },
+    {
+      "name": "Deni Milosevic",
       "position": "On Numara"
     }
   ],
