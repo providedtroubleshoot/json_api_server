@@ -1,0 +1,196 @@
+{
+  "team": "Sivasspor",
+  "position_in_league": 17,
+  "recent_form": {
+    "wins": 1,
+    "draws": 1,
+    "losses": 3,
+    "last_matches": [
+      "M",
+      "M",
+      "G",
+      "M",
+      "B"
+    ]
+  },
+  "injuries": [
+    {
+      "name": "Jan Bieganski",
+      "position": "Ön Libero"
+    },
+    {
+      "name": "Alaaddin Okumuş",
+      "position": "Sağ Bek"
+    },
+    {
+      "name": "Efkan Bekiroğlu",
+      "position": "On Numara"
+    },
+    {
+      "name": "Alex Pritchard",
+      "position": "On Numara"
+    }
+  ],
+  "squad": [
+    {
+      "name": "Djordje Nikolic",
+      "position": "Kaleci",
+      "market_value": "175 bin €"
+    },
+    {
+      "name": "Ali Şaşal Vural",
+      "position": "Kaleci",
+      "market_value": "150 bin €"
+    },
+    {
+      "name": "Kaan Sarman",
+      "position": "Kaleci",
+      "market_value": "-"
+    },
+    {
+      "name": "Arda Erdursun",
+      "position": "Kaleci",
+      "market_value": "-"
+    },
+    {
+      "name": "Noah Sonko Sundberg",
+      "position": "Stoper",
+      "market_value": "1.30 mil. €"
+    },
+    {
+      "name": "Uros Radakovic",
+      "position": "Stoper",
+      "market_value": "750 bin €"
+    },
+    {
+      "name": "Emirhan Başyiğit",
+      "position": "Stoper",
+      "market_value": "500 bin €"
+    },
+    {
+      "name": "Samba Camara",
+      "position": "Stoper",
+      "market_value": "200 bin €"
+    },
+    {
+      "name": "Mehmet Albayrak",
+      "position": "Stoper",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Uğur Çiftçi",
+      "position": "Sol Bek",
+      "market_value": "800 bin €"
+    },
+    {
+      "name": "Ziya Erdal",
+      "position": "Sol Bek",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Murat Paluli",
+      "position": "Sağ Bek",
+      "market_value": "700 bin €"
+    },
+    {
+      "name": "Alaaddin Okumuş",
+      "position": "Sağ Bek",
+      "market_value": "125 bin €"
+    },
+    {
+      "name": "Achilleas Poungouras",
+      "position": "Ön Libero",
+      "market_value": "600 bin €"
+    },
+    {
+      "name": "Jan Bieganski",
+      "position": "Ön Libero",
+      "market_value": "550 bin €"
+    },
+    {
+      "name": "Tolga Ciğerci",
+      "position": "Ön Libero",
+      "market_value": "200 bin €"
+    },
+    {
+      "name": "Samuel Moutoussamy",
+      "position": "Merkez Orta Saha",
+      "market_value": "2.00 mil. €"
+    },
+    {
+      "name": "Charilaos Charisis",
+      "position": "Merkez Orta Saha",
+      "market_value": "850 bin €"
+    },
+    {
+      "name": "Azizbek Turgunboev",
+      "position": "Merkez Orta Saha",
+      "market_value": "800 bin €"
+    },
+    {
+      "name": "Talha Şeker",
+      "position": "Merkez Orta Saha",
+      "market_value": "-"
+    },
+    {
+      "name": "Efkan Bekiroğlu",
+      "position": "On Numara",
+      "market_value": "1.50 mil. €"
+    },
+    {
+      "name": "Alex Pritchard",
+      "position": "On Numara",
+      "market_value": "750 bin €"
+    },
+    {
+      "name": "Oğuzhan Aksoy",
+      "position": "On Numara",
+      "market_value": "75 bin €"
+    },
+    {
+      "name": "Veljko Simic",
+      "position": "Sol Kanat",
+      "market_value": "700 bin €"
+    },
+    {
+      "name": "Garry Rodrigues",
+      "position": "Sol Kanat",
+      "market_value": "700 bin €"
+    },
+    {
+      "name": "Queensy Menig",
+      "position": "Sol Kanat",
+      "market_value": "600 bin €"
+    },
+    {
+      "name": "Sinan Kaya",
+      "position": "Sol Kanat",
+      "market_value": "125 bin €"
+    },
+    {
+      "name": "Emre Gökay",
+      "position": "Sağ Kanat",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Emrah Başsan",
+      "position": "Sağ Kanat",
+      "market_value": "400 bin €"
+    },
+    {
+      "name": "Rey Manaj",
+      "position": "Santrafor",
+      "market_value": "3.50 mil. €"
+    },
+    {
+      "name": "Bekir Turaç Böke",
+      "position": "Santrafor",
+      "market_value": "375 bin €"
+    },
+    {
+      "name": "Fodé Koita",
+      "position": "Santrafor",
+      "market_value": "75 bin €"
+    }
+  ]
+}

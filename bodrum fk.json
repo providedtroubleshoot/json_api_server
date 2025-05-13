@@ -1,0 +1,186 @@
+{
+  "team": "Bodrum FK",
+  "position_in_league": 16,
+  "recent_form": {
+    "wins": 0,
+    "draws": 2,
+    "losses": 2,
+    "last_matches": [
+      "B",
+      "M",
+      "M",
+      "B"
+    ]
+  },
+  "injuries": [
+    {
+      "name": "Kerem Ersunar",
+      "position": "Kaleci"
+    },
+    {
+      "name": "Ondrej Celustka",
+      "position": "Stoper"
+    },
+    {
+      "name": "Üzeyir Ergün",
+      "position": "Sağ Bek"
+    }
+  ],
+  "squad": [
+    {
+      "name": "Diogo Sousa",
+      "position": "Kaleci",
+      "market_value": "1.40 mil. €"
+    },
+    {
+      "name": "Gökhan Akkan",
+      "position": "Kaleci",
+      "market_value": "750 bin €"
+    },
+    {
+      "name": "Kerem Ersunar",
+      "position": "Kaleci",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Rüzgar Adıyaman",
+      "position": "Kaleci",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Arlind Ajeti",
+      "position": "Stoper",
+      "market_value": "850 bin €"
+    },
+    {
+      "name": "Christophe Hérelle",
+      "position": "Stoper",
+      "market_value": "650 bin €"
+    },
+    {
+      "name": "Ali Aytemur",
+      "position": "Stoper",
+      "market_value": "600 bin €"
+    },
+    {
+      "name": "Ondrej Celustka",
+      "position": "Stoper",
+      "market_value": "75 bin €"
+    },
+    {
+      "name": "Süleyman Özdamar",
+      "position": "Stoper",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Oğulcan Başol",
+      "position": "Stoper",
+      "market_value": "-"
+    },
+    {
+      "name": "Cenk Şen",
+      "position": "Sol Bek",
+      "market_value": "900 bin €"
+    },
+    {
+      "name": "Ege Bilsel",
+      "position": "Sağ Bek",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Üzeyir Ergün",
+      "position": "Sağ Bek",
+      "market_value": "200 bin €"
+    },
+    {
+      "name": "Musah Mohammed",
+      "position": "Ön Libero",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Ahmet Aslan",
+      "position": "Ön Libero",
+      "market_value": "900 bin €"
+    },
+    {
+      "name": "Erkan Değişmez",
+      "position": "Ön Libero",
+      "market_value": "25 bin €"
+    },
+    {
+      "name": "Taylan Antalyalı",
+      "position": "Merkez Orta Saha",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Fredy",
+      "position": "Merkez Orta Saha",
+      "market_value": "325 bin €"
+    },
+    {
+      "name": "Enes Öğrüce",
+      "position": "Merkez Orta Saha",
+      "market_value": "150 bin €"
+    },
+    {
+      "name": "Mustafa Erdilman",
+      "position": "Merkez Orta Saha",
+      "market_value": "100 bin €"
+    },
+    {
+      "name": "Tunahan Akpınar",
+      "position": "Merkez Orta Saha",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Bilal Güven",
+      "position": "Merkez Orta Saha",
+      "market_value": "-"
+    },
+    {
+      "name": "Enis Bardhi",
+      "position": "On Numara",
+      "market_value": "3.70 mil. €"
+    },
+    {
+      "name": "Jonathan Okita",
+      "position": "Sol Kanat",
+      "market_value": "550 bin €"
+    },
+    {
+      "name": "Zdravko Dimitrov",
+      "position": "Sol Kanat",
+      "market_value": "450 bin €"
+    },
+    {
+      "name": "Haqi Osman",
+      "position": "Sol Kanat",
+      "market_value": "300 bin €"
+    },
+    {
+      "name": "Gökdeniz Bayrakdar",
+      "position": "Sağ Kanat",
+      "market_value": "2.10 mil. €"
+    },
+    {
+      "name": "Pedro Brazão",
+      "position": "Sağ Kanat",
+      "market_value": "800 bin €"
+    },
+    {
+      "name": "Taulant Seferi",
+      "position": "Santrafor",
+      "market_value": "2.50 mil. €"
+    },
+    {
+      "name": "George Pușcaș",
+      "position": "Santrafor",
+      "market_value": "1.30 mil. €"
+    },
+    {
+      "name": "Celal Dumanlı",
+      "position": "Santrafor",
+      "market_value": "200 bin €"
+    }
+  ]
+}
