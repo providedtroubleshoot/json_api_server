@@ -201,40 +201,52 @@ def generate_json_api():
 
         repo_url = f"https://{github_token}@github.com/providedtroubleshoot/json_api_server.git"
 
-        subprocess.run(["git", "checkout", "main"])
-        subprocess.run(["git", "config", "--local", "user.email", "bot@render.com"])
-        subprocess.run(["git", "config", "--local", "user.name", "Render Bot"])
+        subprocess.run(["git", "checkout", "main"], check=True)
+        subprocess.run(["git", "config", "--local", "user.email", "bot@render.com"], check=True)
+        subprocess.run(["git", "config", "--local", "user.name", "Render Bot"], check=True)
         subprocess.run(["git", "remote", "remove", "origin"], stderr=subprocess.DEVNULL)
-        subprocess.run(["git", "remote", "add", "origin", repo_url])
+        subprocess.run(["git", "remote", "add", "origin", repo_url], check=True)
 
         # Add all generated files
         for file_path in generated_files:
-            subprocess.run(["git", "add", file_path])
+            subprocess.run(["git", "add", file_path], check=True)
 
         # Check if there are changes to commit
         status_result = subprocess.run(
             ["git", "status", "--porcelain"],
             capture_output=True,
-            text=True
+            text=True,
+            check=True
         )
 
+        # If no changes in tracked files, return "No changes"
         if not status_result.stdout.strip():
             return jsonify({
                 "status": "success",
                 "message": "Değişiklik yok."
             }), 200
 
-        # Commit changes
-        subprocess.run(
-            ["git", "commit", "-m", f"Auto update {', '.join(generated_files)}"],
-            check=True
-        )
+        # Attempt to commit changes
+        try:
+            subprocess.run(
+                ["git", "commit", "-m", f"Auto update {', '.join(generated_files)}"],
+                check=True
+            )
+        except subprocess.CalledProcessError as e:
+            # If commit fails due to no changes, return "No changes"
+            if "nothing to commit" in e.stderr.lower() or "no changes added" in e.stderr.lower():
+                return jsonify({
+                    "status": "success",
+                    "message": "Takım durumlarında değişiklik yok."
+                }), 200
+            raise  # Re-raise other errors
 
         # Push changes
         push_result = subprocess.run(
             ["git", "push", "origin", "main"],
             capture_output=True,
-            text=True
+            text=True,
+            check=True
         )
 
         if push_result.returncode != 0:
