@@ -211,9 +211,31 @@ def generate_json_api():
         for file_path in generated_files:
             subprocess.run(["git", "add", file_path])
 
-        subprocess.run(["git", "commit", "-m", f"Auto update {', '.join(generated_files)}"], check=True)
+        # Check if there are changes to commit
+        status_result = subprocess.run(
+            ["git", "status", "--porcelain"],
+            capture_output=True,
+            text=True
+        )
 
-        push_result = subprocess.run(["git", "push", "origin", "main"], capture_output=True, text=True)
+        if not status_result.stdout.strip():
+            return jsonify({
+                "status": "success",
+                "message": "Değişiklik yok."
+            }), 200
+
+        # Commit changes
+        subprocess.run(
+            ["git", "commit", "-m", f"Auto update {', '.join(generated_files)}"],
+            check=True
+        )
+
+        # Push changes
+        push_result = subprocess.run(
+            ["git", "push", "origin", "main"],
+            capture_output=True,
+            text=True
+        )
 
         if push_result.returncode != 0:
             return jsonify({"status": "error", "message": push_result.stderr}), 500
