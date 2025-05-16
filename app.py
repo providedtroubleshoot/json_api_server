@@ -190,8 +190,19 @@ def generate_json_api():
 
         for output_data, filename in teams_data:
             file_path = os.path.join(folder_path, filename)
+
+            #  Aynı içeriğe sahip mi kontrol et
+            if os.path.exists(file_path):
+                with open(file_path, "r", encoding="utf-8") as f:
+                    existing_data = f.read()
+                new_data = json.dumps(output_data, ensure_ascii=False, indent=2)
+                if existing_data == new_data:
+                    print(f"⏩ {filename} zaten güncel, atlanıyor.")
+                    continue  # Aynıysa geç
+
+            # Farklıysa yaz ve listeye ekle
             with open(file_path, "w", encoding="utf-8") as f:
-                json.dump(output_data, f, ensure_ascii=False, indent=2)
+                f.write(new_data)
             generated_files.append(file_path)
 
         # GitHub push operations
