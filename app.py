@@ -227,9 +227,10 @@ def generate_json_api():
             }), 200
 
         # Attempt to commit changes
+        file_names = [os.path.basename(path) for path in generated_files]
         try:
             subprocess.run(
-                ["git", "commit", "-m", f"Auto update {', '.join(generated_files)}"],
+                ["git", "commit", "-m", f"Auto update {', '.join(file_names)}"],
                 check=True
             )
         except subprocess.CalledProcessError as e:
