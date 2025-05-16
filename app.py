@@ -211,8 +211,8 @@ def generate_json_api():
         subprocess.run(["git", "remote", "remove", "origin"], stderr=subprocess.DEVNULL)
         subprocess.run(["git", "remote", "add", "origin", repo_url], check=True)
 
-        for file_path in generated_files:
-            subprocess.run(["git", "add", file_path], check=True)
+        subprocess.run(["git", "add", "."], check=True)
+
 
         status_result = subprocess.run(
             ["git", "status", "--porcelain"],
