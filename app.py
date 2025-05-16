@@ -33,14 +33,14 @@ TEAMS = {
     "adana demirspor": {"name": "Adana Demirspor", "slug": "adana-demirspor", "id": "3840"}
 }
 
+HEADERS = {"User-Agent": "Mozilla/5.0"}
+
 def get_team_info(team_key):
     team_key = team_key.lower()
     if team_key in TEAMS:
         return TEAMS[team_key]
     else:
         raise ValueError(f"{team_key} takımı bulunamadı. Geçerli takımlar: {list(TEAMS.keys())}")
-
-HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 def get_soup(url):
     res = requests.get(url, headers=HEADERS)
@@ -118,9 +118,7 @@ def get_league_position(team_name):
 def get_recent_form(team_name):
     try:
         url_form = "https://www.transfermarkt.com.tr/super-lig/formtabelle/wettbewerb/TR1/"
-        res = requests.get(url_form, headers=HEADERS)
-        res.raise_for_status()
-        soup = BeautifulSoup(res.text, "lxml")
+        soup = get_soup(url_form)
         form_rows = soup.select("div.responsive-table table tbody tr")
         for row in form_rows:
             team_cell = row.select_one("td.no-border-links.hauptlink a")
@@ -177,35 +175,30 @@ def generate_json_api():
         except ValueError as e:
             return jsonify({"error": str(e)}), 404
 
-        # Generate data for both teams
         teams_data = [
             generate_team_data(home_team_info),
             generate_team_data(away_team_info)
         ]
 
-        # Write JSON files
         generated_files = []
         folder_path = "team_status"
         os.makedirs(folder_path, exist_ok=True)
 
         for output_data, filename in teams_data:
             file_path = os.path.join(folder_path, filename)
+            new_data = json.dumps(output_data, ensure_ascii=False, indent=2)
 
-            #  Aynı içeriğe sahip mi kontrol et
             if os.path.exists(file_path):
                 with open(file_path, "r", encoding="utf-8") as f:
                     existing_data = f.read()
-                new_data = json.dumps(output_data, ensure_ascii=False, indent=2)
                 if existing_data == new_data:
                     print(f"⏩ {filename} zaten güncel, atlanıyor.")
-                    continue  # Aynıysa geç
+                    continue
 
-            # Farklıysa yaz ve listeye ekle
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(new_data)
             generated_files.append(file_path)
 
-        # GitHub push operations
         github_token = os.getenv("GITHUB_TOKEN")
         if not github_token:
             return jsonify({"status": "error", "message": "GitHub token bulunamadı."}), 500
@@ -218,11 +211,9 @@ def generate_json_api():
         subprocess.run(["git", "remote", "remove", "origin"], stderr=subprocess.DEVNULL)
         subprocess.run(["git", "remote", "add", "origin", repo_url], check=True)
 
-        # Add all generated files
         for file_path in generated_files:
             subprocess.run(["git", "add", file_path], check=True)
 
-        # Check if there are changes to commit
         status_result = subprocess.run(
             ["git", "status", "--porcelain"],
             capture_output=True,
@@ -230,14 +221,12 @@ def generate_json_api():
             check=True
         )
 
-        # If no changes in tracked files, return "No changes"
         if not status_result.stdout.strip():
             return jsonify({
                 "status": "success",
                 "message": "Değişiklik yok."
             }), 200
 
-        # Attempt to commit changes
         file_names = [os.path.basename(path) for path in generated_files]
         try:
             subprocess.run(
@@ -245,15 +234,13 @@ def generate_json_api():
                 check=True
             )
         except subprocess.CalledProcessError as e:
-            # If commit fails due to no changes, return "No changes"
             if "nothing to commit" in e.stderr.lower() or "no changes added" in e.stderr.lower():
                 return jsonify({
                     "status": "success",
                     "message": "Takım durumlarında değişiklik yok."
                 }), 200
-            raise  # Re-raise other errors
+            raise
 
-        # Push changes
         push_result = subprocess.run(
             ["git", "push", "origin", "main"],
             capture_output=True,
