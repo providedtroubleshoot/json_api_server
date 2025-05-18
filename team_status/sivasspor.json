@@ -15,20 +15,20 @@
   },
   "injuries": [
     {
+      "name": "Djordje Nikolic",
+      "position": "Kaleci"
+    },
+    {
       "name": "Jan Bieganski",
       "position": "Ön Libero"
     },
     {
-      "name": "Alaaddin Okumuş",
-      "position": "Sağ Bek"
+      "name": "Rey Manaj",
+      "position": "Santrafor"
     },
     {
-      "name": "Efkan Bekiroğlu",
-      "position": "On Numara"
-    },
-    {
-      "name": "Alex Pritchard",
-      "position": "On Numara"
+      "name": "Noah Sonko Sundberg",
+      "position": "Stoper"
     }
   ],
   "squad": [
