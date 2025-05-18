@@ -241,12 +241,16 @@ def generate_json_api():
                 }), 200
             raise
 
-        push_result = subprocess.run(
-            ["git", "push", "origin", "main"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
+        try:
+            push_result = subprocess.run(
+                ["git", "push", "origin", "main"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+        except subprocess.CalledProcessError as e:
+            print("🚨 Git push hatası:", e.stderr)
+            return jsonify({"status": "error", "message": f"Git push hatası: {e.stderr}"}), 500
 
         if push_result.returncode != 0:
             return jsonify({"status": "error", "message": push_result.stderr}), 500
