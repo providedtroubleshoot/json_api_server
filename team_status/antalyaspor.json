@@ -6,10 +6,10 @@
     "draws": 1,
     "losses": 2,
     "last_matches": [
-      "B",
       "M",
       "G",
-      "M"
+      "M",
+      "B"
     ]
   },
   "injuries": [
@@ -19,6 +19,22 @@
     },
     {
       "name": "Emre Uzun",
+      "position": "On Numara"
+    },
+    {
+      "name": "Sam Larsson",
+      "position": "On Numara"
+    },
+    {
+      "name": "Sander van de Streek",
+      "position": "On Numara"
+    },
+    {
+      "name": "Moussa Djenepo",
+      "position": "Sol Kanat"
+    },
+    {
+      "name": "Deni Milosevic",
       "position": "On Numara"
     }
   ],
