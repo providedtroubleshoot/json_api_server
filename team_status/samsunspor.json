@@ -1,13 +1,13 @@
 {
   "team": "Samsunspor",
-  "position_in_league": 4,
+  "position_in_league": 3,
   "recent_form": {
-    "wins": 2,
+    "wins": 3,
     "draws": 0,
-    "losses": 2,
+    "losses": 1,
     "last_matches": [
       "M",
-      "M",
+      "G",
       "G",
       "G"
     ]

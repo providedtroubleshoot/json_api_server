@@ -1,27 +1,19 @@
 {
   "team": "Trabzonspor",
-  "position_in_league": 9,
+  "position_in_league": 8,
   "recent_form": {
-    "wins": 3,
-    "draws": 1,
+    "wins": 2,
+    "draws": 2,
     "losses": 1,
     "last_matches": [
       "G",
       "G",
-      "G",
       "B",
-      "M"
+      "M",
+      "B"
     ]
   },
   "injuries": [
-    {
-      "name": "Onuralp Çevikkan",
-      "position": "Kaleci"
-    },
-    {
-      "name": "Hüseyin Türkmen",
-      "position": "Stoper"
-    },
     {
       "name": "Enis Destan",
       "position": "Santrafor"
