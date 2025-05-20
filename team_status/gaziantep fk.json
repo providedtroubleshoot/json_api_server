@@ -1,16 +1,16 @@
 {
   "team": "Gaziantep FK",
-  "position_in_league": 13,
+  "position_in_league": 14,
   "recent_form": {
-    "wins": 1,
-    "draws": 0,
+    "wins": 0,
+    "draws": 1,
     "losses": 4,
     "last_matches": [
-      "G",
       "M",
       "M",
       "M",
-      "M"
+      "M",
+      "B"
     ]
   },
   "injuries": [

@@ -6,24 +6,32 @@
     "draws": 1,
     "losses": 1,
     "last_matches": [
-      "M",
       "G",
       "B",
-      "G"
+      "G",
+      "M"
     ]
   },
   "injuries": [
-    {
-      "name": "Gökhan Gül",
-      "position": "Ön Libero"
-    },
     {
       "name": "Sadık Çiftpınar",
       "position": "Stoper"
     },
     {
-      "name": "Nicholas Opoku",
+      "name": "Mortadha Ben Ouanes",
+      "position": "Sol Kanat"
+    },
+    {
+      "name": "Kamil Piatkowski",
       "position": "Stoper"
+    },
+    {
+      "name": "Josip Brekalo",
+      "position": "Sol Kanat"
+    },
+    {
+      "name": "Antonín Barák",
+      "position": "On Numara"
     }
   ],
   "squad": [
