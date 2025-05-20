@@ -6,11 +6,11 @@
     "draws": 2,
     "losses": 1,
     "last_matches": [
-      "M",
       "B",
       "G",
       "G",
-      "B"
+      "B",
+      "M"
     ]
   },
   "injuries": [
@@ -21,6 +21,10 @@
     {
       "name": "Djalma Silva",
       "position": "Orta Saha Sol"
+    },
+    {
+      "name": "Juan",
+      "position": "Santrafor"
     },
     {
       "name": "Doğan Erdoğan",
