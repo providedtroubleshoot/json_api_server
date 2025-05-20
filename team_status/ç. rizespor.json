@@ -1,16 +1,16 @@
 {
   "team": "Ç. Rizespor",
-  "position_in_league": 14,
+  "position_in_league": 13,
   "recent_form": {
-    "wins": 2,
+    "wins": 3,
     "draws": 0,
-    "losses": 3,
+    "losses": 2,
     "last_matches": [
-      "M",
       "G",
       "M",
       "G",
-      "M"
+      "M",
+      "G"
     ]
   },
   "injuries": [

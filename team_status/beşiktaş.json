@@ -1,16 +1,16 @@
 {
   "team": "Beşiktaş",
-  "position_in_league": 3,
+  "position_in_league": 4,
   "recent_form": {
     "wins": 3,
-    "draws": 1,
-    "losses": 1,
+    "draws": 2,
+    "losses": 0,
     "last_matches": [
-      "M",
       "B",
       "G",
       "G",
-      "G"
+      "G",
+      "B"
     ]
   },
   "injuries": [
@@ -20,14 +20,6 @@
     },
     {
       "name": "Alex Oxlade-Chamberlain",
-      "position": "Merkez Orta Saha"
-    },
-    {
-      "name": "Emirhan Topçu",
-      "position": "Stoper"
-    },
-    {
-      "name": "Salih Uçan",
       "position": "Merkez Orta Saha"
     }
   ],
