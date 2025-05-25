@@ -15,6 +15,18 @@
   },
   "injuries": [
     {
+      "name": "Onuralp Çevikkan",
+      "position": "Kaleci"
+    },
+    {
+      "name": "Hüseyin Türkmen",
+      "position": "Stoper"
+    },
+    {
+      "name": "Ahmet Yıldırım",
+      "position": "Kaleci"
+    },
+    {
       "name": "Enis Destan",
       "position": "Santrafor"
     },
@@ -23,16 +35,20 @@
       "position": "Stoper"
     },
     {
+      "name": "Stefan Savic",
+      "position": "Stoper"
+    },
+    {
       "name": "Uğurcan Çakır",
       "position": "Kaleci"
     },
     {
-      "name": "Mustafa Eskihellaç",
-      "position": "Sol Bek"
+      "name": "Cihan Çanak",
+      "position": "Sağ Kanat"
     },
     {
-      "name": "Stefan Savic",
-      "position": "Stoper"
+      "name": "Mustafa Eskihellaç",
+      "position": "Sol Bek"
     }
   ],
   "squad": [
