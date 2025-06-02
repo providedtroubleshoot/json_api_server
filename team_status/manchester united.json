@@ -1,191 +1,158 @@
 {
   "team": "Manchester United",
-  "position_in_league": 8,
-  "recent_form": {
-    "wins": 2,
-    "draws": 2,
-    "losses": 1,
-    "last_matches": [
-      "G",
-      "G",
-      "B",
-      "M",
-      "B"
-    ]
-  },
+  "position_in_league": null,
+  "recent_form": {},
   "injuries": [
     {
-      "name": "Onuralp Çevikkan",
-      "position": "Kaleci"
-    },
-    {
-      "name": "Hüseyin Türkmen",
+      "name": "Lisandro Martínez",
       "position": "Stoper"
-    },
-    {
-      "name": "Ahmet Yıldırım",
-      "position": "Kaleci"
-    },
-    {
-      "name": "Enis Destan",
-      "position": "Santrafor"
-    },
-    {
-      "name": "Arseniy Batagov",
-      "position": "Stoper"
-    },
-    {
-      "name": "Stefan Savic",
-      "position": "Stoper"
-    },
-    {
-      "name": "Uğurcan Çakır",
-      "position": "Kaleci"
-    },
-    {
-      "name": "Cihan Çanak",
-      "position": "Sağ Kanat"
-    },
-    {
-      "name": "Mustafa Eskihellaç",
-      "position": "Sol Bek"
     }
   ],
   "squad": [
     {
-      "name": "Uğurcan Çakır",
+      "name": "André Onana",
+      "position": "Kaleci",
+      "market_value": "25.00 mil. €"
+    },
+    {
+      "name": "Altay Bayındır",
       "position": "Kaleci",
       "market_value": "8.00 mil. €"
     },
     {
-      "name": "Onuralp Çevikkan",
+      "name": "Tom Heaton",
       "position": "Kaleci",
-      "market_value": "1.20 mil. €"
+      "market_value": "200 bin €"
     },
     {
-      "name": "Taha Tepe",
-      "position": "Kaleci",
-      "market_value": "100 bin €"
-    },
-    {
-      "name": "Ahmet Yıldırım",
-      "position": "Kaleci",
-      "market_value": "-"
-    },
-    {
-      "name": "Arseniy Batagov",
+      "name": "Leny Yoro",
       "position": "Stoper",
-      "market_value": "3.50 mil. €"
+      "market_value": "55.00 mil. €"
     },
     {
-      "name": "Serdar Saatçı",
+      "name": "Lisandro Martínez",
       "position": "Stoper",
-      "market_value": "3.00 mil. €"
+      "market_value": "40.00 mil. €"
     },
     {
-      "name": "Stefan Savic",
+      "name": "Matthijs de Ligt",
       "position": "Stoper",
-      "market_value": "1.10 mil. €"
+      "market_value": "38.00 mil. €"
     },
     {
-      "name": "Hüseyin Türkmen",
+      "name": "Harry Maguire",
       "position": "Stoper",
-      "market_value": "150 bin €"
+      "market_value": "13.00 mil. €"
     },
     {
-      "name": "Ali Şahin Yılmaz",
+      "name": "Victor Lindelöf",
       "position": "Stoper",
-      "market_value": "100 bin €"
+      "market_value": "8.00 mil. €"
     },
     {
-      "name": "Mustafa Eskihellaç",
+      "name": "Ayden Heaven",
+      "position": "Stoper",
+      "market_value": "5.00 mil. €"
+    },
+    {
+      "name": "Jonny Evans",
+      "position": "Stoper",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Luke Shaw",
       "position": "Sol Bek",
-      "market_value": "1.50 mil. €"
+      "market_value": "12.00 mil. €"
     },
     {
-      "name": "Arif Boşluk",
+      "name": "Harry Amass",
       "position": "Sol Bek",
-      "market_value": "275 bin €"
+      "market_value": "5.00 mil. €"
     },
     {
-      "name": "Pedro Malheiro",
+      "name": "Diogo Dalot",
       "position": "Sağ Bek",
-      "market_value": "5.50 mil. €"
+      "market_value": "30.00 mil. €"
     },
     {
-      "name": "Batista Mendy",
+      "name": "Noussair Mazraoui",
+      "position": "Sağ Bek",
+      "market_value": "25.00 mil. €"
+    },
+    {
+      "name": "Manuel Ugarte",
+      "position": "Ön Libero",
+      "market_value": "45.00 mil. €"
+    },
+    {
+      "name": "Casemiro",
       "position": "Ön Libero",
       "market_value": "10.00 mil. €"
     },
     {
-      "name": "John Lundstram",
+      "name": "Toby Collyer",
       "position": "Ön Libero",
-      "market_value": "3.20 mil. €"
+      "market_value": "5.00 mil. €"
     },
     {
-      "name": "Okay Yokuşlu",
-      "position": "Ön Libero",
-      "market_value": "2.70 mil. €"
-    },
-    {
-      "name": "Salih Malkoçoğlu",
-      "position": "Ön Libero",
-      "market_value": "600 bin €"
-    },
-    {
-      "name": "Ozan Tufan",
+      "name": "Kobbie Mainoo",
       "position": "Merkez Orta Saha",
-      "market_value": "2.40 mil. €"
+      "market_value": "50.00 mil. €"
     },
     {
-      "name": "Tim Jabol-Folcarelli",
+      "name": "Christian Eriksen",
       "position": "Merkez Orta Saha",
-      "market_value": "2.00 mil. €"
-    },
-    {
-      "name": "Muhammed Cham",
-      "position": "On Numara",
-      "market_value": "5.50 mil. €"
-    },
-    {
-      "name": "Anthony Nwakaeme",
-      "position": "Sol Kanat",
-      "market_value": "800 bin €"
-    },
-    {
-      "name": "Oleksandr Zubkov",
-      "position": "Sağ Kanat",
-      "market_value": "8.00 mil. €"
-    },
-    {
-      "name": "Cihan Çanak",
-      "position": "Sağ Kanat",
-      "market_value": "3.70 mil. €"
-    },
-    {
-      "name": "Edin Visca",
-      "position": "Sağ Kanat",
-      "market_value": "1.60 mil. €"
-    },
-    {
-      "name": "Simon Banza",
-      "position": "Santrafor",
-      "market_value": "15.00 mil. €"
-    },
-    {
-      "name": "Danylo Sikan",
-      "position": "Santrafor",
-      "market_value": "6.00 mil. €"
-    },
-    {
-      "name": "Enis Destan",
-      "position": "Santrafor",
       "market_value": "4.00 mil. €"
     },
     {
-      "name": "Denis Drăguș",
+      "name": "Daniel Gore",
+      "position": "Merkez Orta Saha",
+      "market_value": "900 bin €"
+    },
+    {
+      "name": "Patrick Dorgu",
+      "position": "Orta Saha Sol",
+      "market_value": "25.00 mil. €"
+    },
+    {
+      "name": "Bruno Fernandes",
+      "position": "On Numara",
+      "market_value": "50.00 mil. €"
+    },
+    {
+      "name": "Alejandro Garnacho",
+      "position": "On Numara",
+      "market_value": "45.00 mil. €"
+    },
+    {
+      "name": "Mason Mount",
+      "position": "On Numara",
+      "market_value": "28.00 mil. €"
+    },
+    {
+      "name": "Amad Diallo",
+      "position": "Sağ Kanat",
+      "market_value": "45.00 mil. €"
+    },
+    {
+      "name": "Rasmus Højlund",
       "position": "Santrafor",
-      "market_value": "3.80 mil. €"
+      "market_value": "35.00 mil. €"
+    },
+    {
+      "name": "Joshua Zirkzee",
+      "position": "Santrafor",
+      "market_value": "30.00 mil. €"
+    },
+    {
+      "name": "Chido Obi",
+      "position": "Santrafor",
+      "market_value": "5.00 mil. €"
+    },
+    {
+      "name": "Ethan Wheatley",
+      "position": "Santrafor",
+      "market_value": "-"
     }
   ]
 }
