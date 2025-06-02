@@ -17,7 +17,7 @@ TEAMS = {
     "beşiktaş": {"name": "Beşiktaş", "slug": "besiktas-istanbul", "id": "114"},
     "trabzonspor": {"name": "Trabzonspor", "slug": "trabzonspor", "id": "449"},
     "göztepe": {"name": "Göztepe", "slug": "goztepe", "id": "1467"},
-    "başakşehir": {"name": "Başakşehir", "slug": "istanbul-basaksehir-fk", "id": "6890"},
+    "başakşehir": {"name": "Başakşehir", "slug": "istanbul-basaksehir-fk", "id": "6890  "},
     "ç. rizespor": {"name": "Ç. Rizespor", "slug": "caykur-rizespor", "id": "126"},
     "samsunspor": {"name": "Samsunspor", "slug": "samsunspor", "id": "152"},
     "kasımpaşa": {"name": "Kasımpaşa", "slug": "kasimpasa", "id": "10484"},
@@ -96,9 +96,22 @@ def scrape_injuries(team_slug, team_id, squad):
         print(f"Sakat/Cezalı oyuncu verisi alınamadı: {e}", file=sys.stderr)
         return []
 
-def get_league_position(team_name):
+def get_league_url(league_key: str) -> str:
+    url_map = {
+        "en1": "https://www.transfermarkt.com.tr/premier-league/startseite/wettbewerb/GB1",
+        "es1": "https://www.transfermarkt.com.tr/laliga/startseite/wettbewerb/ES1",
+        "de1": "https://www.transfermarkt.com.tr/bundesliga/startseite/wettbewerb/L1",
+        "tr1": "https://www.transfermarkt.com.tr/super-lig/startseite/wettbewerb/TR1",
+    }
+    return url_map.get(league_key.lower())
+
+
+def get_league_position(team_name, league_key):
     try:
-        url_league = "https://www.transfermarkt.com.tr/super-lig/tabelle/wettbewerb/TR1"
+        url_league = get_league_url(league_key)
+        if not url_league:
+            return "Lige ait URL bulunamadı."
+
         soup = get_soup(url_league)
         table = soup.find('table', class_='items')
         rows = table.find('tbody').find_all('tr', recursive=False)
@@ -115,9 +128,12 @@ def get_league_position(team_name):
         print(f"Lig sıralaması alınamadı: {e}", file=sys.stderr)
         return None
 
-def get_recent_form(team_name):
+def get_recent_form(team_name, league_key):
     try:
-        url_form = "https://www.transfermarkt.com.tr/super-lig/formtabelle/wettbewerb/TR1/"
+        url_form = get_league_url(league_key)
+        if not url_form:
+            return "Lige ait URL bulunamadı."
+
         soup = get_soup(url_form)
         form_rows = soup.select("div.responsive-table table tbody tr")
         for row in form_rows:
@@ -140,7 +156,7 @@ def get_recent_form(team_name):
         print(f"Form verisi alınamadı: {e}", file=sys.stderr)
         return {}
 
-def generate_team_data(team_info):
+def generate_team_data(team_info, league_key):
     team_name = team_info["name"]
     team_slug = team_info["slug"]
     team_id = team_info["id"]
@@ -148,7 +164,7 @@ def generate_team_data(team_info):
     squad = scrape_squad(team_slug, team_id)
     output_data = {
         "team": team_name,
-        "position_in_league": get_league_position(team_name),
+        "position_in_league": get_league_position(team_name, league_key),
         "recent_form": get_recent_form(team_name),
         "injuries": scrape_injuries(team_slug, team_id, squad),
         "squad": squad
@@ -165,6 +181,7 @@ def generate_json_api():
         data = request.get_json()
         home_team_key = data.get("home_team")
         away_team_key = data.get("away_team")
+        league_key = data.get("league")
 
         if not home_team_key or not away_team_key:
             return jsonify({"error": "Ev sahibi ve deplasman takımları belirtilmeli."}), 400
@@ -176,8 +193,8 @@ def generate_json_api():
             return jsonify({"error": str(e)}), 404
 
         teams_data = [
-            generate_team_data(home_team_info),
-            generate_team_data(away_team_info)
+            generate_team_data(home_team_info, league_key),
+            generate_team_data(away_team_info, league_key)
         ]
 
         generated_files = []
