@@ -1,7 +1,19 @@
 {
   "team": "Arsenal",
   "position_in_league": null,
-  "recent_form": {},
+  "recent_form": {
+    "wins": 3,
+    "draws": 2,
+    "losses": 1,
+    "last_matches": [
+      "G",
+      "B",
+      "M",
+      "B",
+      "G",
+      "G"
+    ]
+  },
   "injuries": [
     {
       "name": "Gabriel Jesus",
