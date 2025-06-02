@@ -12,6 +12,11 @@ load_dotenv()
 app = Flask(__name__)
 
 TEAMS = {
+    "fc barcelona": {"name": "FC Barcelona", "slug": "fc-barcelona", "id": "131"},
+    "real madrid": {"name": "Real Madrid", "slug": "real-madrid", "id": "418"},
+    "manchester united": {"name": "Manchester United", "slug": "manchester-united", "id": "985"},
+    "arsenal": {"name": "Arsenal", "slug": "fc-arsenal", "id": "11"},
+    "bayern münih": {"name": "Bayern Münih", "slug": "bayern-muenchen", "id": "102"},
     "galatasaray": {"name": "Galatasaray", "slug": "galatasaray-istanbul", "id": "141"},
     "fenerbahçe": {"name": "Fenerbahçe", "slug": "fenerbahce-istanbul", "id": "36"},
     "beşiktaş": {"name": "Beşiktaş", "slug": "besiktas-istanbul", "id": "114"},
