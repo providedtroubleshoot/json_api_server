@@ -25,6 +25,14 @@
     {
       "name": "İzzet Çelik",
       "position": "Merkez Orta Saha"
+    },
+    {
+      "name": "Ali Yavuz Kol",
+      "position": "Sol Kanat"
+    },
+    {
+      "name": "Tolga Kalender",
+      "position": "Stoper"
     }
   ],
   "squad": [
@@ -54,6 +62,11 @@
       "market_value": "125 bin €"
     },
     {
+      "name": "Abdulsamet Burak",
+      "position": "Stoper",
+      "market_value": "100 bin €"
+    },
+    {
       "name": "Burhan Ersoy",
       "position": "Stoper",
       "market_value": "50 bin €"
@@ -67,11 +80,6 @@
       "name": "Ali Arda Yıldız",
       "position": "Stoper",
       "market_value": "-"
-    },
-    {
-      "name": "Abdulsamet Burak",
-      "position": "Sol Bek",
-      "market_value": "100 bin €"
     },
     {
       "name": "Yücel Gürol",
