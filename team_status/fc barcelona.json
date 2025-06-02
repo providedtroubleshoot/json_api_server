@@ -1,187 +1,147 @@
 {
   "team": "FC Barcelona",
-  "position_in_league": 8,
-  "recent_form": {
-    "wins": 4,
-    "draws": 0,
-    "losses": 1,
-    "last_matches": [
-      "G",
-      "G",
-      "G",
-      "M",
-      "G"
-    ]
-  },
+  "position_in_league": null,
+  "recent_form": {},
   "injuries": [
     {
-      "name": "Emmanuel Boateng",
-      "position": "Merkez Orta Saha"
+      "name": "Marc Bernal",
+      "position": "Ön Libero"
     },
     {
-      "name": "Tunahan Taşçı",
-      "position": "Sağ Kanat"
-    },
-    {
-      "name": "Adil Demirbağ",
-      "position": "Stoper"
+      "name": "Ferran Torres",
+      "position": "Santrafor"
     }
   ],
   "squad": [
     {
-      "name": "Deniz Ertaş",
+      "name": "Marc-André ter Stegen",
       "position": "Kaleci",
-      "market_value": "650 bin €"
+      "market_value": "15.00 mil. €"
     },
     {
-      "name": "Jakub Slowik",
+      "name": "Iñaki Peña",
       "position": "Kaleci",
-      "market_value": "500 bin €"
+      "market_value": "10.00 mil. €"
     },
     {
-      "name": "Ahmet Daş",
+      "name": "Wojciech Szczesny",
       "position": "Kaleci",
-      "market_value": "50 bin €"
-    },
-    {
-      "name": "Egemen Aydın",
-      "position": "Kaleci",
-      "market_value": "-"
-    },
-    {
-      "name": "Riechedly Bazoer",
-      "position": "Stoper",
-      "market_value": "3.00 mil. €"
-    },
-    {
-      "name": "Adil Demirbağ",
-      "position": "Stoper",
-      "market_value": "1.80 mil. €"
-    },
-    {
-      "name": "Uğurcan Yazğılı",
-      "position": "Stoper",
-      "market_value": "1.10 mil. €"
-    },
-    {
-      "name": "Josip Calusic",
-      "position": "Stoper",
-      "market_value": "600 bin €"
-    },
-    {
-      "name": "Filip Damjanovic",
-      "position": "Stoper",
-      "market_value": "600 bin €"
-    },
-    {
-      "name": "Mehmet Kaya",
-      "position": "Stoper",
-      "market_value": "50 bin €"
-    },
-    {
-      "name": "Guilherme",
-      "position": "Sol Bek",
-      "market_value": "550 bin €"
-    },
-    {
-      "name": "Yasir Subaşı",
-      "position": "Sol Bek",
-      "market_value": "100 bin €"
-    },
-    {
-      "name": "Rıdvan Dönmez",
-      "position": "Sol Bek",
-      "market_value": "75 bin €"
-    },
-    {
-      "name": "Nikola Boranijasevic",
-      "position": "Sağ Bek",
-      "market_value": "225 bin €"
-    },
-    {
-      "name": "Abdurrahman Üresin",
-      "position": "Sağ Bek",
-      "market_value": "150 bin €"
-    },
-    {
-      "name": "Oğulcan Ülgün",
-      "position": "Ön Libero",
-      "market_value": "1.40 mil. €"
-    },
-    {
-      "name": "Marko Jevtovic",
-      "position": "Ön Libero",
-      "market_value": "700 bin €"
-    },
-    {
-      "name": "Morten Bjørlo",
-      "position": "Merkez Orta Saha",
       "market_value": "1.00 mil. €"
     },
     {
-      "name": "Emmanuel Boateng",
+      "name": "Pau Cubarsí",
+      "position": "Stoper",
+      "market_value": "70.00 mil. €"
+    },
+    {
+      "name": "Ronald Araujo",
+      "position": "Stoper",
+      "market_value": "50.00 mil. €"
+    },
+    {
+      "name": "Andreas Christensen",
+      "position": "Stoper",
+      "market_value": "15.00 mil. €"
+    },
+    {
+      "name": "Eric García",
+      "position": "Stoper",
+      "market_value": "15.00 mil. €"
+    },
+    {
+      "name": "Iñigo Martínez",
+      "position": "Stoper",
+      "market_value": "5.00 mil. €"
+    },
+    {
+      "name": "Alejandro Balde",
+      "position": "Sol Bek",
+      "market_value": "60.00 mil. €"
+    },
+    {
+      "name": "Gerard Martín",
+      "position": "Sol Bek",
+      "market_value": "7.50 mil. €"
+    },
+    {
+      "name": "Jules Koundé",
+      "position": "Sağ Bek",
+      "market_value": "60.00 mil. €"
+    },
+    {
+      "name": "Héctor Fort",
+      "position": "Sağ Bek",
+      "market_value": "10.00 mil. €"
+    },
+    {
+      "name": "Marc Casadó",
+      "position": "Ön Libero",
+      "market_value": "30.00 mil. €"
+    },
+    {
+      "name": "Marc Bernal",
+      "position": "Ön Libero",
+      "market_value": "5.00 mil. €"
+    },
+    {
+      "name": "Pedri",
       "position": "Merkez Orta Saha",
-      "market_value": "500 bin €"
+      "market_value": "120.00 mil. €"
     },
     {
-      "name": "Pedrinho",
+      "name": "Gavi",
+      "position": "Merkez Orta Saha",
+      "market_value": "70.00 mil. €"
+    },
+    {
+      "name": "Frenkie de Jong",
+      "position": "Merkez Orta Saha",
+      "market_value": "45.00 mil. €"
+    },
+    {
+      "name": "Dani Olmo",
       "position": "On Numara",
-      "market_value": "1.30 mil. €"
+      "market_value": "60.00 mil. €"
     },
     {
-      "name": "Danijel Aleksic",
+      "name": "Fermín López",
       "position": "On Numara",
-      "market_value": "600 bin €"
+      "market_value": "50.00 mil. €"
     },
     {
-      "name": "Melih İbrahimoğlu",
+      "name": "Pablo Torre",
       "position": "On Numara",
-      "market_value": "550 bin €"
+      "market_value": "7.50 mil. €"
     },
     {
-      "name": "Yusuf Erdoğan",
+      "name": "Raphinha",
       "position": "Sol Kanat",
-      "market_value": "500 bin €"
+      "market_value": "80.00 mil. €"
     },
     {
-      "name": "Hamidou Keyta",
+      "name": "Ansu Fati",
       "position": "Sol Kanat",
-      "market_value": "475 bin €"
+      "market_value": "5.00 mil. €"
     },
     {
-      "name": "Kaan Akyazı",
-      "position": "Sol Kanat",
-      "market_value": "-"
-    },
-    {
-      "name": "Alassane Ndao",
+      "name": "Lamine Yamal",
       "position": "Sağ Kanat",
-      "market_value": "1.20 mil. €"
+      "market_value": "180.00 mil. €"
     },
     {
-      "name": "Louka Prip",
-      "position": "Sağ Kanat",
-      "market_value": "1.10 mil. €"
-    },
-    {
-      "name": "Tunahan Taşçı",
-      "position": "Sağ Kanat",
-      "market_value": "800 bin €"
-    },
-    {
-      "name": "Blaz Kramer",
+      "name": "Ferran Torres",
       "position": "Santrafor",
-      "market_value": "1.20 mil. €"
+      "market_value": "28.00 mil. €"
     },
     {
-      "name": "Umut Nayir",
+      "name": "Robert Lewandowski",
       "position": "Santrafor",
-      "market_value": "750 bin €"
+      "market_value": "15.00 mil. €"
     },
     {
-      "name": "Melih Bostan",
+      "name": "Pau Víctor",
       "position": "Santrafor",
-      "market_value": "400 bin €"
+      "market_value": "5.00 mil. €"
     }
   ]
 }
