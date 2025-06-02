@@ -170,7 +170,7 @@ def generate_team_data(team_info, league_key):
     output_data = {
         "team": team_name,
         "position_in_league": get_league_position(team_name, league_key),
-        "recent_form": get_recent_form(team_name),
+        "recent_form": get_recent_form(team_name, league_key),
         "injuries": scrape_injuries(team_slug, team_id, squad),
         "squad": squad
     }
@@ -186,7 +186,7 @@ def generate_json_api():
         data = request.get_json()
         home_team_key = data.get("home_team")
         away_team_key = data.get("away_team")
-        league_key = data.get("league")
+        league_key = data.get("league_key")
 
         if not home_team_key or not away_team_key:
             return jsonify({"error": "Ev sahibi ve deplasman takımları belirtilmeli."}), 400
