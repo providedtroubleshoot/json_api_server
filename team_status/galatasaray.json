@@ -1,11 +1,12 @@
 {
   "team": "Galatasaray",
-  "position_in_league": 1,
+  "position_in_league": null,
   "recent_form": {
-    "wins": 5,
+    "wins": 6,
     "draws": 0,
     "losses": 0,
     "last_matches": [
+      "G",
       "G",
       "G",
       "G",
@@ -15,8 +16,12 @@
   },
   "injuries": [
     {
-      "name": "Mauro Icardi",
-      "position": "Santrafor"
+      "name": "Yunus Akgün",
+      "position": "Sağ Kanat"
+    },
+    {
+      "name": "Abdülkerim Bardakcı",
+      "position": "Stoper"
     }
   ],
   "squad": [
@@ -56,6 +61,11 @@
       "market_value": "7.00 mil. €"
     },
     {
+      "name": "Kaan Ayhan",
+      "position": "Stoper",
+      "market_value": "4.20 mil. €"
+    },
+    {
       "name": "Metehan Baltacı",
       "position": "Stoper",
       "market_value": "2.70 mil. €"
@@ -79,11 +89,6 @@
       "name": "Elias Jelert",
       "position": "Sağ Bek",
       "market_value": "7.50 mil. €"
-    },
-    {
-      "name": "Kaan Ayhan",
-      "position": "Sağ Bek",
-      "market_value": "4.20 mil. €"
     },
     {
       "name": "Lucas Torreira",

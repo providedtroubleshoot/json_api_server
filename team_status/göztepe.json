@@ -1,16 +1,17 @@
 {
   "team": "Göztepe",
-  "position_in_league": 7,
+  "position_in_league": null,
   "recent_form": {
-    "wins": 2,
-    "draws": 2,
-    "losses": 1,
+    "wins": 3,
+    "draws": 1,
+    "losses": 2,
     "last_matches": [
-      "B",
       "G",
       "G",
       "B",
-      "M"
+      "M",
+      "M",
+      "G"
     ]
   },
   "injuries": [
@@ -20,18 +21,6 @@
     },
     {
       "name": "Djalma Silva",
-      "position": "Orta Saha Sol"
-    },
-    {
-      "name": "Juan",
-      "position": "Santrafor"
-    },
-    {
-      "name": "Doğan Erdoğan",
-      "position": "Ön Libero"
-    },
-    {
-      "name": "İsmail Köybaşı",
       "position": "Orta Saha Sol"
     }
   ],
