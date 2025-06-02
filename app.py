@@ -110,6 +110,14 @@ def get_league_url(league_key: str) -> str:
     }
     return url_map.get(league_key.lower())
 
+def get_form_url(league_key: str) -> str:
+    url_map = {
+        "en1": "https://www.transfermarkt.com.tr/premier-league/formtabelle/wettbewerb/GB1",
+        "es1": "https://www.transfermarkt.com.tr/laliga/formtabelle/wettbewerb/ES1",
+        "de1": "https://www.transfermarkt.com.tr/bundesliga/formtabelle/wettbewerb/L1",
+        "tr1": "https://www.transfermarkt.com.tr/super-lig/formtabelle/wettbewerb/TR1",
+    }
+    return url_map.get(league_key.lower())
 
 def get_league_position(team_name, league_key):
     try:
@@ -135,7 +143,7 @@ def get_league_position(team_name, league_key):
 
 def get_recent_form(team_name, league_key):
     try:
-        url_form = get_league_url(league_key)
+        url_form = get_form_url(league_key)
         if not url_form:
             return "Lige ait URL bulunamadı."
 
