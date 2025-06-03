@@ -138,7 +138,10 @@ def get_league_position(team_name, league_key):
             if len(cells) < 3:
                 continue
             pos_text = cells[0].get_text(strip=True)
-            name_text = cells[2].get_text(strip=True)
+            name_cell = cells[2].find('a')
+            if not name_cell:
+                continue
+            name_text = name_cell.get_text(strip=True)
             if name_text.lower() == team_name.lower():
                 return int(pos_text) if pos_text.isdigit() else pos_text
         return None
