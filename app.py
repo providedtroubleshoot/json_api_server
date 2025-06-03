@@ -108,10 +108,10 @@ def scrape_injuries(team_slug, team_id, squad):
 
 def get_league_url(league_key: str) -> str:
     url_map = {
-        "en1": "https://www.transfermarkt.com.tr/premier-league/startseite/wettbewerb/GB1",
-        "es1": "https://www.transfermarkt.com.tr/laliga/startseite/wettbewerb/ES1",
-        "de1": "https://www.transfermarkt.com.tr/bundesliga/startseite/wettbewerb/L1",
-        "tr1": "https://www.transfermarkt.com.tr/super-lig/startseite/wettbewerb/TR1",
+        "en1": "https://www.transfermarkt.com.tr/premier-league/tabelle/wettbewerb/GB1",
+        "es1": "https://www.transfermarkt.com.tr/laliga/tabelle/wettbewerb/ES1",
+        "de1": "https://www.transfermarkt.com.tr/bundesliga/tabelle/wettbewerb/L1",
+        "tr1": "https://www.transfermarkt.com.tr/super-lig/tabelle/wettbewerb/TR1",
     }
     return url_map.get(league_key.lower())
 
@@ -138,10 +138,7 @@ def get_league_position(team_name, league_key):
             if len(cells) < 3:
                 continue
             pos_text = cells[0].get_text(strip=True)
-            name_cell = cells[2].find('a')
-            if not name_cell:
-                continue
-            name_text = name_cell.get_text(strip=True)
+            name_text = cells[2].get_text(strip=True)
             if name_text.lower() == team_name.lower():
                 return int(pos_text) if pos_text.isdigit() else pos_text
         return None
