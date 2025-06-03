@@ -1,0 +1,179 @@
+{
+  "team": "Chelsea",
+  "position_in_league": 4,
+  "recent_form": {
+    "wins": 5,
+    "draws": 0,
+    "losses": 1,
+    "last_matches": [
+      "G",
+      "G",
+      "G",
+      "M",
+      "G",
+      "G"
+    ]
+  },
+  "injuries": [
+    {
+      "name": "David Datro Fofana",
+      "position": "Santrafor"
+    },
+    {
+      "name": "Wesley Fofana",
+      "position": "Stoper"
+    }
+  ],
+  "squad": [
+    {
+      "name": "Robert Sánchez",
+      "position": "Kaleci",
+      "market_value": "20.00 mil. €"
+    },
+    {
+      "name": "Filip Jørgensen",
+      "position": "Kaleci",
+      "market_value": "18.00 mil. €"
+    },
+    {
+      "name": "Mike Penders",
+      "position": "Kaleci",
+      "market_value": "10.00 mil. €"
+    },
+    {
+      "name": "Lucas Bergström",
+      "position": "Kaleci",
+      "market_value": "700 bin €"
+    },
+    {
+      "name": "Marcus Bettinelli",
+      "position": "Kaleci",
+      "market_value": "600 bin €"
+    },
+    {
+      "name": "Levi Colwill",
+      "position": "Stoper",
+      "market_value": "55.00 mil. €"
+    },
+    {
+      "name": "Trevoh Chalobah",
+      "position": "Stoper",
+      "market_value": "25.00 mil. €"
+    },
+    {
+      "name": "Wesley Fofana",
+      "position": "Stoper",
+      "market_value": "25.00 mil. €"
+    },
+    {
+      "name": "Benoît Badiashile",
+      "position": "Stoper",
+      "market_value": "22.00 mil. €"
+    },
+    {
+      "name": "Tosin Adarabioyo",
+      "position": "Stoper",
+      "market_value": "20.00 mil. €"
+    },
+    {
+      "name": "Aarón Anselmino",
+      "position": "Stoper",
+      "market_value": "8.00 mil. €"
+    },
+    {
+      "name": "Marc Cucurella",
+      "position": "Sol Bek",
+      "market_value": "35.00 mil. €"
+    },
+    {
+      "name": "Malo Gusto",
+      "position": "Sağ Bek",
+      "market_value": "35.00 mil. €"
+    },
+    {
+      "name": "Reece James",
+      "position": "Sağ Bek",
+      "market_value": "30.00 mil. €"
+    },
+    {
+      "name": "Josh Acheampong",
+      "position": "Sağ Bek",
+      "market_value": "8.00 mil. €"
+    },
+    {
+      "name": "Moisés Caicedo",
+      "position": "Ön Libero",
+      "market_value": "90.00 mil. €"
+    },
+    {
+      "name": "Roméo Lavia",
+      "position": "Ön Libero",
+      "market_value": "40.00 mil. €"
+    },
+    {
+      "name": "Enzo Fernández",
+      "position": "Merkez Orta Saha",
+      "market_value": "75.00 mil. €"
+    },
+    {
+      "name": "Kiernan Dewsbury-Hall",
+      "position": "Merkez Orta Saha",
+      "market_value": "20.00 mil. €"
+    },
+    {
+      "name": "Mathis Amougou",
+      "position": "Merkez Orta Saha",
+      "market_value": "10.00 mil. €"
+    },
+    {
+      "name": "Cole Palmer",
+      "position": "On Numara",
+      "market_value": "120.00 mil. €"
+    },
+    {
+      "name": "Jadon Sancho",
+      "position": "Sol Kanat",
+      "market_value": "28.00 mil. €"
+    },
+    {
+      "name": "Mykhaylo Mudryk",
+      "position": "Sol Kanat",
+      "market_value": "18.00 mil. €"
+    },
+    {
+      "name": "Tyrique George",
+      "position": "Sol Kanat",
+      "market_value": "10.00 mil. €"
+    },
+    {
+      "name": "Pedro Neto",
+      "position": "Sağ Kanat",
+      "market_value": "50.00 mil. €"
+    },
+    {
+      "name": "Noni Madueke",
+      "position": "Sağ Kanat",
+      "market_value": "40.00 mil. €"
+    },
+    {
+      "name": "Nicolas Jackson",
+      "position": "Santrafor",
+      "market_value": "50.00 mil. €"
+    },
+    {
+      "name": "Christopher Nkunku",
+      "position": "Santrafor",
+      "market_value": "35.00 mil. €"
+    },
+    {
+      "name": "Marc Guiu",
+      "position": "Santrafor",
+      "market_value": "8.00 mil. €"
+    },
+    {
+      "name": "David Datro Fofana",
+      "position": "Santrafor",
+      "market_value": "6.00 mil. €"
+    }
+  ]
+}
