@@ -3,26 +3,18 @@
   "position_in_league": 14,
   "recent_form": {
     "wins": 0,
-    "draws": 1,
-    "losses": 4,
+    "draws": 3,
+    "losses": 3,
     "last_matches": [
       "M",
       "M",
       "M",
-      "M",
+      "B",
+      "B",
       "B"
     ]
   },
-  "injuries": [
-    {
-      "name": "Quentin Daubin",
-      "position": "Merkez Orta Saha"
-    },
-    {
-      "name": "Emre Taşdemir",
-      "position": "Sol Bek"
-    }
-  ],
+  "injuries": [],
   "squad": [
     {
       "name": "Sokratis Dioudis",

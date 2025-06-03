@@ -2,38 +2,18 @@
   "team": "Kasımpaşa",
   "position_in_league": 10,
   "recent_form": {
-    "wins": 2,
-    "draws": 1,
-    "losses": 1,
+    "wins": 1,
+    "draws": 2,
+    "losses": 2,
     "last_matches": [
-      "G",
       "B",
       "G",
+      "M",
+      "B",
       "M"
     ]
   },
-  "injuries": [
-    {
-      "name": "Sadık Çiftpınar",
-      "position": "Stoper"
-    },
-    {
-      "name": "Mortadha Ben Ouanes",
-      "position": "Sol Kanat"
-    },
-    {
-      "name": "Kamil Piatkowski",
-      "position": "Stoper"
-    },
-    {
-      "name": "Josip Brekalo",
-      "position": "Sol Kanat"
-    },
-    {
-      "name": "Antonín Barák",
-      "position": "On Numara"
-    }
-  ],
+  "injuries": [],
   "squad": [
     {
       "name": "Andreas Gianniotis",
@@ -84,6 +64,11 @@
       "name": "Sadık Çiftpınar",
       "position": "Stoper",
       "market_value": "200 bin €"
+    },
+    {
+      "name": "Berkay Muratoğlu",
+      "position": "Stoper",
+      "market_value": "-"
     },
     {
       "name": "Yunus Atakaya",
@@ -146,6 +131,11 @@
       "market_value": "2.00 mil. €"
     },
     {
+      "name": "Yusuf İnci",
+      "position": "On Numara",
+      "market_value": "-"
+    },
+    {
       "name": "Josip Brekalo",
       "position": "Sol Kanat",
       "market_value": "3.40 mil. €"
@@ -176,14 +166,14 @@
       "market_value": "600 bin €"
     },
     {
-      "name": "Sarp Yavrucu",
+      "name": "Sinan Alkaş",
       "position": "Santrafor",
       "market_value": "75 bin €"
     },
     {
-      "name": "Sinan Alkaş",
+      "name": "Berk Can Yıldızlı",
       "position": "Santrafor",
-      "market_value": "75 bin €"
+      "market_value": "-"
     }
   ]
 }
