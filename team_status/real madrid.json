@@ -1,6 +1,6 @@
 {
   "team": "Real Madrid",
-  "position_in_league": null,
+  "position_in_league": 2,
   "recent_form": {
     "wins": 5,
     "draws": 0,
