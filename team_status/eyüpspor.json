@@ -2,35 +2,18 @@
   "team": "Eyüpspor",
   "position_in_league": 6,
   "recent_form": {
-    "wins": 0,
+    "wins": 1,
     "draws": 0,
-    "losses": 5,
+    "losses": 4,
     "last_matches": [
       "M",
       "M",
       "M",
       "M",
-      "M"
+      "G"
     ]
   },
-  "injuries": [
-    {
-      "name": "Fredrik Midtsjø",
-      "position": "Merkez Orta Saha"
-    },
-    {
-      "name": "Taşkın İlter",
-      "position": "Ön Libero"
-    },
-    {
-      "name": "Sinan Gümüş",
-      "position": "Sağ Kanat"
-    },
-    {
-      "name": "Léo Dubois",
-      "position": "Sağ Bek"
-    }
-  ],
+  "injuries": [],
   "squad": [
     {
       "name": "Berke Özer",
