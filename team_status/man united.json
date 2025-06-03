@@ -1,0 +1,170 @@
+{
+  "team": "Man United",
+  "position_in_league": 15,
+  "recent_form": {
+    "wins": 1,
+    "draws": 1,
+    "losses": 4,
+    "last_matches": [
+      "M",
+      "B",
+      "M",
+      "M",
+      "M",
+      "G"
+    ]
+  },
+  "injuries": [
+    {
+      "name": "Lisandro Martínez",
+      "position": "Stoper"
+    }
+  ],
+  "squad": [
+    {
+      "name": "André Onana",
+      "position": "Kaleci",
+      "market_value": "25.00 mil. €"
+    },
+    {
+      "name": "Altay Bayındır",
+      "position": "Kaleci",
+      "market_value": "8.00 mil. €"
+    },
+    {
+      "name": "Tom Heaton",
+      "position": "Kaleci",
+      "market_value": "200 bin €"
+    },
+    {
+      "name": "Leny Yoro",
+      "position": "Stoper",
+      "market_value": "55.00 mil. €"
+    },
+    {
+      "name": "Lisandro Martínez",
+      "position": "Stoper",
+      "market_value": "40.00 mil. €"
+    },
+    {
+      "name": "Matthijs de Ligt",
+      "position": "Stoper",
+      "market_value": "38.00 mil. €"
+    },
+    {
+      "name": "Harry Maguire",
+      "position": "Stoper",
+      "market_value": "13.00 mil. €"
+    },
+    {
+      "name": "Victor Lindelöf",
+      "position": "Stoper",
+      "market_value": "8.00 mil. €"
+    },
+    {
+      "name": "Ayden Heaven",
+      "position": "Stoper",
+      "market_value": "5.00 mil. €"
+    },
+    {
+      "name": "Jonny Evans",
+      "position": "Stoper",
+      "market_value": "1.00 mil. €"
+    },
+    {
+      "name": "Luke Shaw",
+      "position": "Sol Bek",
+      "market_value": "12.00 mil. €"
+    },
+    {
+      "name": "Harry Amass",
+      "position": "Sol Bek",
+      "market_value": "5.00 mil. €"
+    },
+    {
+      "name": "Diogo Dalot",
+      "position": "Sağ Bek",
+      "market_value": "30.00 mil. €"
+    },
+    {
+      "name": "Noussair Mazraoui",
+      "position": "Sağ Bek",
+      "market_value": "25.00 mil. €"
+    },
+    {
+      "name": "Manuel Ugarte",
+      "position": "Ön Libero",
+      "market_value": "45.00 mil. €"
+    },
+    {
+      "name": "Casemiro",
+      "position": "Ön Libero",
+      "market_value": "10.00 mil. €"
+    },
+    {
+      "name": "Toby Collyer",
+      "position": "Ön Libero",
+      "market_value": "5.00 mil. €"
+    },
+    {
+      "name": "Kobbie Mainoo",
+      "position": "Merkez Orta Saha",
+      "market_value": "50.00 mil. €"
+    },
+    {
+      "name": "Christian Eriksen",
+      "position": "Merkez Orta Saha",
+      "market_value": "4.00 mil. €"
+    },
+    {
+      "name": "Daniel Gore",
+      "position": "Merkez Orta Saha",
+      "market_value": "900 bin €"
+    },
+    {
+      "name": "Patrick Dorgu",
+      "position": "Orta Saha Sol",
+      "market_value": "25.00 mil. €"
+    },
+    {
+      "name": "Bruno Fernandes",
+      "position": "On Numara",
+      "market_value": "50.00 mil. €"
+    },
+    {
+      "name": "Alejandro Garnacho",
+      "position": "On Numara",
+      "market_value": "45.00 mil. €"
+    },
+    {
+      "name": "Mason Mount",
+      "position": "On Numara",
+      "market_value": "28.00 mil. €"
+    },
+    {
+      "name": "Amad Diallo",
+      "position": "Sağ Kanat",
+      "market_value": "45.00 mil. €"
+    },
+    {
+      "name": "Rasmus Højlund",
+      "position": "Santrafor",
+      "market_value": "35.00 mil. €"
+    },
+    {
+      "name": "Joshua Zirkzee",
+      "position": "Santrafor",
+      "market_value": "30.00 mil. €"
+    },
+    {
+      "name": "Chido Obi",
+      "position": "Santrafor",
+      "market_value": "5.00 mil. €"
+    },
+    {
+      "name": "Ethan Wheatley",
+      "position": "Santrafor",
+      "market_value": "-"
+    }
+  ]
+}
