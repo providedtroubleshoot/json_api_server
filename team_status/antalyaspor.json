@@ -28,12 +28,12 @@
     {
       "name": "Kenan Piric",
       "position": "Kaleci",
-      "market_value": "600 bin €"
+      "market_value": "500 bin €"
     },
     {
       "name": "Abdullah Yiğiter",
       "position": "Kaleci",
-      "market_value": "125 bin €"
+      "market_value": "175 bin €"
     },
     {
       "name": "Doğukan Özkan",
@@ -48,12 +48,12 @@
     {
       "name": "Emrecan Uzunhan",
       "position": "Stoper",
-      "market_value": "500 bin €"
+      "market_value": "425 bin €"
     },
     {
       "name": "Bahadır Öztürk",
       "position": "Stoper",
-      "market_value": "375 bin €"
+      "market_value": "300 bin €"
     },
     {
       "name": "Amar Gerxhaliu",
@@ -78,12 +78,12 @@
     {
       "name": "Bünyamin Balcı",
       "position": "Sağ Bek",
-      "market_value": "2.00 mil. €"
+      "market_value": "2.20 mil. €"
     },
     {
       "name": "Erdoğan Yeşilyurt",
       "position": "Sağ Bek",
-      "market_value": "1.00 mil. €"
+      "market_value": "800 bin €"
     },
     {
       "name": "Mert Yılmaz",
@@ -98,22 +98,22 @@
     {
       "name": "Oleksandr Petrusenko",
       "position": "Ön Libero",
-      "market_value": "1.20 mil. €"
+      "market_value": "1.00 mil. €"
     },
     {
       "name": "Soner Dikmen",
       "position": "Merkez Orta Saha",
-      "market_value": "1.20 mil. €"
+      "market_value": "1.00 mil. €"
     },
     {
       "name": "Erdal Rakip",
       "position": "Merkez Orta Saha",
-      "market_value": "800 bin €"
+      "market_value": "750 bin €"
     },
     {
       "name": "Burak İngenç",
       "position": "Merkez Orta Saha",
-      "market_value": "200 bin €"
+      "market_value": "175 bin €"
     },
     {
       "name": "Mevlüt Han Ekelik",
@@ -121,24 +121,24 @@
       "market_value": "75 bin €"
     },
     {
-      "name": "Sam Larsson",
-      "position": "On Numara",
-      "market_value": "1.40 mil. €"
-    },
-    {
       "name": "Ramzi Safuri",
       "position": "On Numara",
-      "market_value": "1.30 mil. €"
+      "market_value": "1.10 mil. €"
     },
     {
-      "name": "Sander van de Streek",
+      "name": "Sam Larsson",
       "position": "On Numara",
-      "market_value": "1.00 mil. €"
+      "market_value": "1.10 mil. €"
     },
     {
       "name": "Emre Uzun",
       "position": "On Numara",
-      "market_value": "900 bin €"
+      "market_value": "800 bin €"
+    },
+    {
+      "name": "Sander van de Streek",
+      "position": "On Numara",
+      "market_value": "800 bin €"
     },
     {
       "name": "Deni Milosevic",
@@ -148,7 +148,7 @@
     {
       "name": "Moussa Djenepo",
       "position": "Sol Kanat",
-      "market_value": "2.30 mil. €"
+      "market_value": "2.00 mil. €"
     },
     {
       "name": "Taha Osman Özmert",
@@ -158,7 +158,7 @@
     {
       "name": "Andros Townsend",
       "position": "Sağ Kanat",
-      "market_value": "1.00 mil. €"
+      "market_value": "550 bin €"
     },
     {
       "name": "Adolfo Gaich",
