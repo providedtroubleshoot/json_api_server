@@ -16,10 +16,6 @@
   },
   "injuries": [
     {
-      "name": "David Datro Fofana",
-      "position": "Santrafor"
-    },
-    {
       "name": "Wesley Fofana",
       "position": "Stoper"
     }
@@ -38,7 +34,12 @@
     {
       "name": "Mike Penders",
       "position": "Kaleci",
-      "market_value": "10.00 mil. €"
+      "market_value": "12.00 mil. €"
+    },
+    {
+      "name": "Gabriel Slonina",
+      "position": "Kaleci",
+      "market_value": "3.50 mil. €"
     },
     {
       "name": "Lucas Bergström",
@@ -46,14 +47,14 @@
       "market_value": "700 bin €"
     },
     {
-      "name": "Marcus Bettinelli",
-      "position": "Kaleci",
-      "market_value": "600 bin €"
-    },
-    {
       "name": "Levi Colwill",
       "position": "Stoper",
       "market_value": "55.00 mil. €"
+    },
+    {
+      "name": "Renato Veiga",
+      "position": "Stoper",
+      "market_value": "25.00 mil. €"
     },
     {
       "name": "Trevoh Chalobah",
@@ -72,6 +73,11 @@
     },
     {
       "name": "Tosin Adarabioyo",
+      "position": "Stoper",
+      "market_value": "20.00 mil. €"
+    },
+    {
+      "name": "Mamadou Sarr",
       "position": "Stoper",
       "market_value": "20.00 mil. €"
     },
@@ -111,9 +117,19 @@
       "market_value": "40.00 mil. €"
     },
     {
+      "name": "Dário Essugo",
+      "position": "Ön Libero",
+      "market_value": "20.00 mil. €"
+    },
+    {
       "name": "Enzo Fernández",
       "position": "Merkez Orta Saha",
       "market_value": "75.00 mil. €"
+    },
+    {
+      "name": "Andrey Santos",
+      "position": "Merkez Orta Saha",
+      "market_value": "35.00 mil. €"
     },
     {
       "name": "Kiernan Dewsbury-Hall",
@@ -129,6 +145,11 @@
       "name": "Cole Palmer",
       "position": "On Numara",
       "market_value": "120.00 mil. €"
+    },
+    {
+      "name": "Christopher Nkunku",
+      "position": "On Numara",
+      "market_value": "35.00 mil. €"
     },
     {
       "name": "Jadon Sancho",
@@ -161,9 +182,9 @@
       "market_value": "50.00 mil. €"
     },
     {
-      "name": "Christopher Nkunku",
+      "name": "Liam Delap",
       "position": "Santrafor",
-      "market_value": "35.00 mil. €"
+      "market_value": "40.00 mil. €"
     },
     {
       "name": "Marc Guiu",

@@ -32,6 +32,11 @@
       "market_value": "8.00 mil. €"
     },
     {
+      "name": "Marcus Bettinelli",
+      "position": "Kaleci",
+      "market_value": "600 bin €"
+    },
+    {
       "name": "Scott Carson",
       "position": "Kaleci",
       "market_value": "100 bin €"
@@ -72,6 +77,11 @@
       "market_value": "75.00 mil. €"
     },
     {
+      "name": "Rayan Aït-Nouri",
+      "position": "Sol Bek",
+      "market_value": "35.00 mil. €"
+    },
+    {
       "name": "Rico Lewis",
       "position": "Sağ Bek",
       "market_value": "40.00 mil. €"
@@ -80,6 +90,11 @@
       "name": "Rodri",
       "position": "Ön Libero",
       "market_value": "110.00 mil. €"
+    },
+    {
+      "name": "Tijjani Reijnders",
+      "position": "Merkez Orta Saha",
+      "market_value": "60.00 mil. €"
     },
     {
       "name": "Nico González",
@@ -145,6 +160,11 @@
       "name": "Savinho",
       "position": "Sağ Kanat",
       "market_value": "50.00 mil. €"
+    },
+    {
+      "name": "Rayan Cherki",
+      "position": "Sağ Kanat",
+      "market_value": "45.00 mil. €"
     },
     {
       "name": "Oscar Bobb",
