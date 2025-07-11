@@ -35,12 +35,11 @@ TEAMS = {
     "alanyaspor": {"name": "Alanyaspor", "slug": "alanyaspor", "id": "11282"},
     "antalyaspor": {"name": "Antalyaspor", "slug": "antalyaspor", "id": "589"},
     "gaziantep fk": {"name": "Gaziantep FK", "slug": "gaziantep-fk", "id": "2832"},
-    "bodrum fk": {"name": "Bodrum FK", "slug": "bodrumspor", "id": "44006"},
     "konyaspor": {"name": "Konyaspor", "slug": "konyaspor", "id": "2293"},
-    "hatayspor": {"name": "Hatayspor", "slug": "hatayspor", "id": "7775"},
     "kayserispor": {"name": "Kayserispor", "slug": "kayserispor", "id": "3205"},
-    "sivasspor": {"name": "Sivasspor", "slug": "sivasspor", "id": "2381"},
-    "adana demirspor": {"name": "Adana Demirspor", "slug": "adana-demirspor", "id": "3840"}
+    "karagümrük": {"name": "Karagümrük", "slug": "fatih-karagumruk", "id": "6646"},
+    "kocaelispor": {"name": "Kocaelispor", "slug": "kocaelispor", "id": "120"},
+    "gençlerbirliği": {"name": "Gençlerbirliği", "slug": "genclerbirligi-ankara", "id": "820"}
 }
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
