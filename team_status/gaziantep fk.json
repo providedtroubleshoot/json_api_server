@@ -1,30 +1,18 @@
 {
   "team": "Gaziantep FK",
-  "position_in_league": 14,
-  "recent_form": {
-    "wins": 0,
-    "draws": 3,
-    "losses": 3,
-    "last_matches": [
-      "M",
-      "M",
-      "M",
-      "B",
-      "B",
-      "B"
-    ]
-  },
+  "position_in_league": 1,
+  "recent_form": {},
   "injuries": [],
   "squad": [
     {
-      "name": "Sokratis Dioudis",
-      "position": "Kaleci",
-      "market_value": "275 bin €"
-    },
-    {
       "name": "Burak Bozan",
       "position": "Kaleci",
-      "market_value": "275 bin €"
+      "market_value": "600 bin €"
+    },
+    {
+      "name": "Sokratis Dioudis",
+      "position": "Kaleci",
+      "market_value": "225 bin €"
     },
     {
       "name": "Halil Bağcı",
@@ -37,17 +25,12 @@
       "market_value": "1.10 mil. €"
     },
     {
-      "name": "Bruno Viana",
-      "position": "Stoper",
-      "market_value": "1.10 mil. €"
-    },
-    {
       "name": "Arda Kızıldağ",
       "position": "Stoper",
-      "market_value": "1.00 mil. €"
+      "market_value": "900 bin €"
     },
     {
-      "name": "Anel Husic",
+      "name": "Myenty Abena",
       "position": "Stoper",
       "market_value": "700 bin €"
     },
@@ -59,27 +42,17 @@
     {
       "name": "Godfrey Stephen",
       "position": "Sol Bek",
-      "market_value": "275 bin €"
+      "market_value": "225 bin €"
     },
     {
-      "name": "Emre Taşdemir",
+      "name": "Onur Başyiğit",
       "position": "Sol Bek",
-      "market_value": "125 bin €"
+      "market_value": "150 bin €"
     },
     {
       "name": "Salem M'Bakata",
       "position": "Sağ Bek",
-      "market_value": "550 bin €"
-    },
-    {
-      "name": "Ömürcan Artan",
-      "position": "Sağ Bek",
-      "market_value": "225 bin €"
-    },
-    {
-      "name": "Badou Ndiaye",
-      "position": "Ön Libero",
-      "market_value": "425 bin €"
+      "market_value": "600 bin €"
     },
     {
       "name": "Ogün Özçiçek",
@@ -87,14 +60,29 @@
       "market_value": "400 bin €"
     },
     {
+      "name": "Badou Ndiaye",
+      "position": "Ön Libero",
+      "market_value": "375 bin €"
+    },
+    {
+      "name": "Juninho Bacuna",
+      "position": "Merkez Orta Saha",
+      "market_value": "3.00 mil. €"
+    },
+    {
       "name": "Furkan Soyalp",
       "position": "Merkez Orta Saha",
-      "market_value": "475 bin €"
+      "market_value": "400 bin €"
     },
     {
       "name": "Quentin Daubin",
       "position": "Merkez Orta Saha",
       "market_value": "350 bin €"
+    },
+    {
+      "name": "Eren Çakır",
+      "position": "Merkez Orta Saha",
+      "market_value": "10 bin €"
     },
     {
       "name": "Kacper Kozlowski",
@@ -104,12 +92,12 @@
     {
       "name": "Alexandru Maxim",
       "position": "On Numara",
-      "market_value": "600 bin €"
+      "market_value": "500 bin €"
     },
     {
-      "name": "Muhammed Gümüşkaya",
+      "name": "Onurhan Babuscu",
       "position": "On Numara",
-      "market_value": "400 bin €"
+      "market_value": "100 bin €"
     },
     {
       "name": "Burak Enes Yıkıcı",
@@ -122,29 +110,39 @@
       "market_value": "800 bin €"
     },
     {
+      "name": "Mirza Cihan",
+      "position": "Sol Kanat",
+      "market_value": "200 bin €"
+    },
+    {
+      "name": "Mehmet Kuzucu",
+      "position": "Sol Kanat",
+      "market_value": "50 bin €"
+    },
+    {
       "name": "Deian Sorescu",
       "position": "Sağ Kanat",
       "market_value": "2.00 mil. €"
     },
     {
-      "name": "David Okereke",
-      "position": "Santrafor",
-      "market_value": "2.20 mil. €"
+      "name": "Eren Erdoğan",
+      "position": "Sağ Kanat",
+      "market_value": "125 bin €"
+    },
+    {
+      "name": "Ali Mevran Ablak",
+      "position": "Sağ Kanat",
+      "market_value": "-"
     },
     {
       "name": "Emmanuel Boateng",
       "position": "Santrafor",
-      "market_value": "1.50 mil. €"
+      "market_value": "1.60 mil. €"
     },
     {
-      "name": "Kenan Kodro",
+      "name": "İlker Karakaş",
       "position": "Santrafor",
-      "market_value": "1.00 mil. €"
-    },
-    {
-      "name": "Halil Dervişoğlu",
-      "position": "Santrafor",
-      "market_value": "900 bin €"
+      "market_value": "75 bin €"
     }
   ]
 }

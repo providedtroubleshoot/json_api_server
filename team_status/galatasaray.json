@@ -1,39 +1,23 @@
 {
   "team": "Galatasaray",
-  "position_in_league": null,
-  "recent_form": {
-    "wins": 6,
-    "draws": 0,
-    "losses": 0,
-    "last_matches": [
-      "G",
-      "G",
-      "G",
-      "G",
-      "G",
-      "G"
-    ]
-  },
+  "position_in_league": 1,
+  "recent_form": {},
   "injuries": [
     {
-      "name": "Yunus Akgün",
-      "position": "Sağ Kanat"
-    },
-    {
-      "name": "Abdülkerim Bardakcı",
-      "position": "Stoper"
+      "name": "Mauro Icardi",
+      "position": "Santrafor"
     }
   ],
   "squad": [
     {
-      "name": "Fernando Muslera",
-      "position": "Kaleci",
-      "market_value": "1.00 mil. €"
-    },
-    {
       "name": "Günay Güvenç",
       "position": "Kaleci",
       "market_value": "500 bin €"
+    },
+    {
+      "name": "Batuhan Şen",
+      "position": "Kaleci",
+      "market_value": "275 bin €"
     },
     {
       "name": "Jankat Yılmaz",
@@ -41,19 +25,19 @@
       "market_value": "250 bin €"
     },
     {
-      "name": "Atakan Ordu",
-      "position": "Kaleci",
-      "market_value": "50 bin €"
-    },
-    {
       "name": "Davinson Sánchez",
       "position": "Stoper",
-      "market_value": "19.00 mil. €"
+      "market_value": "20.00 mil. €"
+    },
+    {
+      "name": "Victor Nelsson",
+      "position": "Stoper",
+      "market_value": "10.00 mil. €"
     },
     {
       "name": "Carlos Cuesta",
       "position": "Stoper",
-      "market_value": "8.00 mil. €"
+      "market_value": "7.00 mil. €"
     },
     {
       "name": "Abdülkerim Bardakcı",
@@ -63,12 +47,12 @@
     {
       "name": "Kaan Ayhan",
       "position": "Stoper",
-      "market_value": "4.20 mil. €"
+      "market_value": "4.00 mil. €"
     },
     {
       "name": "Metehan Baltacı",
       "position": "Stoper",
-      "market_value": "2.70 mil. €"
+      "market_value": "2.50 mil. €"
     },
     {
       "name": "Ismail Jakobs",
@@ -76,19 +60,34 @@
       "market_value": "7.00 mil. €"
     },
     {
-      "name": "Eren Elmalı",
+      "name": "Derrick Köhn",
       "position": "Sol Bek",
-      "market_value": "4.00 mil. €"
+      "market_value": "5.00 mil. €"
     },
     {
-      "name": "Przemyslaw Frankowski",
-      "position": "Sağ Bek",
-      "market_value": "8.00 mil. €"
+      "name": "Eren Elmalı",
+      "position": "Sol Bek",
+      "market_value": "5.00 mil. €"
+    },
+    {
+      "name": "Kazımcan Karataş",
+      "position": "Sol Bek",
+      "market_value": "1.20 mil. €"
     },
     {
       "name": "Elias Jelert",
       "position": "Sağ Bek",
-      "market_value": "7.50 mil. €"
+      "market_value": "7.00 mil. €"
+    },
+    {
+      "name": "Przemyslaw Frankowski",
+      "position": "Sağ Bek",
+      "market_value": "7.00 mil. €"
+    },
+    {
+      "name": "Ali Turap Bülbül",
+      "position": "Sağ Bek",
+      "market_value": "450 bin €"
     },
     {
       "name": "Lucas Torreira",
@@ -103,7 +102,12 @@
     {
       "name": "Efe Akman",
       "position": "Ön Libero",
-      "market_value": "500 bin €"
+      "market_value": "450 bin €"
+    },
+    {
+      "name": "Baran Aksaka",
+      "position": "Ön Libero",
+      "market_value": "50 bin €"
     },
     {
       "name": "Gabriel Sara",
@@ -113,12 +117,7 @@
     {
       "name": "Berkan Kutlu",
       "position": "Merkez Orta Saha",
-      "market_value": "3.50 mil. €"
-    },
-    {
-      "name": "Kerem Demirbay",
-      "position": "Merkez Orta Saha",
-      "market_value": "3.00 mil. €"
+      "market_value": "3.20 mil. €"
     },
     {
       "name": "Eyüp Aydın",
@@ -131,24 +130,44 @@
       "market_value": "350 bin €"
     },
     {
+      "name": "Nicolò Zaniolo",
+      "position": "On Numara",
+      "market_value": "12.00 mil. €"
+    },
+    {
+      "name": "Siraçhan Nas",
+      "position": "On Numara",
+      "market_value": "350 bin €"
+    },
+    {
       "name": "Barış Alper Yılmaz",
       "position": "Sol Kanat",
-      "market_value": "20.00 mil. €"
+      "market_value": "21.00 mil. €"
     },
     {
       "name": "Ahmed Kutucu",
       "position": "Sol Kanat",
-      "market_value": "5.50 mil. €"
+      "market_value": "5.00 mil. €"
+    },
+    {
+      "name": "Eren Aydın",
+      "position": "Sol Kanat",
+      "market_value": "300 bin €"
+    },
+    {
+      "name": "Leroy Sané",
+      "position": "Sağ Kanat",
+      "market_value": "32.00 mil. €"
     },
     {
       "name": "Yunus Akgün",
       "position": "Sağ Kanat",
-      "market_value": "12.00 mil. €"
+      "market_value": "14.00 mil. €"
     },
     {
       "name": "Roland Sallai",
       "position": "Sağ Kanat",
-      "market_value": "11.00 mil. €"
+      "market_value": "10.00 mil. €"
     },
     {
       "name": "Yusuf Demir",
@@ -156,24 +175,24 @@
       "market_value": "2.20 mil. €"
     },
     {
-      "name": "Dries Mertens",
-      "position": "Forvet Arkası",
-      "market_value": "1.50 mil. €"
-    },
-    {
-      "name": "Victor Osimhen",
-      "position": "Santrafor",
-      "market_value": "70.00 mil. €"
+      "name": "Ali Efe Çördek",
+      "position": "Sağ Kanat",
+      "market_value": "150 bin €"
     },
     {
       "name": "Álvaro Morata",
       "position": "Santrafor",
-      "market_value": "13.00 mil. €"
+      "market_value": "11.00 mil. €"
     },
     {
       "name": "Mauro Icardi",
       "position": "Santrafor",
-      "market_value": "11.00 mil. €"
+      "market_value": "9.00 mil. €"
+    },
+    {
+      "name": "Baran Demiroğlu",
+      "position": "Santrafor",
+      "market_value": "150 bin €"
     }
   ]
 }

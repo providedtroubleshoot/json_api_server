@@ -1,34 +1,18 @@
 {
   "team": "Ç. Rizespor",
-  "position_in_league": 13,
-  "recent_form": {
-    "wins": 3,
-    "draws": 0,
-    "losses": 2,
-    "last_matches": [
-      "G",
-      "M",
-      "G",
-      "M",
-      "G"
-    ]
-  },
-  "injuries": [
-    {
-      "name": "Giannis Papanikolaou",
-      "position": "Ön Libero"
-    }
-  ],
+  "position_in_league": 1,
+  "recent_form": {},
+  "injuries": [],
   "squad": [
     {
-      "name": "Ivo Grbic",
+      "name": "Erdem Canpolat",
       "position": "Kaleci",
-      "market_value": "2.00 mil. €"
+      "market_value": "550 bin €"
     },
     {
-      "name": "Tarık Çetin",
+      "name": "Zafer Görgen",
       "position": "Kaleci",
-      "market_value": "350 bin €"
+      "market_value": "300 bin €"
     },
     {
       "name": "Efe Doğan",
@@ -36,9 +20,9 @@
       "market_value": "200 bin €"
     },
     {
-      "name": "Attila Mocsi",
-      "position": "Stoper",
-      "market_value": "1.80 mil. €"
+      "name": "Canberk Yurdakul",
+      "position": "Kaleci",
+      "market_value": "50 bin €"
     },
     {
       "name": "Khusniddin Alikulov",
@@ -46,14 +30,24 @@
       "market_value": "1.70 mil. €"
     },
     {
-      "name": "Samet Akaydin",
+      "name": "Attila Mocsi",
       "position": "Stoper",
-      "market_value": "1.60 mil. €"
+      "market_value": "1.70 mil. €"
     },
     {
-      "name": "Ayberk Karapo",
+      "name": "Samet Akaydin",
       "position": "Stoper",
-      "market_value": "1.00 mil. €"
+      "market_value": "1.50 mil. €"
+    },
+    {
+      "name": "Anıl Yaşar",
+      "position": "Stoper",
+      "market_value": "375 bin €"
+    },
+    {
+      "name": "Mustafa Şengül",
+      "position": "Stoper",
+      "market_value": "175 bin €"
     },
     {
       "name": "Habil Özbakır",
@@ -66,29 +60,49 @@
       "market_value": "1.20 mil. €"
     },
     {
-      "name": "Taha Şahin",
-      "position": "Sağ Bek",
-      "market_value": "1.50 mil. €"
+      "name": "Hüseyincan Kırıkcı",
+      "position": "Sol Bek",
+      "market_value": "50 bin €"
     },
     {
-      "name": "Eray Korkmaz",
+      "name": "Taha Şahin",
       "position": "Sağ Bek",
-      "market_value": "250 bin €"
+      "market_value": "1.80 mil. €"
+    },
+    {
+      "name": "Furkan Orak",
+      "position": "Sağ Bek",
+      "market_value": "350 bin €"
+    },
+    {
+      "name": "Aziz Aksoy",
+      "position": "Sağ Bek",
+      "market_value": "50 bin €"
     },
     {
       "name": "Giannis Papanikolaou",
       "position": "Ön Libero",
-      "market_value": "1.50 mil. €"
+      "market_value": "1.40 mil. €"
     },
     {
-      "name": "Berkay Özcan",
-      "position": "Merkez Orta Saha",
-      "market_value": "2.50 mil. €"
+      "name": "Janne-Pekka Laine",
+      "position": "Ön Libero",
+      "market_value": "200 bin €"
+    },
+    {
+      "name": "Ozan Koç",
+      "position": "Ön Libero",
+      "market_value": "125 bin €"
+    },
+    {
+      "name": "Efe Geçim",
+      "position": "Ön Libero",
+      "market_value": "50 bin €"
     },
     {
       "name": "Ibrahim Olawoyin",
       "position": "Merkez Orta Saha",
-      "market_value": "2.00 mil. €"
+      "market_value": "2.20 mil. €"
     },
     {
       "name": "Muhamed Buljubasic",
@@ -98,17 +112,22 @@
     {
       "name": "Mithat Pala",
       "position": "Merkez Orta Saha",
-      "market_value": "1.30 mil. €"
+      "market_value": "1.40 mil. €"
     },
     {
-      "name": "Abdülkadir Ömür",
-      "position": "On Numara",
-      "market_value": "4.70 mil. €"
+      "name": "Eren Emre Aydın",
+      "position": "Merkez Orta Saha",
+      "market_value": "125 bin €"
+    },
+    {
+      "name": "Emirhan Yılmaz",
+      "position": "Merkez Orta Saha",
+      "market_value": "25 bin €"
     },
     {
       "name": "Dal Varesanovic",
       "position": "On Numara",
-      "market_value": "2.50 mil. €"
+      "market_value": "2.40 mil. €"
     },
     {
       "name": "Altin Zeqiri",
@@ -116,9 +135,24 @@
       "market_value": "1.40 mil. €"
     },
     {
+      "name": "Benhur Keser",
+      "position": "Sol Kanat",
+      "market_value": "650 bin €"
+    },
+    {
       "name": "Emrecan Bulut",
       "position": "Sol Kanat",
-      "market_value": "375 bin €"
+      "market_value": "350 bin €"
+    },
+    {
+      "name": "Efe Tecimer",
+      "position": "Sol Kanat",
+      "market_value": "50 bin €"
+    },
+    {
+      "name": "Güvenç Usta",
+      "position": "Sol Kanat",
+      "market_value": "50 bin €"
     },
     {
       "name": "Doğanay Avcı",
@@ -126,24 +160,24 @@
       "market_value": "-"
     },
     {
-      "name": "David Akintola",
+      "name": "Mame Mor Faye",
       "position": "Sağ Kanat",
-      "market_value": "1.50 mil. €"
-    },
-    {
-      "name": "Rachid Ghezzal",
-      "position": "Sağ Kanat",
-      "market_value": "1.00 mil. €"
-    },
-    {
-      "name": "Ali Sowe",
-      "position": "Santrafor",
-      "market_value": "1.90 mil. €"
+      "market_value": "550 bin €"
     },
     {
       "name": "Vaclav Jurecka",
       "position": "Santrafor",
-      "market_value": "1.30 mil. €"
+      "market_value": "1.10 mil. €"
+    },
+    {
+      "name": "Halil Dervişoğlu",
+      "position": "Santrafor",
+      "market_value": "900 bin €"
+    },
+    {
+      "name": "Remzi Kolcuoğlu",
+      "position": "Santrafor",
+      "market_value": "-"
     }
   ]
 }

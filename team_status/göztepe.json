@@ -1,27 +1,11 @@
 {
   "team": "Göztepe",
-  "position_in_league": null,
-  "recent_form": {
-    "wins": 3,
-    "draws": 1,
-    "losses": 2,
-    "last_matches": [
-      "G",
-      "G",
-      "B",
-      "M",
-      "M",
-      "G"
-    ]
-  },
+  "position_in_league": 1,
+  "recent_form": {},
   "injuries": [
     {
-      "name": "Isaac Solet",
-      "position": "Merkez Orta Saha"
-    },
-    {
-      "name": "Djalma Silva",
-      "position": "Orta Saha Sol"
+      "name": "Ogün Bayrak",
+      "position": "Orta Saha Sağ"
     }
   ],
   "squad": [
@@ -31,14 +15,9 @@
       "market_value": "1.80 mil. €"
     },
     {
-      "name": "Arda Özçimen",
+      "name": "Ekrem Kılıçarslan",
       "position": "Kaleci",
-      "market_value": "200 bin €"
-    },
-    {
-      "name": "Emircan Seçgin",
-      "position": "Kaleci",
-      "market_value": "50 bin €"
+      "market_value": "300 bin €"
     },
     {
       "name": "Taha Altıkardeş",
@@ -61,9 +40,9 @@
       "market_value": "950 bin €"
     },
     {
-      "name": "Koray Günter",
+      "name": "Allan Godói",
       "position": "Stoper",
-      "market_value": "700 bin €"
+      "market_value": "100 bin €"
     },
     {
       "name": "Ege Yıldırım",
@@ -71,9 +50,24 @@
       "market_value": "50 bin €"
     },
     {
+      "name": "Uğur Kaan Yıldız",
+      "position": "Sağ Bek",
+      "market_value": "1.20 mil. €"
+    },
+    {
+      "name": "Arda Okan Kurtulan",
+      "position": "Sağ Bek",
+      "market_value": "350 bin €"
+    },
+    {
+      "name": "Erkam Kömür",
+      "position": "Sağ Bek",
+      "market_value": "100 bin €"
+    },
+    {
       "name": "Anthony Dennis",
       "position": "Ön Libero",
-      "market_value": "2.00 mil. €"
+      "market_value": "4.00 mil. €"
     },
     {
       "name": "Novatus Miroshi",
@@ -81,39 +75,24 @@
       "market_value": "1.00 mil. €"
     },
     {
-      "name": "Doğan Erdoğan",
+      "name": "Rhaldney",
       "position": "Ön Libero",
-      "market_value": "300 bin €"
-    },
-    {
-      "name": "Isaac Solet",
-      "position": "Merkez Orta Saha",
-      "market_value": "800 bin €"
+      "market_value": "600 bin €"
     },
     {
       "name": "Ahmed Ildız",
       "position": "Merkez Orta Saha",
-      "market_value": "325 bin €"
+      "market_value": "375 bin €"
+    },
+    {
+      "name": "Furkan Malak",
+      "position": "Merkez Orta Saha",
+      "market_value": "-"
     },
     {
       "name": "Ogün Bayrak",
       "position": "Orta Saha Sağ",
-      "market_value": "800 bin €"
-    },
-    {
-      "name": "Nazım Sangaré",
-      "position": "Orta Saha Sağ",
-      "market_value": "375 bin €"
-    },
-    {
-      "name": "Lasse Nielsen",
-      "position": "Orta Saha Sağ",
-      "market_value": "75 bin €"
-    },
-    {
-      "name": "Djalma Silva",
-      "position": "Orta Saha Sol",
-      "market_value": "650 bin €"
+      "market_value": "900 bin €"
     },
     {
       "name": "İsmail Köybaşı",
@@ -121,19 +100,9 @@
       "market_value": "50 bin €"
     },
     {
-      "name": "Victor Hugo",
-      "position": "On Numara",
-      "market_value": "4.50 mil. €"
-    },
-    {
-      "name": "Kuryu Matsuki",
-      "position": "On Numara",
-      "market_value": "2.50 mil. €"
-    },
-    {
       "name": "David Tijanic",
       "position": "On Numara",
-      "market_value": "1.40 mil. €"
+      "market_value": "1.80 mil. €"
     },
     {
       "name": "Emir Enes Araz",
@@ -143,7 +112,7 @@
     {
       "name": "Rômulo",
       "position": "Santrafor",
-      "market_value": "7.00 mil. €"
+      "market_value": "11.00 mil. €"
     },
     {
       "name": "Juan",
@@ -153,12 +122,17 @@
     {
       "name": "Emersonn",
       "position": "Santrafor",
+      "market_value": "1.40 mil. €"
+    },
+    {
+      "name": "Janderson",
+      "position": "Santrafor",
       "market_value": "1.20 mil. €"
     },
     {
-      "name": "Kubilay Kanatsızkuş",
+      "name": "Ibrahim Sabra",
       "position": "Santrafor",
-      "market_value": "300 bin €"
+      "market_value": "275 bin €"
     }
   ]
 }
