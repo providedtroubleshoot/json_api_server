@@ -1,15 +1,40 @@
 import json
+import os
+import sys
+from typing import Dict, List
+
 import requests
 from bs4 import BeautifulSoup
-import sys
-import os
-import subprocess
-from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+from flask import Flask, request, jsonify
+
+import firebase_admin
+from firebase_admin import credentials, firestore
 
 load_dotenv()
 
 app = Flask(__name__)
+
+# Firebase / Firestore başlatma
+def init_firestore():
+    if firebase_admin._apps:
+        return firestore.client()
+
+    raw_key = os.getenv("FIRESTORE_KEY")
+    if not raw_key:
+        raise RuntimeError("FIRESTORE_KEY env değişkeni tanımlı değil!")
+
+    try:
+        cred_dict = json.loads(raw_key)
+    except json.JSONDecodeError:
+        with open(raw_key, "r", encoding="utf-8") as f:
+            cred_dict = json.load(f)
+
+    cred = credentials.Certificate(cred_dict)
+    firebase_admin.initialize_app(cred)
+    return firestore.client()
+
+DB = init_firestore()
 
 TEAMS = {
     "fc barcelona": {"name": "FC Barcelona", "slug": "fc-barcelona", "id": "131"},
@@ -27,7 +52,7 @@ TEAMS = {
     "beşiktaş": {"name": "Beşiktaş", "slug": "besiktas-istanbul", "id": "114"},
     "trabzonspor": {"name": "Trabzonspor", "slug": "trabzonspor", "id": "449"},
     "göztepe": {"name": "Göztepe", "slug": "goztepe", "id": "1467"},
-    "başakşehir": {"name": "Başakşehir", "slug": "istanbul-basaksehir-fk", "id": "6890  "},
+    "başakşehir": {"name": "Başakşehir", "slug": "istanbul-basaksehir-fk", "id": "6890"},
     "ç. rizespor": {"name": "Ç. Rizespor", "slug": "caykur-rizespor", "id": "126"},
     "samsunspor": {"name": "Samsunspor", "slug": "samsunspor", "id": "152"},
     "kasımpaşa": {"name": "Kasımpaşa", "slug": "kasimpasa", "id": "10484"},
@@ -39,73 +64,60 @@ TEAMS = {
     "kayserispor": {"name": "Kayserispor", "slug": "kayserispor", "id": "3205"},
     "karagümrük": {"name": "Karagümrük", "slug": "fatih-karagumruk", "id": "6646"},
     "kocaelispor": {"name": "Kocaelispor", "slug": "kocaelispor", "id": "120"},
-    "gençlerbirliği": {"name": "Gençlerbirliği", "slug": "genclerbirligi-ankara", "id": "820"}
+    "gençlerbirliği": {"name": "Gençlerbirliği", "slug": "genclerbirligi-ankara", "id": "820"},
 }
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
-def get_team_info(team_key):
-    team_key = team_key.lower()
-    if team_key in TEAMS:
-        return TEAMS[team_key]
-    else:
+def get_team_info(team_key: str) -> dict:
+    key = team_key.lower()
+    if key not in TEAMS:
         raise ValueError(f"{team_key} takımı bulunamadı. Geçerli takımlar: {list(TEAMS.keys())}")
+    return TEAMS[key]
 
-def get_soup(url):
-    res = requests.get(url, headers=HEADERS)
+def get_soup(url: str) -> BeautifulSoup:
+    res = requests.get(url, headers=HEADERS, timeout=30)
     res.raise_for_status()
     return BeautifulSoup(res.text, "lxml")
 
-def scrape_squad(team_slug, team_id):
-    url_squad = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
-    soup = get_soup(url_squad)
+def scrape_squad(team_slug: str, team_id: str) -> List[dict]:
+    url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
+    soup = get_soup(url)
     table = soup.find("table", class_="items")
     rows = table.find_all("tr", class_=["odd", "even"])
-
     players = []
     for row in rows:
         name = row.find("td", class_="hauptlink").text.strip()
         position = row.find_all("td")[4].text.strip()
-        market_value_td = row.find_all("td")[-1]
-        market_value = market_value_td.text.strip() if market_value_td else "N/A"
-
-        players.append({
-            "name": name,
-            "position": position,
-            "market_value": market_value
-        })
-
+        market_value = row.find_all("td")[-1].text.strip()
+        players.append({"name": name, "position": position, "market_value": market_value})
     return players
 
-def scrape_injuries(team_slug, team_id, squad):
+def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dict]:
+    url = f"https://www.transfermarkt.com.tr/{team_slug}/sperrenundverletzungen/verein/{team_id}"
+    injuries = []
     try:
-        url_injuries = f"https://www.transfermarkt.com.tr/{team_slug}/sperrenundverletzungen/verein/{team_id}"
-        soup_inj = get_soup(url_injuries)
-        injuries = []
-
-        inj_header = soup_inj.find('td', string="Sakatlıklar")
-        if inj_header:
-            row = inj_header.find_parent('tr')
-            next_row = row.find_next_sibling()
-            while next_row and 'extrarow' not in (next_row.get('class') or []):
-                table_inline = next_row.find('table', class_='inline-table')
-                if table_inline:
-                    name_tag = table_inline.find('a', href=True)
-                    if name_tag:
-                        player_name = name_tag.get_text(strip=True)
-                        matched = next((p for p in squad if p["name"] == player_name), None)
-                        position = matched["position"] if matched else player_name
-                        injuries.append({
-                            "name": player_name,
-                            "position": position
-                        })
-                next_row = next_row.find_next_sibling()
-        return injuries
+        soup = get_soup(url)
+        inj_header = soup.find("td", string="Sakatlıklar")
+        if not inj_header:
+            return injuries
+        row = inj_header.find_parent("tr")
+        next_row = row.find_next_sibling()
+        while next_row and "extrarow" not in (next_row.get("class") or []):
+            inline = next_row.find("table", class_="inline-table")
+            if inline:
+                name_tag = inline.find("a", href=True)
+                if name_tag:
+                    player_name = name_tag.get_text(strip=True)
+                    matched = next((p for p in squad if p["name"] == player_name), None)
+                    position = matched["position"] if matched else ""
+                    injuries.append({"name": player_name, "position": position})
+            next_row = next_row.find_next_sibling()
     except Exception as e:
-        print(f"Sakat/Cezalı oyuncu verisi alınamadı: {e}", file=sys.stderr)
-        return []
+        print(f"Sakatlık verisi alınamadı: {e}", file=sys.stderr)
+    return injuries
 
-def get_league_url(league_key: str) -> str:
+def get_league_url(league_key: str) -> str | None:
     url_map = {
         "en1": "https://www.transfermarkt.com.tr/premier-league/tabelle/wettbewerb/GB1",
         "es1": "https://www.transfermarkt.com.tr/laliga/tabelle/wettbewerb/ES1",
@@ -114,7 +126,7 @@ def get_league_url(league_key: str) -> str:
     }
     return url_map.get(league_key.lower())
 
-def get_form_url(league_key: str) -> str:
+def get_form_url(league_key: str) -> str | None:
     url_map = {
         "en1": "https://www.transfermarkt.com.tr/premier-league/formtabelle/wettbewerb/GB1",
         "es1": "https://www.transfermarkt.com.tr/laliga/formtabelle/wettbewerb/ES1",
@@ -123,71 +135,75 @@ def get_form_url(league_key: str) -> str:
     }
     return url_map.get(league_key.lower())
 
-def get_league_position(team_name, league_key):
+def get_league_position(team_name: str, league_key: str):
     try:
-        url_league = get_league_url(league_key)
-        if not url_league:
-            return "Lige ait URL bulunamadı."
-
-        soup = get_soup(url_league)
-        table = soup.find('table', class_='items')
-        rows = table.find('tbody').find_all('tr', recursive=False)
+        url = get_league_url(league_key)
+        if not url:
+            return None
+        soup = get_soup(url)
+        table = soup.find("table", class_="items")
+        rows = table.find("tbody").find_all("tr", recursive=False)
         for row in rows:
-            cells = row.find_all('td')
+            cells = row.find_all("td")
             if len(cells) < 3:
                 continue
-            pos_text = cells[0].get_text(strip=True)
-            name_text = cells[2].get_text(strip=True)
-            if name_text.lower() == team_name.lower():
-                return int(pos_text) if pos_text.isdigit() else pos_text
+            pos = cells[0].text.strip()
+            name = cells[2].text.strip()
+            if name.lower() == team_name.lower():
+                return int(pos) if pos.isdigit() else pos
         return None
     except Exception as e:
         print(f"Lig sıralaması alınamadı: {e}", file=sys.stderr)
         return None
 
-def get_recent_form(team_name, league_key):
+def get_recent_form(team_name: str, league_key: str) -> dict:
     try:
-        url_form = get_form_url(league_key)
-        if not url_form:
-            return "Lige ait URL bulunamadı."
-
-        soup = get_soup(url_form)
-        form_rows = soup.select("div.responsive-table table tbody tr")
-        for row in form_rows:
+        url = get_form_url(league_key)
+        if not url:
+            return {}
+        soup = get_soup(url)
+        rows = soup.select("div.responsive-table table tbody tr")
+        for row in rows:
             team_cell = row.select_one("td.no-border-links.hauptlink a")
             if team_cell and team_name.lower() in team_cell.text.lower():
                 tds = row.find_all("td")
-                wins = int(tds[4].get_text(strip=True))
-                draws = int(tds[5].get_text(strip=True))
-                losses = int(tds[6].get_text(strip=True))
+                wins = int(tds[4].text.strip())
+                draws = int(tds[5].text.strip())
+                losses = int(tds[6].text.strip())
                 form_spans = tds[10].find_all("span")
-                recent_results = [s.get_text(strip=True) for s in form_spans if s.get_text(strip=True) in ["G", "B", "M"]]
-                return {
-                    "wins": wins,
-                    "draws": draws,
-                    "losses": losses,
-                    "last_matches": recent_results
-                }
+                recent_results = [s.text.strip() for s in form_spans if s.text.strip() in ["G", "B", "M"]]
+                return {"wins": wins, "draws": draws, "losses": losses, "last_matches": recent_results}
         return {}
     except Exception as e:
         print(f"Form verisi alınamadı: {e}", file=sys.stderr)
         return {}
 
-def generate_team_data(team_info, league_key):
-    team_name = team_info["name"]
-    team_slug = team_info["slug"]
+def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, str]:
+    name = team_info["name"]
+    slug = team_info["slug"]
     team_id = team_info["id"]
 
-    squad = scrape_squad(team_slug, team_id)
-    output_data = {
-        "team": team_name,
-        "position_in_league": get_league_position(team_name, league_key),
-        "recent_form": get_recent_form(team_name, league_key),
-        "injuries": scrape_injuries(team_slug, team_id, squad),
+    squad = scrape_squad(slug, team_id)
+    injuries = scrape_injuries(slug, team_id, squad)
+    position = get_league_position(name, league_key)
+    form = get_recent_form(name, league_key)
+
+    data = {
+        "team": name,
+        "position_in_league": position,
+        "recent_form": form,
+        "injuries": injuries,
         "squad": squad
     }
-    return output_data, f"{team_name.lower()}.json"
+    return data, name.lower()
 
+def save_team_data(team_name: str, data: dict) -> None:
+    try:
+        DB.collection("team_data").document(team_name.lower()).set(data)
+        print(f"✅ Firestore'a kaydedildi: {team_name}")
+    except Exception as e:
+        print(f"❌ Firestore kaydetme hatası ({team_name}): {e}", file=sys.stderr)
+        
 @app.route("/")
 def index():
     return "API çalışıyor"
@@ -195,104 +211,26 @@ def index():
 @app.route("/generate-json", methods=["POST"])
 def generate_json_api():
     try:
-        data = request.get_json()
-        home_team_key = data.get("home_team")
-        away_team_key = data.get("away_team")
-        league_key = data.get("league_key")
+        body = request.get_json()
+        home_key = body.get("home_team")
+        away_key = body.get("away_team")
+        league_key = body.get("league_key")
 
-        if not home_team_key or not away_team_key:
-            return jsonify({"error": "Ev sahibi ve deplasman takımları belirtilmeli."}), 400
+        if not home_key or not away_key or not league_key:
+            return jsonify({"error": "Eksik parametreler"}), 400
 
-        try:
-            home_team_info = get_team_info(home_team_key)
-            away_team_info = get_team_info(away_team_key)
-        except ValueError as e:
-            return jsonify({"error": str(e)}), 404
+        home_info = get_team_info(home_key)
+        away_info = get_team_info(away_key)
 
-        teams_data = [
-            generate_team_data(home_team_info, league_key),
-            generate_team_data(away_team_info, league_key)
-        ]
+        home_data, home_doc = generate_team_data(home_info, league_key)
+        away_data, away_doc = generate_team_data(away_info, league_key)
 
-        generated_files = []
-        folder_path = "team_status"
-        os.makedirs(folder_path, exist_ok=True)
+        save_team_data(home_doc, home_data)
+        save_team_data(away_doc, away_data)
 
-        for output_data, filename in teams_data:
-            file_path = os.path.join(folder_path, filename)
-            new_data = json.dumps(output_data, ensure_ascii=False, indent=2)
-
-            if os.path.exists(file_path):
-                with open(file_path, "r", encoding="utf-8") as f:
-                    existing_data = f.read()
-                if existing_data == new_data:
-                    print(f"⏩ {filename} zaten güncel, atlanıyor.")
-                    continue
-
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write(new_data)
-            generated_files.append(file_path)
-
-        github_token = os.getenv("GITHUB_TOKEN")
-        if not github_token:
-            return jsonify({"status": "error", "message": "GitHub token bulunamadı."}), 500
-
-        repo_url = f"https://{github_token}@github.com/providedtroubleshoot/json_api_server.git"
-
-        subprocess.run(["git", "checkout", "main"], check=True)
-        subprocess.run(["git", "config", "--local", "user.email", "bot@render.com"], check=True)
-        subprocess.run(["git", "config", "--local", "user.name", "Render Bot"], check=True)
-        subprocess.run(["git", "remote", "remove", "origin"], stderr=subprocess.DEVNULL)
-        subprocess.run(["git", "remote", "add", "origin", repo_url], check=True)
-
-        subprocess.run(["git", "add", "."], check=True)
-
-
-        status_result = subprocess.run(
-            ["git", "status", "--porcelain"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-
-        if not status_result.stdout.strip():
-            return jsonify({
-                "status": "success",
-                "message": "Değişiklik yok."
-            }), 200
-
-        file_names = [os.path.basename(path) for path in generated_files]
-        try:
-            subprocess.run(
-                ["git", "commit", "-m", f"Auto update {', '.join(file_names)}"],
-                check=True
-            )
-        except subprocess.CalledProcessError as e:
-            if "nothing to commit" in e.stderr.lower() or "no changes added" in e.stderr.lower():
-                return jsonify({
-                    "status": "success",
-                    "message": "Takım durumlarında değişiklik yok."
-                }), 200
-            raise
-
-        try:
-            push_result = subprocess.run(
-                ["git", "push", "origin", "main"],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-        except subprocess.CalledProcessError as e:
-            print("🚨 Git push hatası:", e.stderr)
-            return jsonify({"status": "error", "message": f"Git push hatası: {e.stderr}"}), 500
-
-        if push_result.returncode != 0:
-            return jsonify({"status": "error", "message": push_result.stderr}), 500
-
-        print(f"✅ {', '.join(generated_files)} oluşturuldu ve pushlandı.")
         return jsonify({
             "status": "success",
-            "message": f"{', '.join(generated_files)} başarıyla oluşturuldu ve pushlandı."
+            "message": f"{home_doc}, {away_doc} Firestore'a kaydedildi."
         }), 200
 
     except Exception as e:
