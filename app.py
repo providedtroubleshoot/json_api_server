@@ -80,6 +80,48 @@ def get_soup(url: str) -> BeautifulSoup:
     res.raise_for_status()
     return BeautifulSoup(res.text, "lxml")
 
+def scrape_suspensions(team_slug, team_id, squad):
+    try:
+        url_squad = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}/saison_id/2025"
+        soup = get_soup(url_squad)
+        suspensions = []
+
+        # Oyuncu tablosunu bul
+        table = soup.find("table", class_="items")
+        if not table:
+            print(f"{team_slug} için oyuncu tablosu bulunamadı", file=sys.stderr)
+            return suspensions
+
+        # Oyuncu satırlarını tara (odd ve even sınıfları)
+        rows = table.find_all("tr", class_=["odd", "even"])
+        for row in rows:
+            table_inline = row.find("table", class_="inline-table")
+            if table_inline:
+                name_tag = table_inline.find("a", href=True)
+                if name_tag:
+                    player_name = name_tag.get_text(strip=True)
+                    span_tag = name_tag.find("span", class_=["ausfall-3-table", "ausfall-2-table"])
+                    if span_tag:
+                        suspension_type = span_tag.get("title", "").strip()
+                        status = (
+                            "Kırmızı Kart" if "Kırmızı kart cezalısı" in suspension_type else
+                            "Sarı Kart" if "Sarı kart cezalısı" in suspension_type else
+                            "Bilinmeyen Ceza"
+                        )
+                        matched = next((p for p in squad if p["name"] == player_name), None)
+                        position = matched["position"] if matched else "Bilinmiyor"
+                        suspensions.append({
+                            "name": player_name,
+                            "position": position,
+                            "status": status,
+                            "details": suspension_type
+                        })
+
+        return suspensions
+    except Exception as e:
+        print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
+        return []
+
 def scrape_squad(team_slug: str, team_id: str) -> List[dict]:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
     soup = get_soup(url)
@@ -187,12 +229,14 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, str]:
     injuries = scrape_injuries(slug, team_id, squad)
     position = get_league_position(name, league_key)
     form = get_recent_form(name, league_key)
+    suspensions = scrape_suspensions(slug,team_id,squad)
 
     data = {
         "team": name,
         "position_in_league": position,
         "recent_form": form,
         "injuries": injuries,
+        "suspensions": suspensions,
         "squad": squad
     }
     return data, name.lower()
