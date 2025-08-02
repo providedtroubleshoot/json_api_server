@@ -37,6 +37,8 @@ def init_firestore():
 DB = init_firestore()
 
 TEAMS = {
+    "liverpool": {"name": "Liverpool", "slug": "fc-liverpool", "id": "31"},
+    "afc bournemouth": {"name": "AFC Bournemouth", "slug": "afc-bournemouth", "id": "989"},
     "fc barcelona": {"name": "FC Barcelona", "slug": "fc-barcelona", "id": "131"},
     "real madrid": {"name": "Real Madrid", "slug": "real-madrid", "id": "418"},
     "man united": {"name": "Man United", "slug": "manchester-united", "id": "985"},
