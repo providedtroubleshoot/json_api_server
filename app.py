@@ -37,6 +37,20 @@ def init_firestore():
 DB = init_firestore()
 
 TEAMS = {
+    "everton": {"name": "Everton", "slug": "fc-everton", "id": "29"},
+    "leeds": {"name": "Leeds", "slug": "leeds-united", "id": "399"},
+    "brentford": {"name": "Brentford", "slug": "fc-brentford", "id": "1148"},
+    "nottingham": {"name": "Nottingham", "slug": "nottingham-forest", "id": "703"},
+    "crystal palace": {"name": "Crystal Palace", "slug": "crystal-palace", "id": "873"},
+    "wolves": {"name": "Wolves", "slug": "wolverhampton-wanderers", "id": "543"},
+    "burnley": {"name": "Burnley", "slug": "fc-burnley", "id": "1132"},
+    "tottenham": {"name": "Tottenham", "slug": "tottenham-hotspur", "id": "148"},
+    "west ham": {"name": "West Ham", "slug": "west-ham-united", "id": "379"},
+    "sunderland": {"name": "Sunderland", "slug": "afc-sunderland", "id": "289"},
+    "fulham": {"name": "Fulham", "slug": "fc-fulham", "id": "931"},
+    "brighton": {"name": "Brighton", "slug": "brighton-amp-hove-albion", "id": "1237"},
+    "newcastle": {"name": "Newcastle", "slug": "newcastle-united", "id": "762"},
+    "aston villa": {"name": "Aston Villa", "slug": "aston-villa", "id": "405"},
     "liverpool": {"name": "Liverpool", "slug": "fc-liverpool", "id": "31"},
     "bournemouth": {"name": "Bournemouth", "slug": "afc-bournemouth", "id": "989"},
     "fc barcelona": {"name": "FC Barcelona", "slug": "fc-barcelona", "id": "131"},
