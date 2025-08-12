@@ -37,6 +37,24 @@ def init_firestore():
 DB = init_firestore()
 
 TEAMS = {
+    "psg": {"name": "PSG", "slug": "fc-paris-saint-germain", "id": "583"},
+    "marsilya": {"name": "Marsilya", "slug": "olympique-marseille", "id": "244"},
+    "monaco": {"name": "Monaco", "slug": "as-monaco", "id": "162"},
+    "nice": {"name": "Nice", "slug": "ogc-nizza", "id": "417"},
+    "lille": {"name": "Lille", "slug": "losc-lille", "id": "1082"},
+    "lyon": {"name": "Lyon", "slug": "olympique-lyon", "id": "1041"},
+    "strasbourg": {"name": "Strasbourg", "slug": "rc-strassburg-alsace", "id": "667"},
+    "lens": {"name": "Lens", "slug": "rc-lens", "id": "826"},
+    "brest": {"name": "Brest", "slug": "stade-brest-29", "id": "3911"},
+    "toulouse": {"name": "Toulouse", "slug": "fc-toulouse", "id": "415"},
+    "aj auxerre": {"name": "AJ Auxerre", "slug": "aj-auxerre", "id": "290"},
+    "rennes": {"name": "Rennes", "slug": "fc-stade-rennes", "id": "273"},
+    "nantes": {"name": "Nantes", "slug": "fc-nantes", "id": "995"},
+    "angers": {"name": "Angers", "slug": "sco-angers", "id": "1420"},
+    "le havre": {"name": "Le Havre", "slug": "ac-le-havre", "id": "738"},
+    "lorient": {"name": "Lorient", "slug": "fc-lorient", "id": "1158"},
+    "paris fc": {"name": "Paris FC", "slug": "paris-fc", "id": "10004"},
+    "metz": {"name": "Metz", "slug": "fc-metz", "id": "347"},
     "hoffenheim": {"name": "Hoffenheim", "slug": "tsg-1899-hoffenheim", "id": "533"},
     "heidenheim": {"name": "Heidenheim", "slug": "1-fc-heidenheim-1846", "id": "2036"},
     "köln": {"name": "Köln", "slug": "1-fc-koln", "id": "3"},
@@ -213,6 +231,7 @@ def get_league_url(league_key: str) -> str | None:
         "es1": "https://www.transfermarkt.com.tr/laliga/tabelle/wettbewerb/ES1",
         "de1": "https://www.transfermarkt.com.tr/bundesliga/tabelle/wettbewerb/L1",
         "tr1": "https://www.transfermarkt.com.tr/super-lig/tabelle/wettbewerb/TR1",
+	"fr1": "https://www.transfermarkt.com.tr/ligue-1/tabelle/wettbewerb/FR1"
     }
     return url_map.get(league_key.lower())
 
@@ -222,6 +241,7 @@ def get_form_url(league_key: str) -> str | None:
         "es1": "https://www.transfermarkt.com.tr/laliga/formtabelle/wettbewerb/ES1",
         "de1": "https://www.transfermarkt.com.tr/bundesliga/formtabelle/wettbewerb/L1",
         "tr1": "https://www.transfermarkt.com.tr/super-lig/formtabelle/wettbewerb/TR1",
+	"fr1": "https://www.transfermarkt.com.tr/ligue-1/formtabelle/wettbewerb/FR1"
     }
     return url_map.get(league_key.lower())
 
