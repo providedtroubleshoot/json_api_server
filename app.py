@@ -37,6 +37,26 @@ def init_firestore():
 DB = init_firestore()
 
 TEAMS = {
+    "sport recife": {"name": "Sport Recife", "slug": "sport-club-do-recife", "id": "8718"},
+    "juventude": {"name": "Juventude", "slug": "esporte-clube-juventude", "id": "10492"},
+    "vasco": {"name": "Vasco", "slug": "vasco-da-gama-rio-de-janeiro", "id": "978"},
+    "fortaleza": {"name": "Fortaleza", "slug": "fortaleza-esporte-clube", "id": "10870"},
+    "vitória": {"name": "Vitória", "slug": "esporte-clube-vitoria", "id": "2125"},
+    "grêmio": {"name": "Grêmio", "slug": "gremio-porto-alegre", "id": "210"},
+    "santos": {"name": "Santos", "slug": "fc-santos", "id": "221"},
+    "corinthians": {"name": "Corinthians", "slug": "corinthians-sao-paulo", "id": "199"},
+    "ceará sc": {"name": "Ceará SC", "slug": "ceara-sporting-club", "id": "2029"},
+    "sc ınter": {"name": "SC Inter", "slug": "sc-internacional-porto-alegre", "id": "6600"},
+    "atlético-mg": {"name": "Atlético-MG", "slug": "clube-atletico-mineiro", "id": "330"},
+    "fluminense": {"name": "Fluminense", "slug": "fluminense-rio-de-janeiro", "id": "2462"},
+    "bragantino": {"name": "Bragantino", "slug": "red-bull-bragantino", "id": "8793"},
+    "são paulo": {"name": "São Paulo", "slug": "fc-sao-paulo", "id": "585"},
+    "mirassol": {"name": "Mirassol", "slug": "mirassol-futebol-clube-sp-", "id": "3876"},
+    "botafogo": {"name": "Botafogo", "slug": "botafogo-rio-de-janeiro", "id": "537"},
+    "bahia": {"name": "Bahia", "slug": "esporte-clube-bahia", "id": "10010"},
+    "palmeiras": {"name": "Palmeiras", "slug": "se-palmeiras-sao-paulo", "id": "1023"},
+    "cruzeiro": {"name": "Cruzeiro", "slug": "ec-cruzeiro-belo-horizonte", "id": "609"},
+    "flamengo": {"name": "Flamengo", "slug": "flamengo-rio-de-janeiro", "id": "614"},
     "psg": {"name": "PSG", "slug": "fc-paris-saint-germain", "id": "583"},
     "marsilya": {"name": "Marsilya", "slug": "olympique-marseille", "id": "244"},
     "monaco": {"name": "Monaco", "slug": "as-monaco", "id": "162"},
@@ -231,7 +251,8 @@ def get_league_url(league_key: str) -> str | None:
         "es1": "https://www.transfermarkt.com.tr/laliga/tabelle/wettbewerb/ES1",
         "de1": "https://www.transfermarkt.com.tr/bundesliga/tabelle/wettbewerb/L1",
         "tr1": "https://www.transfermarkt.com.tr/super-lig/tabelle/wettbewerb/TR1",
-	"fr1": "https://www.transfermarkt.com.tr/ligue-1/tabelle/wettbewerb/FR1"
+	"fr1": "https://www.transfermarkt.com.tr/ligue-1/tabelle/wettbewerb/FR1",
+	"br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/tabelle/wettbewerb/BRA1"
     }
     return url_map.get(league_key.lower())
 
@@ -241,7 +262,8 @@ def get_form_url(league_key: str) -> str | None:
         "es1": "https://www.transfermarkt.com.tr/laliga/formtabelle/wettbewerb/ES1",
         "de1": "https://www.transfermarkt.com.tr/bundesliga/formtabelle/wettbewerb/L1",
         "tr1": "https://www.transfermarkt.com.tr/super-lig/formtabelle/wettbewerb/TR1",
-	"fr1": "https://www.transfermarkt.com.tr/ligue-1/formtabelle/wettbewerb/FR1"
+	"fr1": "https://www.transfermarkt.com.tr/ligue-1/formtabelle/wettbewerb/FR1",
+	"br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/formtabelle/wettbewerb/BRA1"
     }
     return url_map.get(league_key.lower())
 
