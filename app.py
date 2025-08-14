@@ -186,7 +186,7 @@ def scrape_suspensions(team_slug, team_id, squad):
                 name_tag = table_inline.find("a", href=True)
                 if name_tag:
                     player_name = name_tag.get_text(strip=True)
-                    span_tag = name_tag.find("span", class_=["ausfall-3-table", "ausfall-2-table"])
+                    span_tag = name_tag.find("span", class_=["ausfall-1-table", "ausfall-2-table", "ausfall-3-table"])
                     if span_tag:
                         suspension_type = span_tag.get("title", "").strip()
                         status = (
