@@ -168,7 +168,7 @@ def get_soup(url: str) -> BeautifulSoup:
 
 def scrape_suspensions(team_slug, team_id, squad):
     try:
-        url_squad = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}/saison_id/2025"
+        url_squad = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
         soup = get_soup(url_squad)
         suspensions = []
 
