@@ -46,7 +46,7 @@ TEAMS = {
     "santos": {"name": "Santos", "slug": "fc-santos", "id": "221"},
     "corinthians": {"name": "Corinthians", "slug": "corinthians-sao-paulo", "id": "199"},
     "ceará sc": {"name": "Ceará SC", "slug": "ceara-sporting-club", "id": "2029"},
-    "sc ınter": {"name": "SC Inter", "slug": "sc-internacional-porto-alegre", "id": "6600"},
+    "sc inter": {"name": "SC Inter", "slug": "sc-internacional-porto-alegre", "id": "6600"},
     "atlético-mg": {"name": "Atlético-MG", "slug": "clube-atletico-mineiro", "id": "330"},
     "fluminense": {"name": "Fluminense", "slug": "fluminense-rio-de-janeiro", "id": "2462"},
     "bragantino": {"name": "Bragantino", "slug": "red-bull-bragantino", "id": "8793"},
