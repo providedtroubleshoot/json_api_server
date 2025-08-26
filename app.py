@@ -37,6 +37,24 @@ def init_firestore():
 DB = init_firestore()
 
 TEAMS = {
+    "al-hazem": {"name": "Al-Hazem", "slug": "al-hazm", "id": "9131"},
+    "al-najma": {"name": "Al-Najma", "slug": "al-najma", "id": "32328"},
+    "neom sc": {"name": "NEOM SC", "slug": "al-suqoor", "id": "34911"},
+    "al-okhdood": {"name": "Al-Okhdood", "slug": "al-akhdoud-club", "id": "71665"},
+    "damac": {"name": "Damac", "slug": "damac-fc", "id": "50532"},
+    "al-fayha": {"name": "Al-Fayha", "slug": "al-fayha-fc", "id": "50531"},
+    "al-khaleej": {"name": "Al-Khaleej", "slug": "al-khaleej", "id": "6070"},
+    "al-riyadh": {"name": "Al-Riyadh", "slug": "al-riad", "id": "31008"},
+    "al-fateh": {"name": "Al-Fateh", "slug": "al-fateh", "id": "27221"},
+    "al-kholood": {"name": "Al-Kholood", "slug": "al-kholood", "id": "91427"},
+    "al-taawoun": {"name": "Al-Taawoun", "slug": "al-taawoun-fc", "id": "28844"},
+    "al-ettifaq": {"name": "Al-Ettifaq", "slug": "al-ettifaq", "id": "7732"},
+    "al-shabab": {"name": "Al-Shabab", "slug": "al-shabab-riad", "id": "9840"},
+    "al-ahli": {"name": "Al-Ahli", "slug": "al-ahli-dschidda", "id": "18487"},
+    "al-qadsiah": {"name": "Al-Qadsiah", "slug": "al-qadisiyah-fc", "id": "26069"},
+    "al-nassr": {"name": "Al-Nassr", "slug": "al-nasr-riad", "id": "18544"},
+    "al-hilal": {"name": "Al-Hilal", "slug": "al-hilal-riad", "id": "1114"},
+    "al-ittihad": {"name": "Al-Ittihad", "slug": "al-ittihad-dschidda", "id": "8023"},
     "sport recife": {"name": "Sport Recife", "slug": "sport-club-do-recife", "id": "8718"},
     "juventude": {"name": "Juventude", "slug": "esporte-clube-juventude", "id": "10492"},
     "vasco": {"name": "Vasco", "slug": "vasco-da-gama-rio-de-janeiro", "id": "978"},
@@ -252,7 +270,8 @@ def get_league_url(league_key: str) -> str | None:
         "de1": "https://www.transfermarkt.com.tr/bundesliga/tabelle/wettbewerb/L1",
         "tr1": "https://www.transfermarkt.com.tr/super-lig/tabelle/wettbewerb/TR1",
 	"fr1": "https://www.transfermarkt.com.tr/ligue-1/tabelle/wettbewerb/FR1",
-	"br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/tabelle/wettbewerb/BRA1"
+	"br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/tabelle/wettbewerb/BRA1",
+	"sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/tabelle/wettbewerb/SA1"
     }
     return url_map.get(league_key.lower())
 
@@ -263,7 +282,8 @@ def get_form_url(league_key: str) -> str | None:
         "de1": "https://www.transfermarkt.com.tr/bundesliga/formtabelle/wettbewerb/L1",
         "tr1": "https://www.transfermarkt.com.tr/super-lig/formtabelle/wettbewerb/TR1",
 	"fr1": "https://www.transfermarkt.com.tr/ligue-1/formtabelle/wettbewerb/FR1",
-	"br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/formtabelle/wettbewerb/BRA1"
+	"br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/formtabelle/wettbewerb/BRA1",
+	"sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/formtabelle/wettbewerb/SA1"
     }
     return url_map.get(league_key.lower())
 
