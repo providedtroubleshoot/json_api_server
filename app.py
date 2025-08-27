@@ -382,6 +382,8 @@ def generate_json_api():
         save_team_data(home_doc, home_data)
         save_team_data(away_doc, away_data)
 
+        print(f"Maç: {home_info['name']} vs {away_info['name']}")
+
         return jsonify({
             "status": "success",
             "message": f"{home_doc}, {away_doc} Firestore'a kaydedildi."
