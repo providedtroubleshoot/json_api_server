@@ -2,14 +2,13 @@ import json
 import os
 import sys
 from typing import Dict, List
-
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
-
 import firebase_admin
 from firebase_admin import credentials, firestore
+import re
 
 load_dotenv()
 
@@ -184,6 +183,55 @@ def get_soup(url: str) -> BeautifulSoup:
     res.raise_for_status()
     return BeautifulSoup(res.text, "lxml")
 
+def extract_first_int(s: str) -> int:
+    """Bir string içindeki ilk tam sayıyı ayıkla. Yoksa 0 döner."""
+    if not s:
+        return 0
+    s = s.replace("'", "").replace(".", "").replace(",", "").strip()
+    m = re.search(r'(\d+)', s)
+    return int(m.group(1)) if m else 0
+
+def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
+    """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker."""
+    url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
+    try:
+        response = requests.get(url, headers=HEADERS, timeout=30)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        rows = soup.select("table.items tbody tr")
+        players = []
+
+        for row in rows:
+            td_list = row.find_all("td")
+            if len(td_list) < 5:
+                continue
+
+            # Oyuncu adı
+            name_td = row.find("td", class_="hauptlink")
+            a = name_td.find("a") if name_td else None
+            name = a.get("title") if a and a.get("title") else (a.text.strip() if a else "")
+
+            # Maç sayısı ve süre
+            td_texts = [td.get_text(" ", strip=True) for td in td_list]
+            raw_minutes = td_texts[-1] if len(td_texts) >= 1 else ""
+            raw_played_matches = td_texts[-3] if len(td_texts) >= 3 else ""
+
+            played_matches = extract_first_int(raw_played_matches)
+            minutes_played = extract_first_int(raw_minutes)
+
+            if name:
+                players.append({
+                    "name": name,
+                    "played_matches": played_matches,
+                    "minutes_played": minutes_played
+                })
+
+        return players
+    except Exception as e:
+        print(f"Oyuncu istatistikleri alınamadı ({team_slug}): {e}", file=sys.stderr)
+        return []
+
 def scrape_suspensions(team_slug, team_id, squad):
     try:
         url_squad = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
@@ -269,9 +317,9 @@ def get_league_url(league_key: str) -> str | None:
         "es1": "https://www.transfermarkt.com.tr/laliga/tabelle/wettbewerb/ES1",
         "de1": "https://www.transfermarkt.com.tr/bundesliga/tabelle/wettbewerb/L1",
         "tr1": "https://www.transfermarkt.com.tr/super-lig/tabelle/wettbewerb/TR1",
-	"fr1": "https://www.transfermarkt.com.tr/ligue-1/tabelle/wettbewerb/FR1",
-	"br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/tabelle/wettbewerb/BRA1",
-	"sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/tabelle/wettbewerb/SA1"
+        "fr1": "https://www.transfermarkt.com.tr/ligue-1/tabelle/wettbewerb/FR1",
+        "br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/tabelle/wettbewerb/BRA1",
+        "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/tabelle/wettbewerb/SA1"
     }
     return url_map.get(league_key.lower())
 
@@ -281,9 +329,9 @@ def get_form_url(league_key: str) -> str | None:
         "es1": "https://www.transfermarkt.com.tr/laliga/formtabelle/wettbewerb/ES1",
         "de1": "https://www.transfermarkt.com.tr/bundesliga/formtabelle/wettbewerb/L1",
         "tr1": "https://www.transfermarkt.com.tr/super-lig/formtabelle/wettbewerb/TR1",
-	"fr1": "https://www.transfermarkt.com.tr/ligue-1/formtabelle/wettbewerb/FR1",
-	"br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/formtabelle/wettbewerb/BRA1",
-	"sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/formtabelle/wettbewerb/SA1"
+        "fr1": "https://www.transfermarkt.com.tr/ligue-1/formtabelle/wettbewerb/FR1",
+        "br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/formtabelle/wettbewerb/BRA1",
+        "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/formtabelle/wettbewerb/SA1"
     }
     return url_map.get(league_key.lower())
 
@@ -330,7 +378,7 @@ def get_recent_form(team_name: str, league_key: str) -> dict:
         print(f"Form verisi alınamadı: {e}", file=sys.stderr)
         return {}
 
-def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, str]:
+def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dict], str]:
     name = team_info["name"]
     slug = team_info["slug"]
     team_id = team_info["id"]
@@ -339,7 +387,8 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, str]:
     injuries = scrape_injuries(slug, team_id, squad)
     position = get_league_position(name, league_key)
     form = get_recent_form(name, league_key)
-    suspensions = scrape_suspensions(slug,team_id,squad)
+    suspensions = scrape_suspensions(slug, team_id, squad)
+    stats = scrape_stats(slug, team_id)
 
     data = {
         "team": name,
@@ -349,15 +398,20 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, str]:
         "suspensions": suspensions,
         "squad": squad
     }
-    return data, name.lower()
+    return data, stats, name.lower()
 
-def save_team_data(team_name: str, data: dict) -> None:
+def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) -> None:
     try:
-        DB.collection("team_data").document(team_name.lower()).set(data)
-        print(f"✅ Firestore'a kaydedildi: {team_name}")
+        # Save team data to team_data collection
+        DB.collection("team_data").document(team_name.lower()).set(team_data)
+        print(f"✅ Firestore team_data'ya kaydedildi: {team_name}")
+
+        # Save player stats to new_data collection
+        DB.collection("new_data").document(team_name.lower()).set({"player_stats": player_stats})
+        print(f"✅ Firestore new_data'ya kaydedildi: {team_name}")
     except Exception as e:
         print(f"❌ Firestore kaydetme hatası ({team_name}): {e}", file=sys.stderr)
-        
+
 @app.route("/")
 def index():
     return "API çalışıyor"
@@ -376,17 +430,20 @@ def generate_json_api():
         home_info = get_team_info(home_key)
         away_info = get_team_info(away_key)
 
-        home_data, home_doc = generate_team_data(home_info, league_key)
-        away_data, away_doc = generate_team_data(away_info, league_key)
+        # Generate data for home team
+        home_data, home_stats, home_doc = generate_team_data(home_info, league_key)
+        # Generate data for away team
+        away_data, away_stats, away_doc = generate_team_data(away_info, league_key)
 
-        save_team_data(home_doc, home_data)
-        save_team_data(away_doc, away_data)
+        # Save both team data and player stats
+        save_team_data(home_doc, home_data, home_stats)
+        save_team_data(away_doc, away_data, away_stats)
 
         print(f"Maç: {home_info['name']} vs {away_info['name']}", file=sys.stderr)
 
         return jsonify({
             "status": "success",
-            "message": f"{home_doc}, {away_doc} Firestore'a kaydedildi."
+            "message": f"{home_doc}, {away_doc} Firestore'a kaydedildi (team_data ve new_data)."
         }), 200
 
     except Exception as e:
