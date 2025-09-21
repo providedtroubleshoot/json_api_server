@@ -123,7 +123,7 @@ TEAMS = {
     "rayo": {"name": "Rayo", "slug": "rayo-vallecano", "id": "367"},
     "real betis": {"name": "Real Betis", "slug": "real-betis-sevilla", "id": "150"},
     "villarreal": {"name": "Villarreal", "slug": "fc-villarreal", "id": "1050"},
-    "bilbao": {"name": "Bilbao", "slug": "athletic-bilbao", "id": "621"},
+    "athletic bilbao": {"name": "Athletic Bilbao", "slug": "athletic-bilbao", "id": "621"},
     "everton": {"name": "Everton", "slug": "fc-everton", "id": "29"},
     "leeds": {"name": "Leeds", "slug": "leeds-united", "id": "399"},
     "brentford": {"name": "Brentford", "slug": "fc-brentford", "id": "1148"},
