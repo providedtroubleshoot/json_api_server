@@ -36,6 +36,26 @@ def init_firestore():
 DB = init_firestore()
 
 TEAMS = {
+    "lecce": {"name": "Lecce", "slug": "us-lecce", "id": "1005"},
+    "cremonese": {"name": "Cremonese", "slug": "us-cremonese", "id": "2239"},
+    "cagliari": {"name": "Cagliari", "slug": "cagliari-calcio", "id": "1390"},
+    "verona": {"name": "Verona", "slug": "hellas-verona", "id": "276"},
+    "pisa": {"name": "Pisa", "slug": "ac-pisa-1909", "id": "4172"},
+    "genoa": {"name": "Genoa", "slug": "genua-cfc", "id": "252"},
+    "udinese": {"name": "Udinese", "slug": "udinese-calcio", "id": "410"},
+    "sassuolo": {"name": "Sassuolo", "slug": "us-sassuolo", "id": "6574"},
+    "parma": {"name": "Parma", "slug": "parma-calcio-1913", "id": "130"},
+    "torino": {"name": "Torino", "slug": "fc-turin", "id": "416"},
+    "como": {"name": "Como", "slug": "como-1907", "id": "1047"},
+    "bologna": {"name": "Bologna", "slug": "fc-bologna", "id": "1025"},
+    "lazio": {"name": "lazio", "slug": "lazio-rom", "id": "398"},
+    "fiorentina": {"name": "fiorentina", "slug": "ac-florenz", "id": "430"},
+    "roma": {"name": "Roma", "slug": "as-rom", "id": "12"},
+    "atalanta": {"name": "Atalanta", "slug": "atalanta-bergamo", "id": "800"},
+    "napoli": {"name": "Napoli", "slug": "ssc-neapel", "id": "6195"},
+    "milan": {"name": "Milan", "slug": "ac-mailand", "id": "5"},
+    "juventus": {"name": "Juventus", "slug": "juventus-turin", "id": "506"},
+    "inter": {"name": "Inter", "slug": "inter-mailand", "id": "46"},
     "al-hazem": {"name": "Al-Hazem", "slug": "al-hazm", "id": "9131"},
     "al-najma": {"name": "Al-Najma", "slug": "al-najma", "id": "32328"},
     "neom sc": {"name": "NEOM SC", "slug": "al-suqoor", "id": "34911"},
@@ -319,7 +339,8 @@ def get_league_url(league_key: str) -> str | None:
         "tr1": "https://www.transfermarkt.com.tr/super-lig/tabelle/wettbewerb/TR1",
         "fr1": "https://www.transfermarkt.com.tr/ligue-1/tabelle/wettbewerb/FR1",
         "br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/tabelle/wettbewerb/BRA1",
-        "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/tabelle/wettbewerb/SA1"
+        "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/tabelle/wettbewerb/SA1",
+        "it1": "https://www.transfermarkt.com.tr/serie-a/tabelle/wettbewerb/IT1"
     }
     return url_map.get(league_key.lower())
 
@@ -331,7 +352,8 @@ def get_form_url(league_key: str) -> str | None:
         "tr1": "https://www.transfermarkt.com.tr/super-lig/formtabelle/wettbewerb/TR1",
         "fr1": "https://www.transfermarkt.com.tr/ligue-1/formtabelle/wettbewerb/FR1",
         "br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/formtabelle/wettbewerb/BRA1",
-        "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/formtabelle/wettbewerb/SA1"
+        "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/formtabelle/wettbewerb/SA1",
+        "it1": "https://www.transfermarkt.com.tr/serie-a/formtabelle/wettbewerb/IT1"
     }
     return url_map.get(league_key.lower())
 
