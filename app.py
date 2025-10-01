@@ -247,10 +247,14 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
                     "minutes_played": minutes_played
                 })
 
-        return players
+        if players:
+            return players
+        else:
+            raise ValueError("Stats is empty")
+
     except Exception as e:
         print(f"Oyuncu istatistikleri alınamadı ({team_slug}): {e}", file=sys.stderr)
-        return []
+        return None
 
 def scrape_suspensions(team_slug, team_id, squad):
     try:
@@ -420,6 +424,12 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
         "suspensions": suspensions,
         "squad": squad
     }
+
+    if stats is not None:
+        data["stats"] = stats
+    else:
+        print(f"[UYARI] {name} için istatistik alınamadı, mevcut JSON korunuyor")
+
     return data, stats, name.lower()
 
 def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) -> None:
@@ -429,8 +439,11 @@ def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) ->
         print(f"✅ Firestore team_data'ya kaydedildi: {team_name}")
 
         # Save player stats to new_data collection
-        DB.collection("new_data").document(team_name.lower()).set({"player_stats": player_stats})
-        print(f"✅ Firestore new_data'ya kaydedildi: {team_name}")
+        if player_stats is not None:
+            DB.collection("new_data").document(team_name.lower()).set({"player_stats": player_stats})
+            print(f"✅ Firestore new_data'ya kaydedildi: {team_name}")
+        else:
+            print(f"[UYARI] {team_name} için player_stats kaydedilmedi (istatistik alınamadı)")
     except Exception as e:
         print(f"❌ Firestore kaydetme hatası ({team_name}): {e}", file=sys.stderr)
 
