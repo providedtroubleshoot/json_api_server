@@ -402,7 +402,7 @@ def get_recent_form(team_name: str, league_key: str) -> dict:
         return {}
     except Exception as e:
         print(f"Form verisi alınamadı: {e}", file=sys.stderr)
-        return {}
+        return None
 
 def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dict], str]:
     name = team_info["name"]
@@ -419,11 +419,15 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
     data = {
         "team": name,
         "position_in_league": position,
-        "recent_form": form,
         "injuries": injuries,
         "suspensions": suspensions,
         "squad": squad
     }
+
+    if form is not None:
+        data["recent_form"] = form
+    else:
+        print(f"[UYARI] {name} için recent_form alınamadı, mevcut JSON korunuyor")
 
     if stats is not None:
         data["stats"] = stats
