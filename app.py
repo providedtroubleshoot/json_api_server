@@ -163,7 +163,7 @@ TEAMS = {
     "barcelona": {"name": "Barcelona", "slug": "fc-barcelona", "id": "131"},
     "real madrid": {"name": "Real Madrid", "slug": "real-madrid", "id": "418"},
     "man united": {"name": "Man United", "slug": "manchester-united", "id": "985"},
-    "atlético madrid": {"name": "Atlético Madrid", "slug": "atletico-madrid", "id": "13"},
+    "atletico madrid": {"name": "Atletico Madrid", "slug": "atletico-madrid", "id": "13"},
     "man city": {"name": "Man City", "slug": "manchester-city", "id": "281"},
     "chelsea": {"name": "Chelsea", "slug": "chelsea", "id": "631"},
     "dortmund": {"name": "Dortmund", "slug": "borussia-dortmund", "id": "16"},
