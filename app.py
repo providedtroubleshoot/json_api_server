@@ -365,7 +365,7 @@ def get_league_position(team_name: str, league_key: str):
     try:
         url = get_league_url(league_key)
         if not url:
-            return None
+            return
         soup = get_soup(url)
         table = soup.find("table", class_="items")
         rows = table.find("tbody").find_all("tr", recursive=False)
@@ -377,16 +377,16 @@ def get_league_position(team_name: str, league_key: str):
             name = cells[2].text.strip()
             if name.lower() == team_name.lower():
                 return int(pos) if pos.isdigit() else pos
-        return None
+        return
     except Exception as e:
         print(f"Lig sıralaması alınamadı: {e}", file=sys.stderr)
-        return None
+        return
 
 def get_recent_form(team_name: str, league_key: str) -> dict:
     try:
         url = get_form_url(league_key)
         if not url:
-            return {}
+            return
         soup = get_soup(url)
         rows = soup.select("div.responsive-table table tbody tr")
         for row in rows:
@@ -399,10 +399,10 @@ def get_recent_form(team_name: str, league_key: str) -> dict:
                 form_spans = tds[10].find_all("span")
                 recent_results = [s.text.strip() for s in form_spans if s.text.strip() in ["G", "B", "M"]]
                 return {"wins": wins, "draws": draws, "losses": losses, "last_matches": recent_results}
-        return {}
+        return
     except Exception as e:
         print(f"Form verisi alınamadı: {e}", file=sys.stderr)
-        return None
+        return
 
 def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dict], str]:
     name = team_info["name"]
