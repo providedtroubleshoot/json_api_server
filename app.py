@@ -439,12 +439,12 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
 def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) -> None:
     try:
         # Save team data to team_data collection
-        DB.collection("team_data").document(team_name.lower()).set(team_data)
+        DB.collection("team_data").document(team_name.lower()).set(team_data, merge=True)
         print(f"✅ Firestore team_data'ya kaydedildi: {team_name}")
 
         # Save player stats to new_data collection
         if player_stats is not None:
-            DB.collection("new_data").document(team_name.lower()).set({"player_stats": player_stats})
+            DB.collection("new_data").document(team_name.lower()).set({"player_stats": player_stats}, merge=True)
             print(f"✅ Firestore new_data'ya kaydedildi: {team_name}")
         else:
             print(f"[UYARI] {team_name} için player_stats kaydedilmedi (istatistik alınamadı)")
