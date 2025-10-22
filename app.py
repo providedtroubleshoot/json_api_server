@@ -362,7 +362,8 @@ def get_league_url(league_key: str) -> str | None:
         "fr1": "https://www.transfermarkt.com.tr/ligue-1/tabelle/wettbewerb/FR1",
         "br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/tabelle/wettbewerb/BRA1",
         "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/tabelle/wettbewerb/SA1",
-        "it1": "https://www.transfermarkt.com.tr/serie-a/tabelle/wettbewerb/IT1"
+        "it1": "https://www.transfermarkt.com.tr/serie-a/tabelle/wettbewerb/IT1",
+        "hl1": "https://www.transfermarkt.com.tr/eredivisie/tabelle/wettbewerb/NL1"
     }
     return url_map.get(league_key.lower())
 
@@ -375,7 +376,8 @@ def get_form_url(league_key: str) -> str | None:
         "fr1": "https://www.transfermarkt.com.tr/ligue-1/formtabelle/wettbewerb/FR1",
         "br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/formtabelle/wettbewerb/BRA1",
         "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/formtabelle/wettbewerb/SA1",
-        "it1": "https://www.transfermarkt.com.tr/serie-a/formtabelle/wettbewerb/IT1"
+        "it1": "https://www.transfermarkt.com.tr/serie-a/formtabelle/wettbewerb/IT1",
+        "hl1": "https://www.transfermarkt.com.tr/eredivisie/formtabelle/wettbewerb/NL1"
     }
     return url_map.get(league_key.lower())
 
