@@ -1,5 +1,7 @@
 import json
 import os
+import time
+import random
 import sys
 from typing import Dict, List
 import requests
@@ -208,6 +210,12 @@ TEAMS = {
     "gençlerbirliği": {"name": "Gençlerbirliği", "slug": "genclerbirligi-ankara", "id": "820"},
 }
 
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/110.0",
+]
+
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                   "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -222,9 +230,23 @@ def get_team_info(team_key: str) -> dict:
     return TEAMS[key]
 
 def get_soup(url: str) -> BeautifulSoup:
-    res = requests.get(url, headers=HEADERS, timeout=30)
-    res.raise_for_status()
-    return BeautifulSoup(res.text, "lxml")
+    try:
+        headers = {
+            "User-Agent": random.choice(USER_AGENTS),
+            "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Referer": "https://www.transfermarkt.com.tr/"
+        }
+        time.sleep(random.uniform(1, 3))  # Rastgele gecikme
+        res = requests.get(url, headers=headers, timeout=30)
+        res.raise_for_status()
+        return BeautifulSoup(res.text, "lxml")
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP Hatası ({url}): {e} - Status Code: {res.status_code}", file=sys.stderr)
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f"İstek Hatası ({url}): {e}", file=sys.stderr)
+        return None
 
 def extract_first_int(s: str) -> int:
     """Bir string içindeki ilk tam sayıyı ayıkla. Yoksa 0 döner."""
