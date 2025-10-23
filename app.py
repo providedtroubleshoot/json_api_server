@@ -214,7 +214,14 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/110.0",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
 ]
+
+PROXIES = {
+    "http": os.getenv("HTTP_PROXY"),
+    "https": os.getenv("HTTPS_PROXY")
+}
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -222,6 +229,15 @@ HEADERS = {
                   "Chrome/122.0.0.0 Safari/537.36",
     "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7"
 }
+
+def get_public_ip():
+    try:
+        response = requests.get("https://api.ipify.org", proxies=PROXIES, timeout=10)
+        print(f"Kullanılan IP: {response.text}", file=sys.stderr)
+        return response.text
+    except Exception as e:
+        print(f"IP alınamadı: {e}", file=sys.stderr)
+        return None
 
 def get_team_info(team_key: str) -> dict:
     key = team_key.lower()
@@ -235,10 +251,12 @@ def get_soup(url: str) -> BeautifulSoup:
             "User-Agent": random.choice(USER_AGENTS),
             "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Referer": "https://www.transfermarkt.com/"
+            "Referer": "https://www.transfermarkt.com.tr/",
+	    "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1"
         }
-        time.sleep(random.uniform(1, 3))  # Rastgele gecikme
-        res = requests.get(url, headers=headers, timeout=30)
+        time.sleep(random.uniform(2, 5))  # Rastgele gecikme
+        res = requests.get(url, headers=headers, proxies=PROXIES, timeout=30)
         res.raise_for_status()
         return BeautifulSoup(res.text, "lxml")
     except requests.exceptions.HTTPError as e:
@@ -258,7 +276,7 @@ def extract_first_int(s: str) -> int:
 
 def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
     """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker."""
-    url = f"https://www.transfermarkt.com/{team_slug}/leistungsdaten/verein/{team_id}"
+    url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
     try:
         response = requests.get(url, headers=HEADERS, timeout=30)
         response.raise_for_status()
@@ -303,7 +321,7 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
 
 def scrape_suspensions(team_slug, team_id, squad):
     try:
-        url_squad = f"https://www.transfermarkt.com/{team_slug}/startseite/verein/{team_id}"
+        url_squad = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
         soup = get_soup(url_squad)
         suspensions = []
 
@@ -344,7 +362,7 @@ def scrape_suspensions(team_slug, team_id, squad):
         return []
 
 def scrape_squad(team_slug: str, team_id: str) -> List[dict]:
-    url = f"https://www.transfermarkt.com/{team_slug}/startseite/verein/{team_id}"
+    url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
     soup = get_soup(url)
     table = soup.find("table", class_="items")
     rows = table.find_all("tr", class_=["odd", "even"])
@@ -357,7 +375,7 @@ def scrape_squad(team_slug: str, team_id: str) -> List[dict]:
     return players
 
 def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dict]:
-    url = f"https://www.transfermarkt.com/{team_slug}/sperrenundverletzungen/verein/{team_id}"
+    url = f"https://www.transfermarkt.com.tr/{team_slug}/sperrenundverletzungen/verein/{team_id}"
     injuries = []
     try:
         soup = get_soup(url)
@@ -385,7 +403,7 @@ def get_league_url(league_key: str) -> str | None:
         "en1": "https://www.transfermarkt.com.tr/premier-league/tabelle/wettbewerb/GB1",
         "es1": "https://www.transfermarkt.com.tr/laliga/tabelle/wettbewerb/ES1",
         "de1": "https://www.transfermarkt.com.tr/bundesliga/tabelle/wettbewerb/L1",
-        "tr1": "https://www.transfermarkt.com/super-lig/tabelle/wettbewerb/TR1",
+        "tr1": "https://www.transfermarkt.com.tr/super-lig/tabelle/wettbewerb/TR1",
         "fr1": "https://www.transfermarkt.com.tr/ligue-1/tabelle/wettbewerb/FR1",
         "br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/tabelle/wettbewerb/BRA1",
         "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/tabelle/wettbewerb/SA1",
@@ -399,7 +417,7 @@ def get_form_url(league_key: str) -> str | None:
         "en1": "https://www.transfermarkt.com.tr/premier-league/formtabelle/wettbewerb/GB1",
         "es1": "https://www.transfermarkt.com.tr/laliga/formtabelle/wettbewerb/ES1",
         "de1": "https://www.transfermarkt.com.tr/bundesliga/formtabelle/wettbewerb/L1",
-        "tr1": "https://www.transfermarkt.com/super-lig/formtabelle/wettbewerb/TR1",
+        "tr1": "https://www.transfermarkt.com.tr/super-lig/formtabelle/wettbewerb/TR1",
         "fr1": "https://www.transfermarkt.com.tr/ligue-1/formtabelle/wettbewerb/FR1",
         "br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/formtabelle/wettbewerb/BRA1",
         "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/formtabelle/wettbewerb/SA1",
@@ -515,6 +533,8 @@ def generate_json_api():
 
         home_info = get_team_info(home_key)
         away_info = get_team_info(away_key)
+
+	get_public_ip()	
 
         # Generate data for home team
         home_data, home_stats, home_doc = generate_team_data(home_info, league_key)
