@@ -375,7 +375,7 @@ def scrape_injuries(team_slug: str, team_id: str, squad: List[dict], driver) -> 
         print(f"Sakatlık verisi alınamadı: {e}", file=sys.stderr)
     return injuries
 
-def get_league_url(league_key: str) -> str | Union[str, None]:
+def get_league_url(league_key: str) -> Union[str, None]:
     # [Lig URL eşleştirmesi değişmedi]
     url_map = {
         "en1": "https://www.transfermarkt.com.tr/premier-league/tabelle/wettbewerb/GB1",
@@ -390,7 +390,7 @@ def get_league_url(league_key: str) -> str | Union[str, None]:
     }
     return url_map.get(league_key.lower())
 
-def get_form_url(league_key: str) -> str | Union[str, None]:
+def get_form_url(league_key: str) -> Union[str, None]:
     # [Form URL eşleştirmesi değişmedi]
     url_map = {
         "en1": "https://www.transfermarkt.com.tr/premier-league/formtabelle/wettbewerb/GB1",
@@ -405,7 +405,7 @@ def get_form_url(league_key: str) -> str | Union[str, None]:
     }
     return url_map.get(league_key.lower())
 
-def get_league_position(team_name: str, league_key: str, driver) -> int | Union[str, None]:
+def get_league_position(team_name: str, league_key: str, driver) -> Union[int, None]:
     """Takımın ligdeki pozisyonunu alır."""
     try:
         url = get_league_url(league_key)
@@ -429,7 +429,7 @@ def get_league_position(team_name: str, league_key: str, driver) -> int | Union[
         print(f"Lig sıralaması alınamadı: {e}", file=sys.stderr)
         return None
 
-def get_recent_form(team_name: str, league_key: str, driver) -> dict | Union[str, None]:
+def get_recent_form(team_name: str, league_key: str, driver) -> Union[dict, None]:
     """Son form durumunu alır (galibiyet, beraberlik, mağlubiyet, son maçlar)."""
     try:
         url = get_form_url(league_key)
