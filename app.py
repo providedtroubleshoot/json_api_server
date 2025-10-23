@@ -371,6 +371,9 @@ def generate_json_api():
         }), 200
 
     except Exception as e:
+	    import traceback
+	    tb = traceback.format_exc()
+	    print(tb, file=sys.stderr)
         return jsonify({"status": "error", "message": str(e)}), 500
     finally:
         if driver:
