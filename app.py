@@ -534,7 +534,7 @@ def generate_json_api():
         home_info = get_team_info(home_key)
         away_info = get_team_info(away_key)
 
-	get_public_ip()	
+        get_public_ip()
 
         # Generate data for home team
         home_data, home_stats, home_doc = generate_team_data(home_info, league_key)
