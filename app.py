@@ -223,11 +223,14 @@ PROXIES = {
     "https": os.getenv("HTTPS_PROXY")
 }
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) "
-                  "Chrome/122.0.0.0 Safari/537.36",
-    "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7"
+HEADERS_BASE = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept-Encoding": "gzip, deflate, br",
+    "DNT": "1",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Referer": "https://www.transfermarkt.com.tr/"
 }
 
 def get_public_ip():
@@ -247,16 +250,10 @@ def get_team_info(team_key: str) -> dict:
 
 def get_soup(url: str) -> BeautifulSoup:
     try:
-        headers = {
-            "User-Agent": random.choice(USER_AGENTS),
-            "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Referer": "https://www.transfermarkt.com.tr/",
-	    "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1"
-        }
+        headers = HEADERS_BASE.copy()
+        headers["User-Agent"] = random.choice(USER_AGENTS)
         time.sleep(random.uniform(2, 5))  # Rastgele gecikme
-        res = requests.get(url, headers=headers, proxies=PROXIES, timeout=30)
+        res = requests.get(url, headers=headers, proxies=PROXIES if PROXIES["http"] else None, timeout=30)
         res.raise_for_status()
         return BeautifulSoup(res.text, "lxml")
     except requests.exceptions.HTTPError as e:
