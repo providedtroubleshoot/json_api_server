@@ -223,14 +223,22 @@ PROXIES = {
     "https": os.getenv("HTTPS_PROXY")
 }
 
-HEADERS_BASE = {
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+HEADERS = {
+    "User-Agent": random.choice(USER_AGENTS),
     "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Accept-Encoding": "gzip, deflate, br",
-    "DNT": "1",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Referer": "https://www.transfermarkt.com.tr/",
     "Connection": "keep-alive",
     "Upgrade-Insecure-Requests": "1",
-    "Referer": "https://www.transfermarkt.com.tr/"
+    "Cookie": (
+        "%7B%22signature%22%3A%22ID5_Ag1x6pmLZexKIJG_Pw7y-53i68Fpx1mmb-2Zc8tWFdabcKC30FVmVnIsnCWv0vVbJ65P3gkGUVJB8V1r6J3DG7rkwz038bbQ194tIkv12iF-PmUV1JqE6iIgIczYFViPRo93To1nvHtks4IqDguv8jQQNXc1AvIgvRIqQxSaqmZ0UNvR5IE%22%2C%22created_at%22%3A%222024-11-20T05%3A27%3A28.076Z%22%2C%22id5_consent%22%3Atrue%2C%22original_uid%22%3A%22ID5*eNs3AyzZxWFlzej2MgUALn92MBinO809LGqKXGOPmCJEwiiX4or-7WLUBly3qUD8RQLqT7QkKUUhFmysX0l-2kUJ-pxmcayHlLeuWmEGXj1EytxubHTSzzh9u9jjYaXeRMzVrAh-xAi9rTPhc49G_ETOfJ8mjd9uy8AcwPY7lI5FEP0dDmGx-35FnO8QoT5TRNss7eZbHtafbacXNYlYuETcXJ2qUNKL1dBclFmaYBtE39D23u9QDU4yhVRGXiGTROAExI3uuiWNtJsFoBjtNUTmK8KY7wfH1Y0pV7aYoiFE6ZdL0kIiGEg6r9KOcjpiROqm8j2RqzOh2_dmi8JrHETr2i83NNaJseevQivqycRE7URgk75QZ9JwRnEBQ1eJRLNprY5dh-piVp-PQuZkWUS0L248ar28r-vOKZAbmbBE9o8ge4i8w3oCjw9ruWrWRPiBW5iY2voUjE6OgxI5jkS5THoseo-5Pb3CFr5oDohEunxC9QEbT1g73dFRfg_xRLvoXguEmmznH0KHQXLC0ET7ySOBvnnktwm0scSgOZhE_Zn02FadnAX2fwdpDpZzRP53mUBzd9OP7CPOIyo8iQ%22%2C%22universal_uid%22%3A%22ID5*4CXogHGFyl1QWGOzkev1ccgYZls_zif4szNC9U2sEaREwjQa09HQhU7OWBWisEivRQI8bIbP1lK-PfvT-l3WBUUJAsD0Hfck7sp_vevNF6REykNRpjDh4HkLSQz_WYc1RMyqn5FMaSybAiXIZ3u0KETOtfpYm6r028PYhugzZDVFEGZHDbMu5yGrgsTuJ-55RNsTg5vpshIAUArElGrfAUTcIEjqIiwALiftUTQqIcxE3xyIIkslQkzWnDNZSRj6RODpA0dfGm72cEAL2bjNfUTmGmUTiFuBhwbXVFEsA8ZE6YvrQK_em0ex6YDJaAV4ROrN_iOiYFncX9UGGiIRIETr_idiDRPrM37DEUl7INJE7ZbVQW1r7QhkrUreRqweRLM8xyoaBLepiLk4ALe-U0S0-IlX26ERAtFYlBM6RChE9ojzpBlxlkA480VfrDnKRPjaGJ45PILVslvdvYvZG0S5DAGdd8rmDBiCvuCEwwtEuldNOdZj4IAMLnypjliQRLsJHXo5nhJpZMGo_5YPZET7GlxfIAKAhylW7av18WFE_cScH49O5c_-PLd4dCunRP7zPy9s-TmBE-QyeKOhlQ%22%2C%22link_type%22%3A2%2C%22cascade_needed%22%3Atrue%2C%22privacy%22%3A%7B%22jurisdiction%22%3A%22gdpr%22%2C%22id5_consent%22%3Atrue%7D%2C%22ext%22%3A%7B%22linkType%22%3A2%2C%22pba%22%3A%22811%2B%2BG%2FW%2FhARwChmudR7%2Bx%2F%2FmOoLnxTsJ4eLE6PTuA6uSgMTIYiUqGwGFMQtl4iy%22%7D%2C%22cache_control%22%3A%7B%22max_age_sec%22%3A7200%7D%2C%22ids%22%3A%7B%22id5id%22%3A%7B%22eid%22%3A%7B%22source%22%3A%22id5-sync.com%22%2C%22uids%22%3A%5B%7B%22id%22%3A%22ID5*4CXogHGFyl1QWGOzkev1ccgYZls_zif4szNC9U2sEaREwjQa09HQhU7OWBWisEivRQI8bIbP1lK-PfvT-l3WBUUJAsD0Hfck7sp_vevNF6REykNRpjDh4HkLSQz_WYc1RMyqn5FMaSybAiXIZ3u0KETOtfpYm6r028PYhugzZDVFEGZHDbMu5yGrgsTuJ-55RNsTg5vpshIAUArElGrfAUTcIEjqIiwALiftUTQqIcxE3xyIIkslQkzWnDNZSRj6RODpA0dfGm72cEAL2bjNfUTmGmUTiFuBhwbXVFEsA8ZE6YvrQK_em0ex6YDJaAV4ROrN_iOiYFncX9UGGiIRIETr_idiDRPrM37DEUl7INJE7ZbVQW1r7QhkrUreRqweRLM8xyoaBLepiLk4ALe-U0S0-IlX26ERAtFYlBM6RChE9ojzpBlxlkA480VfrDnKRPjaGJ45PILVslvdvYvZG0S5DAGdd8rmDBiCvuCEwwtEuldNOdZj4IAMLnypjliQRLsJHXo5nhJpZMGo_5YPZET7GlxfIAKAhylW7av18WFE_cScH49O5c_-PLd4dCunRP7zPy9s-TmBE-QyeKOhlQ%22%2C%22atype%22%3A1%2C%22ext%22%3A%7B%22linkType%22%3A2%2C%22pba%22%3A%22811%2B%2BG%2FW%2FhARwChmudR7%2Bx%2F%2FmOoLnxTsJ4eLE6PTuA6uSgMTIYiUqGwGFMQtl4iy%22%7D%7D%5D%7D%7D%7D%7D;"
+        "pbjs-id5id_cst=v3sfEQ%3D%3D;"
+        "pbjs-id5id_last=Mon%2C%2001%20Sep%202025%2016%3A25%3A50%20GMT;"
+        "pbjs-unifiedid=%7B%22TDID_LOOKUP%22%3A%22FALSE%22%2C%22TDID_CREATED_AT%22%3A%222025-09-01T16%3A25%3A46%22%7D;"
+        "pbjs-unifiedid_cst=vyx7LB8sEQ%3D%3D;"
+        "sharedid=d4555e90-530f-4c00-801c-a35fb8ac89c4;"
+        "sharedid_cst=v3sfEQ%3D%3D"
+    )
 }
 
 def get_public_ip():
@@ -250,10 +258,8 @@ def get_team_info(team_key: str) -> dict:
 
 def get_soup(url: str) -> BeautifulSoup:
     try:
-        headers = HEADERS_BASE.copy()
-        headers["User-Agent"] = random.choice(USER_AGENTS)
         time.sleep(random.uniform(2, 5))  # Rastgele gecikme
-        res = requests.get(url, headers=headers, proxies=PROXIES if PROXIES["http"] else None, timeout=30)
+        res = requests.get(url, headers=HEADERS, proxies=PROXIES if PROXIES["http"] else None, timeout=30)
         res.raise_for_status()
         return BeautifulSoup(res.text, "lxml")
     except requests.exceptions.HTTPError as e:
