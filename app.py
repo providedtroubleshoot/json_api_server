@@ -370,14 +370,22 @@ def generate_json_api():
             "message": f"{home_doc}, {away_doc} Firestore'a kaydedildi (team_data ve new_data)."
         }), 200
 
+
     except Exception as e:
-	    import traceback
-	    tb = traceback.format_exc()
-	    print(tb, file=sys.stderr)
-        return jsonify({"status": "error", "message": str(e)}), 500
+
+        import traceback
+
+        tb = traceback.format_exc()
+
+        print(tb, file=sys.stderr)
+
+        return jsonify({"status": "error", "message": str(e), "trace": tb}), 500
+
     finally:
+
         if driver:
             driver.quit()
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
