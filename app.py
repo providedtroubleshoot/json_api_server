@@ -246,52 +246,40 @@ def extract_first_int(s: str) -> int:
     m = re.search(r'(\d+)', s)
     return int(m.group(1)) if m else 0
 
+
 def scrape_stats(team_slug: str, team_id: str, driver) -> List[dict]:
     """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker."""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
+    print(f"[INFO] {team_slug} için istatistikler çekiliyor: {url}", file=sys.stderr)
     try:
         driver.get(url)
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "table.items tbody tr"))
+        time.sleep(5)
+        print(f"[DEBUG] Sayfaya erişildi: {url}", file=sys.stderr)
+        WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "table.items"))
         )
-        rows = driver.find_elements(By.CSS_SELECTOR, "table.items tbody tr")
+        print("[DEBUG] Tablo bulundu: table.items", file=sys.stderr)
+        rows = driver.find_elements(By.CSS_SELECTOR, "table.items tr.odd, table.items tr.even")
+        print(f"[DEBUG] Bulunan satır sayısı: {len(rows)}", file=sys.stderr)
+
         players = []
-
         for row in rows:
-            td_list = row.find_elements(By.TAG_NAME, "td")
-            if len(td_list) < 5:
-                continue
-
-            # Oyuncu adı
             try:
                 name_elem = row.find_element(By.CSS_SELECTOR, "td.hauptlink a")
-                name = name_elem.get_attribute("title") or name_elem.text.strip()
-            except:
-                name = ""
-
-            # Maç sayısı ve süre
-            td_texts = [td.text.strip() for td in td_list]
-            raw_played_matches = td_texts[-3] if len(td_texts) >= 3 else ""
-            raw_minutes = td_texts[-1] if len(td_texts) >= 1 else ""
-
-            played_matches = extract_first_int(raw_played_matches)
-            minutes_played = extract_first_int(raw_minutes)
-
-            if name:
-                players.append({
-                    "name": name,
-                    "played_matches": played_matches,
-                    "minutes_played": minutes_played
-                })
-
-        if players:
-            return players
-        else:
-            raise ValueError("Stats is empty")
-
+                name = name_elem.text.strip() if name_elem else "Bilinmeyen Oyuncu"
+                tds = row.find_elements(By.TAG_NAME, "td")
+                matches = tds[3].text.strip() if len(tds) > 3 else "0"
+                minutes = tds[6].text.strip() if len(tds) > 6 else "0"
+                players.append({"name": name, "matches": matches, "minutes": minutes})
+                print(f"[DEBUG] Oyuncu eklendi: {name}, {matches}, {minutes}", file=sys.stderr)
+            except Exception as e:
+                print(f"[UYARI] Oyuncu verisi alınamadı: {str(e)}", file=sys.stderr)
+                continue
+        return players
     except Exception as e:
-        print(f"Oyuncu istatistikleri alınamadı ({team_slug}): {e}", file=sys.stderr)
-        return None
+        print(f"[HATA] İstatistik verisi alınamadı ({team_slug}): {str(e)}", file=sys.stderr)
+        print(f"[DEBUG] Sayfanın kaynak kodu: {driver.page_source[:1000]}", file=sys.stderr)
+        return []
 
 def scrape_suspensions(team_slug: str, team_id: str, squad: List[dict], driver) -> List[dict]:
     """Cezalı oyuncu verilerini çeker."""
@@ -334,26 +322,46 @@ def scrape_suspensions(team_slug: str, team_id: str, squad: List[dict], driver) 
         print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
         return []
 
+
 def scrape_squad(team_slug: str, team_id: str, driver) -> List[dict]:
     """Takım kadrosunu (oyuncu adı, pozisyon, piyasa değeri) çeker."""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
-    driver.get(url)
-    time.sleep(2)
-    WebDriverWait(driver, 20).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "table.items"))
-    )
-    players = []
-    rows = driver.find_elements(By.CSS_SELECTOR, "tr.odd, tr.even")
-    for row in rows:
-        try:
-            name = row.find_element(By.CSS_SELECTOR, "td.hauptlink").text.strip()
-            tds = row.find_elements(By.TAG_NAME, "td")
-            position = tds[4].text.strip() if len(tds) > 4 else ""
-            market_value = tds[-1].text.strip() if len(tds) > 0 else ""
-            players.append({"name": name, "position": position, "market_value": market_value})
-        except:
-            continue
-    return players
+    print(f"[INFO] {team_slug} için kadro çekiliyor: {url}", file=sys.stderr)
+    try:
+        driver.get(url)
+        time.sleep(5)  # Sayfanın yüklenmesi için gecikme
+        print(f"[DEBUG] Sayfaya erişildi: {url}", file=sys.stderr)
+
+        WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "table.items"))
+        )
+        print("[DEBUG] Tablo bulundu: table.items", file=sys.stderr)
+        rows = driver.find_elements(By.CSS_SELECTOR, "table.items tr.odd, table.items tr.even")
+        print(f"[DEBUG] Bulunan satır sayısı: {len(rows)}", file=sys.stderr)
+
+        players = []
+        for row in rows:
+            try:
+                name_elem = row.find_element(By.CSS_SELECTOR, "td.hauptlink a")
+                name = name_elem.text.strip() if name_elem else "Bilinmeyen Oyuncu"
+
+                inline_table = row.find_element(By.CSS_SELECTOR, "table.inline-table")
+                position_elem = inline_table.find_elements(By.TAG_NAME, "td")[1] if inline_table else None
+                position = position_elem.text.strip() if position_elem else "Bilinmeyen Pozisyon"
+
+                market_value_elem = row.find_element(By.CSS_SELECTOR, "td.rechts.hauptlink")
+                market_value = market_value_elem.text.strip() if market_value_elem else "Bilinmeyen Değer"
+
+                players.append({"name": name, "position": position, "market_value": market_value})
+                print(f"[DEBUG] Oyuncu eklendi: {name}, {position}, {market_value}", file=sys.stderr)
+            except Exception as e:
+                print(f"[UYARI] Oyuncu verisi alınamadı: {str(e)}", file=sys.stderr)
+                continue
+        return players
+    except Exception as e:
+        print(f"[HATA] Kadro verisi alınamadı ({team_slug}): {str(e)}", file=sys.stderr)
+        print(f"[DEBUG] Sayfanın kaynak kodu: {driver.page_source[:1000]}", file=sys.stderr)
+        return []
 
 def scrape_injuries(team_slug: str, team_id: str, squad: List[dict], driver) -> List[dict]:
     """Sakatlık verilerini çeker."""
