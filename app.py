@@ -23,11 +23,11 @@ app = Flask(__name__)
 # Selenium WebDriver kurulumu
 def init_driver():
     chrome_options = Options()
-    chrome_options.binary_location = "/usr/bin/chromium"
     chrome_options.add_argument("--headless=new")  # Başsız modda çalıştır
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+    chrome_options.binary_location = "/usr/bin/chromium"
     driver = webdriver.Chrome(service=Service('/usr/local/bin/chromedriver'),options=chrome_options)
     return driver
 
@@ -511,6 +511,7 @@ def generate_json_api():
     driver = None
     try:
         body = request.get_json()
+        print(f"[INFO] Gelen istek: {body}", file=sys.stderr)
         home_key = body.get("home_team")
         away_key = body.get("away_team")
         league_key = body.get("league_key")
@@ -518,10 +519,12 @@ def generate_json_api():
         if not home_key or not away_key or not league_key:
             return jsonify({"error": "Eksik parametreler"}), 400
 
+        print(f"[INFO] Takım bilgileri alınıyor: {home_key}, {away_key}", file=sys.stderr)
         home_info = get_team_info(home_key)
         away_info = get_team_info(away_key)
 
         # Selenium driver'ı başlat
+        print("[INFO] Selenium driver başlatılıyor", file=sys.stderr)
         driver = init_driver()
 
         # Ev sahibi takım için veri oluştur
