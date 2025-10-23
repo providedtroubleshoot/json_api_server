@@ -23,12 +23,18 @@ app = Flask(__name__)
 # Selenium WebDriver kurulumu
 def init_driver():
     chrome_options = Options()
-    chrome_options.add_argument("--headless=new")  # Başsız modda çalıştır
+    chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_argument(
+        "user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36")
     chrome_options.binary_location = "/usr/bin/chromium"
-    driver = webdriver.Chrome(service=Service('/usr/local/bin/chromedriver'),options=chrome_options)
+    driver = webdriver.Chrome(
+        service=Service('/usr/local/bin/chromedriver'),
+        options=chrome_options
+    )
     return driver
 
 # Firebase / Firestore başlatma
@@ -332,7 +338,8 @@ def scrape_squad(team_slug: str, team_id: str, driver) -> List[dict]:
     """Takım kadrosunu (oyuncu adı, pozisyon, piyasa değeri) çeker."""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
     driver.get(url)
-    WebDriverWait(driver, 10).until(
+    time.sleep(2)
+    WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "table.items"))
     )
     players = []
