@@ -235,7 +235,7 @@ def get_soup(url: str) -> BeautifulSoup:
             "User-Agent": random.choice(USER_AGENTS),
             "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Referer": "https://www.transfermarkt.com.tr/"
+            "Referer": "https://www.transfermarkt.com/"
         }
         time.sleep(random.uniform(1, 3))  # Rastgele gecikme
         res = requests.get(url, headers=headers, timeout=30)
@@ -258,7 +258,7 @@ def extract_first_int(s: str) -> int:
 
 def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
     """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker."""
-    url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
+    url = f"https://www.transfermarkt.com/{team_slug}/leistungsdaten/verein/{team_id}"
     try:
         response = requests.get(url, headers=HEADERS, timeout=30)
         response.raise_for_status()
@@ -303,7 +303,7 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
 
 def scrape_suspensions(team_slug, team_id, squad):
     try:
-        url_squad = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
+        url_squad = f"https://www.transfermarkt.com/{team_slug}/startseite/verein/{team_id}"
         soup = get_soup(url_squad)
         suspensions = []
 
@@ -344,7 +344,7 @@ def scrape_suspensions(team_slug, team_id, squad):
         return []
 
 def scrape_squad(team_slug: str, team_id: str) -> List[dict]:
-    url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
+    url = f"https://www.transfermarkt.com/{team_slug}/startseite/verein/{team_id}"
     soup = get_soup(url)
     table = soup.find("table", class_="items")
     rows = table.find_all("tr", class_=["odd", "even"])
@@ -357,7 +357,7 @@ def scrape_squad(team_slug: str, team_id: str) -> List[dict]:
     return players
 
 def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dict]:
-    url = f"https://www.transfermarkt.com.tr/{team_slug}/sperrenundverletzungen/verein/{team_id}"
+    url = f"https://www.transfermarkt.com/{team_slug}/sperrenundverletzungen/verein/{team_id}"
     injuries = []
     try:
         soup = get_soup(url)
