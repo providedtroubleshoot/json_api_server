@@ -16,8 +16,14 @@ load_dotenv()
 
 app = Flask(__name__)
 
+# Transfermarkt domaini (Engellendiği için proxy kullanılması önerilir)
+TRANSFERMARKT_DOMAIN = "https://www.transfermarkt.com.tr"
 
-# Firebase / Firestore başlatma
+# Yeni Ortam Değişkeni: PROXY_URL
+PROXY_URL = os.getenv("PROXY_URL")
+
+
+# Firestore / Firebase başlatma
 def init_firestore():
     if firebase_admin._apps:
         return firestore.client()
@@ -45,8 +51,6 @@ except Exception as e:
     DB = None
 
 # BOT KORUMASINI ATLATMAK İÇİN KRİTİK GÜNCELLEMELER
-# 1. Kullanılacak User-Agent listesi tanımlandı
-# Bu liste her istekte rastgele seçilir.
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6367.91 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15",
@@ -55,25 +59,22 @@ USER_AGENTS = [
     "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
 ]
 
-# 2. Gelişmiş HTTP Başlıkları (Tam Tarayıcı Taklidi)
-# Bot korumasını aşmak için gerekli tüm 'Sec-Fetch', 'Sec-Ch-Ua' gibi başlıklar eklendi.
 HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/ *;q=0.8",
     "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
     "Connection": "keep-alive",
-    "Referer": "https://www.transfermarkt.com.tr/",
+    "Referer": TRANSFERMARKT_DOMAIN,
     "Sec-Fetch-Site": "same-origin",
     "Sec-Fetch-Mode": "navigate",
     "Sec-Fetch-User": "?1",
     "Sec-Fetch-Dest": "document",
     "Upgrade-Insecure-Requests": "1",
-    # Chrome-Spesifik Başlıklar
     "sec-ch-ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A;Brand";v="99"',
     "sec-ch-ua-mobile": "?0",
-    "sec-ch-ua-platform": '"Windows"',  # Ya da "Linux", "macOS" olabilir
+    "sec-ch-ua-platform": '"Windows"',
 }
 
-# ... (TEAMS dict'i burada değişmeden kalır)
+# TEAMS sözlüğü (Aynı Kaldı)
 TEAMS = {
     "heracles": {"name": "Heracles", "slug": "heracles-almelo", "id": "1304"},
     "volendam": {"name": "Volendam", "slug": "fc-volendam", "id": "724"},
@@ -286,18 +287,39 @@ def get_form_url(league_key: str) -> str | None:
 
 
 def get_soup(url: str, session: requests.Session) -> BeautifulSoup:
+    """
+    HTTP isteğini gönderir. PROXY_URL tanımlıysa proxy kullanır.
+    """
     # Rastgele 2 ile 5 saniye arasında bekletme
     time.sleep(random.uniform(2, 5))
 
-    # User-Agent'ı rastgele seçip oturum başlığına ekle
-    # NOT: Session'ın tüm başlıklarını silmemek için sadece User-Agent'ı güncelliyoruz.
     session.headers["User-Agent"] = random.choice(USER_AGENTS)
 
-    # Oturum üzerinden isteği yap (Çerezler otomatik gönderilir)
-    res = session.get(url, timeout=30)
-    # 403 hatası burada yakalanır ve işlenir.
-    res.raise_for_status()
-    return BeautifulSoup(res.text, "lxml")
+    proxies = {}
+    if PROXY_URL:
+        # Proxy ayarını yapılandır
+        proxies = {
+            "http": PROXY_URL,
+            "https": PROXY_URL,
+        }
+        print(
+            f"[UYARI] Proxy kullanılıyor: {PROXY_URL.split('@')[-1] if '@' in PROXY_URL else PROXY_URL.split('//')[-1]}",
+            file=sys.stderr)
+
+    try:
+        res = session.get(url, timeout=30, proxies=proxies)
+        res.raise_for_status()
+        return BeautifulSoup(res.text, "lxml")
+    except requests.exceptions.ProxyError as pe:
+        print(f"[KRİTİK HATA] Proxy Hatası: {pe}. Lütfen Proxy URL'nizi kontrol edin.", file=sys.stderr)
+        # Proxy hatasında bile 403 hatası gibi davranarak API'nin bir üst seviyede handle etmesini sağla
+        raise requests.exceptions.HTTPError(f"403 Client Error: Forbidden for url: {url} (Proxy Hatası)",
+                                            response=requests.Response())
+    except Exception as e:
+        # 403 hatasını yeniden fırlatmak için
+        if isinstance(e, requests.exceptions.HTTPError) and e.response.status_code == 403:
+            print(f"[KRİTİK HATA] 403 Client Error: Forbidden for url: {url} (IP Engeli)", file=sys.stderr)
+        raise e
 
 
 def extract_first_int(s: str) -> int:
@@ -309,12 +331,10 @@ def extract_first_int(s: str) -> int:
     return int(m.group(1)) if m else 0
 
 
-# Tüm scraping fonksiyonları artık session parametresini almalı
 def scrape_stats(team_slug: str, team_id: str, session: requests.Session) -> List[dict]:
     """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker."""
-    url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
+    url = f"{TRANSFERMARKT_DOMAIN}/{team_slug}/leistungsdaten/verein/{team_id}"
     try:
-        # get_soup çağrısı ile User-Agent, bekleme ve session kullanımı sağlanır
         soup = get_soup(url, session)
 
         rows = soup.select("table.items tbody tr")
@@ -352,7 +372,7 @@ def scrape_stats(team_slug: str, team_id: str, session: requests.Session) -> Lis
 
 def scrape_suspensions(team_slug: str, team_id: str, squad: List[dict], session: requests.Session) -> List[dict]:
     try:
-        url_squad = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
+        url_squad = f"{TRANSFERMARKT_DOMAIN}/{team_slug}/startseite/verein/{team_id}"
         soup = get_soup(url_squad, session)
         suspensions = []
 
@@ -391,7 +411,7 @@ def scrape_suspensions(team_slug: str, team_id: str, squad: List[dict], session:
 
 
 def scrape_squad(team_slug: str, team_id: str, session: requests.Session) -> List[dict]:
-    url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
+    url = f"{TRANSFERMARKT_DOMAIN}/{team_slug}/startseite/verein/{team_id}"
     soup = get_soup(url, session)
     table = soup.find("table", class_="items")
     if not table:
@@ -416,7 +436,7 @@ def scrape_squad(team_slug: str, team_id: str, session: requests.Session) -> Lis
 
 
 def scrape_injuries(team_slug: str, team_id: str, squad: List[dict], session: requests.Session) -> List[dict]:
-    url = f"https://www.transfermarkt.com.tr/{team_slug}/sperrenundverletzungen/verein/{team_id}"
+    url = f"{TRANSFERMARKT_DOMAIN}/{team_slug}/sperrenundverletzungen/verein/{team_id}"
     injuries = []
     try:
         soup = get_soup(url, session)
@@ -447,10 +467,8 @@ def scrape_injuries(team_slug: str, team_id: str, squad: List[dict], session: re
     return injuries
 
 
-# get_league_position ve get_recent_form da artık session almalı
 def get_league_position(team_name: str, league_key: str, session: requests.Session):
     try:
-        # get_league_url fonksiyonu artık tanımlı
         url = get_league_url(league_key)
         if not url:
             return
@@ -466,7 +484,6 @@ def get_league_position(team_name: str, league_key: str, session: requests.Sessi
                 continue
             pos = cells[0].text.strip()
             name_cell = cells[2].find("a")
-            # Transfermarkt'ta takım ismi bazen 'title' attribute'unda da bulunur.
             name = name_cell.get("title").strip() if name_cell and name_cell.get(
                 "title") else name_cell.text.strip() if name_cell else cells[2].text.strip()
 
@@ -480,7 +497,6 @@ def get_league_position(team_name: str, league_key: str, session: requests.Sessi
 
 def get_recent_form(team_name: str, league_key: str, session: requests.Session) -> dict:
     try:
-        # get_form_url fonksiyonu artık tanımlı
         url = get_form_url(league_key)
         if not url:
             return
@@ -488,7 +504,6 @@ def get_recent_form(team_name: str, league_key: str, session: requests.Session) 
         rows = soup.select("div.responsive-table table tbody tr")
         for row in rows:
             team_cell = row.select_one("td.no-border-links.hauptlink a")
-            # Transfermarkt'ta takım ismi bazen 'title' attribute'unda da bulunur.
             name = team_cell.get("title").strip() if team_cell and team_cell.get(
                 "title") else team_cell.text.strip() if team_cell else ""
 
@@ -516,18 +531,26 @@ def generate_team_data(team_info: dict, league_key: str, session: requests.Sessi
     slug = team_info["slug"]
     team_id = team_info["id"]
 
+    # 1. Kadro
     squad = []
     try:
-        # Session parametresi eklendi
         squad = scrape_squad(slug, team_id, session)
     except Exception as e:
         print(f"[KRİTİK HATA] Kadro bilgisi alınamadı ({name}): {e}", file=sys.stderr)
 
-    # Session parametresi eklendi
+    # 2. Sakatlıklar (Kadroya bağımlı değil ama pozisyon için kullanır)
     injuries = scrape_injuries(slug, team_id, squad, session)
+
+    # 3. Lig Pozisyonu
     position = get_league_position(name, league_key, session)
+
+    # 4. Form
     form = get_recent_form(name, league_key, session)
+
+    # 5. Cezalılar
     suspensions = scrape_suspensions(slug, team_id, squad, session)
+
+    # 6. Oyuncu İstatistikleri
     stats = scrape_stats(slug, team_id, session)
 
     data = {
@@ -541,8 +564,13 @@ def generate_team_data(team_info: dict, league_key: str, session: requests.Sessi
     if form is not None:
         data["recent_form"] = form
 
+    # Eğer istatistik çekilemezse None döner, bu Firestore'a gönderilmez.
+    # Ancak istatistik nesnesi ayrı olarak kaydedileceği için tutulur.
     if stats is not None:
-        data["stats"] = stats
+        data["stats_summary"] = {
+            "available": True,
+            "player_count": len(stats)
+        }
 
     return data, stats, name.lower()
 
@@ -553,12 +581,20 @@ def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) ->
         return
 
     try:
+        # team_data'nın bir sözlük olduğundan emin olun (Firestore'a kaydedilebilir)
+        if not isinstance(team_data, dict):
+            raise TypeError(f"team_data beklenen dict türünde değil, türü: {type(team_data)}")
+
         # Save team data to team_data collection
         DB.collection("team_data").document(team_name.lower()).set(team_data, merge=True)
         print(f"✅ Firestore team_data'ya kaydedildi: {team_name}")
 
         # Save player stats to new_data collection
         if player_stats is not None:
+            # player_stats'ın bir liste olduğundan emin olun (JSON'a dönüştürülebilir)
+            if not isinstance(player_stats, list):
+                raise TypeError(f"player_stats beklenen list türünde değil, türü: {type(player_stats)}")
+
             DB.collection("new_data").document(team_name.lower()).set({"player_stats": player_stats}, merge=True)
             print(f"✅ Firestore new_data'ya kaydedildi: {team_name}")
         else:
@@ -589,7 +625,6 @@ def generate_json_api():
         home_info = get_team_info(home_key)
         away_info = get_team_info(away_key)
 
-        # 1. Oturum Başlatma ve Genel Başlıkları Atama
         session = requests.Session()
         session.headers.update(HEADERS)
 
@@ -599,10 +634,9 @@ def generate_json_api():
         # Generate data for away team
         away_data, away_stats, away_doc = generate_team_data(away_info, league_key, session)
 
-        # Oturumu kapat
         session.close()
 
-        # Firestore Hata Düzeltmesi: away_data yerine away_doc kullanılmıştı. Düzeltildi.
+        # Firestore kaydetme fonksiyonları
         save_team_data(home_doc, home_data, home_stats)
         save_team_data(away_doc, away_data, away_stats)
 
@@ -610,13 +644,17 @@ def generate_json_api():
 
         return jsonify({
             "status": "success",
-            "message": f"{home_doc}, {away_doc} Firestore'a kaydedildi (team_data ve new_data)."
+            "message": f"Veri çekme girişimi tamamlandı. Transfermarkt IP yasağını aşmak için lütfen 'PROXY_URL' ortam değişkenini kullanın."
         }), 200
 
     except requests.exceptions.HTTPError as he:
-        print(f"Scraping Hatası (4xx/5xx): {he}", file=sys.stderr)
-        return jsonify({"status": "error",
-                        "message": f"Web sitesi verileri reddetti: {he}. Son deneme: Gelişmiş Tarayıcı Başlıkları ile Oturum Yönetimi."}), 502
+        # 4xx veya 5xx hatalarını yakala
+        status_code = he.response.status_code if he.response is not None else 502
+        print(f"Scraping Hatası ({status_code}): {he}", file=sys.stderr)
+        return jsonify({
+            "status": "error",
+            "message": f"Web sitesi verileri reddetti: {he}. Bu büyük ihtimalle Transfermarkt'ın IP yasağıdır. Lütfen PROXY_URL ortam değişkenini tanımlayın ve geçerli bir proxy kullanın."
+        }), 502
     except Exception as e:
         print(f"İstek işlenirken genel hata oluştu: {str(e)}", file=sys.stderr)
         return jsonify({"status": "error", "message": str(e)}), 500
