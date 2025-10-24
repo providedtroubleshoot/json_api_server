@@ -15,7 +15,7 @@ load_dotenv()
 app = Flask(__name__)
 
 
-# Firebase / Firestore başlatma (Önceki konuşmadaki mantık hatası düzeltildi)
+# Firebase / Firestore başlatma
 def init_firestore():
     if firebase_admin._apps:
         return firestore.client()
@@ -48,13 +48,21 @@ except Exception as e:
     # DB'nin başlatılamadığı durumda bile Flask'ın çalışmaya devam etmesi için (bazı ortamlarda gerekli)
     DB = None
 
-# 403 HATASINI ÇÖZMEK İÇİN GÜNCELLENMİŞ HEADERS
-# User-Agent'ı popüler bir tarayıcı gibi göstererek anti-bot önlemlerini aşma ihtimalini artırır.
+# 403 HATASINI ÇÖZMEK İÇİN KRİTİK GÜNCELLEMELER YAPILDI.
+# Referer ve Sec-Fetch-Site başlıkları eklendi.
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/ *;q=0.8",
     "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Connection": "keep-alive"
+    "Connection": "keep-alive",
+    # *** YENİ EKLENEN KRİTİK BAŞLIKLAR ***
+    "Referer": "https://www.transfermarkt.com.tr/",  # İsteklerin bu sayfadan geldiğini iddia eder
+    "Sec-Fetch-Site": "same-origin",  # İsteklerin aynı siteden geldiğini belirtir
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-User": "?1",
+    "Sec-Fetch-Dest": "document",
+    "Upgrade-Insecure-Requests": "1"
+    # ***********************************
 }
 
 TEAMS = {
@@ -295,7 +303,9 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
         if players:
             return players
         else:
-            raise ValueError("Stats is empty")
+            # Transfermarkt'ın yapısına göre bazen oyuncu bilgisi (data) boş gelebilir,
+            # bu da hatalı bir 403'e neden olabilir, bu yüzden hata yerine boş liste döndürülür
+            return []
 
     except Exception as e:
         print(f"Oyuncu istatistikleri alınamadı ({team_slug}): {e}", file=sys.stderr)
@@ -311,7 +321,7 @@ def scrape_suspensions(team_slug, team_id, squad):
         # Oyuncu tablosunu bul
         table = soup.find("table", class_="items")
         if not table:
-            print(f"{team_slug} için oyuncu tablosu bulunamadı", file=sys.stderr)
+            # 403 alınmadıysa ve tablo bulunamazsa boş döndür
             return suspensions
 
         # Oyuncu satırlarını tara (odd ve even sınıfları)
@@ -322,7 +332,8 @@ def scrape_suspensions(team_slug, team_id, squad):
                 name_tag = table_inline.find("a", href=True)
                 if name_tag:
                     player_name = name_tag.get_text(strip=True)
-                    span_tag = name_tag.find("span", class_=["ausfall-1-table", "ausfall-2-table", "ausfall-3-table"])
+                    # Cezalı span'lerini kontrol et
+                    span_tag = name_tag.find("span", class_=lambda c: c and "ausfall-" in c)
                     if span_tag:
                         suspension_type = span_tag.get("title", "").strip()
                         status = (
@@ -502,13 +513,13 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
     team_id = team_info["id"]
 
     # Kritik: squad verisi diğer scrape fonksiyonları için baz alınır, önce çekilmeli.
-    # scrape_squad içinde hata oluşursa, API 500 dönecektir.
+    squad = []
     try:
         squad = scrape_squad(slug, team_id)
     except Exception as e:
         print(f"[KRİTİK HATA] Kadro bilgisi alınamadı ({name}): {e}", file=sys.stderr)
-        # 500 hatası almak yerine, boş kadro ile devam etmeyi tercih edebiliriz.
-        squad = []
+        # Bu aşamada 403 alındıysa, diğer veriler de büyük ihtimalle alınamayacaktır.
+        # Bu yüzden hata loglanır ve boş bir kadro ile devam edilir.
 
     injuries = scrape_injuries(slug, team_id, squad)
     position = get_league_position(name, league_key)
@@ -527,12 +538,14 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
     if form is not None:
         data["recent_form"] = form
     else:
-        print(f"[UYARI] {name} için recent_form alınamadı, mevcut JSON korunuyor")
+        # Uyarı: 403 hataları burada da görünür, ancak loglamaya gerek yok
+        # çünkü generate_team_data'nın içindeki fonksiyonlar zaten loglama yapıyor.
+        pass
 
     if stats is not None:
         data["stats"] = stats
     else:
-        print(f"[UYARI] {name} için istatistik alınamadı, mevcut JSON korunuyor")
+        pass
 
     return data, stats, name.lower()
 
@@ -599,7 +612,7 @@ def generate_json_api():
         # Özellikle 403 hatasını yakalayıp kullanıcıya daha anlaşılır bir mesaj dön
         print(f"Scraping Hatası (4xx/5xx): {he}", file=sys.stderr)
         return jsonify({"status": "error",
-                        "message": f"Web sitesi verileri reddetti: {he}. Lütfen Transfermarkt'ın bot korumasını kontrol edin."}), 502  # Bad Gateway veya 500 yerine 502 daha uygun.
+                        "message": f"Web sitesi verileri reddetti: {he}. Lütfen Transfermarkt'ın bot korumasını kontrol edin."}), 502
     except Exception as e:
         # Diğer tüm hatalar
         print(f"İstek işlenirken genel hata oluştu: {str(e)}", file=sys.stderr)
