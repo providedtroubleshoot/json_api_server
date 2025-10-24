@@ -574,6 +574,4 @@ def generate_json_api():
         return jsonify({"status": "error", "message": error_message}), 500
 
 if __name__ == "__main__":
-    # Flask uygulaması burada çalıştırılmaz, bu sadece standart bir Python boilerplate'idir.
-    # Platformumuz uygulamayı farklı bir şekilde başlatır.
-    pass
+    app.run(host="0.0.0.0", port=10000)
