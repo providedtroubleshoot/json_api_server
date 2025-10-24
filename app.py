@@ -289,9 +289,10 @@ def get_form_url(league_key: str) -> str | None:
 def get_soup(url: str, session: requests.Session) -> BeautifulSoup:
     """
     HTTP isteğini gönderir. PROXY_URL tanımlıysa proxy kullanır.
+    BOT korumasını aşmak için bekleme süresi 3-7 saniyeye çıkarıldı.
     """
-    # Rastgele 2 ile 5 saniye arasında bekletme
-    time.sleep(random.uniform(2, 5))
+    # Rastgele 3 ile 7 saniye arasında bekletme (bot izlenimini azaltmak için artırıldı)
+    time.sleep(random.uniform(3, 7))
 
     session.headers["User-Agent"] = random.choice(USER_AGENTS)
 
@@ -312,11 +313,9 @@ def get_soup(url: str, session: requests.Session) -> BeautifulSoup:
         return BeautifulSoup(res.text, "lxml")
     except requests.exceptions.ProxyError as pe:
         print(f"[KRİTİK HATA] Proxy Hatası: {pe}. Lütfen Proxy URL'nizi kontrol edin.", file=sys.stderr)
-        # Proxy hatasında bile 403 hatası gibi davranarak API'nin bir üst seviyede handle etmesini sağla
         raise requests.exceptions.HTTPError(f"403 Client Error: Forbidden for url: {url} (Proxy Hatası)",
                                             response=requests.Response())
     except Exception as e:
-        # 403 hatasını yeniden fırlatmak için
         if isinstance(e, requests.exceptions.HTTPError) and e.response.status_code == 403:
             print(f"[KRİTİK HATA] 403 Client Error: Forbidden for url: {url} (IP Engeli)", file=sys.stderr)
         raise e
@@ -644,7 +643,7 @@ def generate_json_api():
 
         return jsonify({
             "status": "success",
-            "message": f"Veri çekme girişimi tamamlandı. Transfermarkt IP yasağını aşmak için lütfen 'PROXY_URL' ortam değişkenini kullanın."
+            "message": f"Veri çekme girişimi tamamlandı. Ancak Transfermarkt'ın bot korumasını aşmak için **daha kaliteli (tercihen yerleşik) bir proxy** kullanmanız gerekmektedir. Mevcut proxy IP'si reddedildi."
         }), 200
 
     except requests.exceptions.HTTPError as he:
@@ -653,7 +652,7 @@ def generate_json_api():
         print(f"Scraping Hatası ({status_code}): {he}", file=sys.stderr)
         return jsonify({
             "status": "error",
-            "message": f"Web sitesi verileri reddetti: {he}. Bu büyük ihtimalle Transfermarkt'ın IP yasağıdır. Lütfen PROXY_URL ortam değişkenini tanımlayın ve geçerli bir proxy kullanın."
+            "message": f"Web sitesi verileri reddetti: {he}. **Kullandığınız proxy IP'si büyük ihtimalle Transfermarkt tarafından tanındı ve engellendi.** Lütfen daha kaliteli bir PROXY_URL ile tekrar deneyin."
         }), 502
     except Exception as e:
         print(f"İstek işlenirken genel hata oluştu: {str(e)}", file=sys.stderr)
