@@ -14,27 +14,48 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Firebase / Firestore başlatma
+
+# Firebase / Firestore başlatma (Önceki konuşmadaki mantık hatası düzeltildi)
 def init_firestore():
     if firebase_admin._apps:
         return firestore.client()
 
+    # Ortam değişkenini kontrol et
     raw_key = os.getenv("FIRESTORE_KEY")
     if not raw_key:
         raise RuntimeError("FIRESTORE_KEY env değişkeni tanımlı değil!")
 
     try:
+        # JSON dizesini doğrudan ayrıştırmayı dene
         cred_dict = json.loads(raw_key)
     except json.JSONDecodeError as e:
+        # Eğer JSON ayrıştırılamazsa, dosyadan okuma hatası yerine daha açıklayıcı bir hata ver
         print(f"HATA: FIRESTORE_KEY ortam değişkeni geçerli bir JSON dizesi değil. Detay: {e}", file=sys.stderr)
-        raise RuntimeError(f"FIRESTORE_KEY JSON ayrıştırma hatası: {e}")
+        raise RuntimeError(
+            f"FIRESTORE_KEY JSON ayrıştırma hatası: {e}. Lütfen değerin tam JSON içeriği olduğundan emin olun.")
 
     cred = credentials.Certificate(cred_dict)
     firebase_admin.initialize_app(cred)
     print("✅ Firebase başarıyla başlatıldı.")
     return firestore.client()
 
-DB = init_firestore()
+
+# Hata başlangıçta oluşursa, DB başlatma bloğu bir try/except içinde olmalıdır.
+try:
+    DB = init_firestore()
+except Exception as e:
+    print(f"KRİTİK HATA: Uygulama başlatılamadı - Firebase/Firestore hatası: {e}", file=sys.stderr)
+    # DB'nin başlatılamadığı durumda bile Flask'ın çalışmaya devam etmesi için (bazı ortamlarda gerekli)
+    DB = None
+
+# 403 HATASINI ÇÖZMEK İÇİN GÜNCELLENMİŞ HEADERS
+# User-Agent'ı popüler bir tarayıcı gibi göstererek anti-bot önlemlerini aşma ihtimalini artırır.
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/ *;q=0.8",
+    "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Connection": "keep-alive"
+}
 
 TEAMS = {
     "heracles": {"name": "Heracles", "slug": "heracles-almelo", "id": "1304"},
@@ -209,7 +230,6 @@ TEAMS = {
     "gençlerbirliği": {"name": "Gençlerbirliği", "slug": "genclerbirligi-ankara", "id": "820"},
 }
 
-HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 def get_team_info(team_key: str) -> dict:
     key = team_key.lower()
@@ -217,10 +237,14 @@ def get_team_info(team_key: str) -> dict:
         raise ValueError(f"{team_key} takımı bulunamadı. Geçerli takımlar: {list(TEAMS.keys())}")
     return TEAMS[key]
 
+
+# get_soup, güncellenmiş HEADERS kullanacak
 def get_soup(url: str) -> BeautifulSoup:
     res = requests.get(url, headers=HEADERS, timeout=30)
+    # 403 hatası burada yakalanır
     res.raise_for_status()
     return BeautifulSoup(res.text, "lxml")
+
 
 def extract_first_int(s: str) -> int:
     """Bir string içindeki ilk tam sayıyı ayıkla. Yoksa 0 döner."""
@@ -230,10 +254,12 @@ def extract_first_int(s: str) -> int:
     m = re.search(r'(\d+)', s)
     return int(m.group(1)) if m else 0
 
+
 def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
     """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker."""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
     try:
+        # requests.get de güncel HEADERS'ı kullanır
         response = requests.get(url, headers=HEADERS, timeout=30)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, "html.parser")
@@ -274,6 +300,7 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
     except Exception as e:
         print(f"Oyuncu istatistikleri alınamadı ({team_slug}): {e}", file=sys.stderr)
         return None
+
 
 def scrape_suspensions(team_slug, team_id, squad):
     try:
@@ -317,29 +344,51 @@ def scrape_suspensions(team_slug, team_id, squad):
         print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
         return []
 
+
 def scrape_squad(team_slug: str, team_id: str) -> List[dict]:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
     soup = get_soup(url)
     table = soup.find("table", class_="items")
+    # Eğer tablo bulunamazsa exception fırlatılır, bu da 500'ü tetikler.
+    # Burada None kontrolü eklemek robustness'ı artırır.
+    if not table:
+        raise ValueError(f"Kadro tablosu bulunamadı: {team_slug}")
+
     rows = table.find_all("tr", class_=["odd", "even"])
     players = []
     for row in rows:
-        name = row.find("td", class_="hauptlink").text.strip()
-        position = row.find_all("td")[4].text.strip()
-        market_value = row.find_all("td")[-1].text.strip()
+        name_element = row.find("td", class_="hauptlink")
+        if not name_element: continue  # Güvenlik kontrolü
+
+        name = name_element.text.strip()
+
+        # Pozisyon ve Değer için daha güvenli bir indexleme
+        td_list = row.find_all("td")
+        if len(td_list) < 6: continue
+
+        position = td_list[4].text.strip()
+        market_value = td_list[-1].text.strip()
+
         players.append({"name": name, "position": position, "market_value": market_value})
     return players
+
 
 def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dict]:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/sperrenundverletzungen/verein/{team_id}"
     injuries = []
     try:
         soup = get_soup(url)
-        inj_header = soup.find("td", string="Sakatlıklar")
-        if not inj_header:
+        # Sakatlıklar başlığını bulmaya çalış
+        inj_header_cell = soup.find("td", string=lambda t: t and "Sakatlıklar" in t)
+
+        if not inj_header_cell:
             return injuries
-        row = inj_header.find_parent("tr")
-        next_row = row.find_next_sibling()
+
+        # 'Sakatlıklar' başlık hücresinin üstündeki ana satırı bul
+        row = inj_header_cell.find_parent("tr")
+
+        # Veri satırlarını döngüye al
+        next_row = row.find_next_sibling("tr")
         while next_row and "extrarow" not in (next_row.get("class") or []):
             inline = next_row.find("table", class_="inline-table")
             if inline:
@@ -349,10 +398,16 @@ def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dic
                     matched = next((p for p in squad if p["name"] == player_name), None)
                     position = matched["position"] if matched else ""
                     injuries.append({"name": player_name, "position": position})
-            next_row = next_row.find_next_sibling()
+
+            # Sonraki satıra geç (hata durumunda sonsuz döngüyü önler)
+            next_row = next_row.find_next_sibling("tr")
+            if next_row and ("head" in (next_row.get("class") or []) or "footer" in (next_row.get("class") or [])):
+                break  # Yeni bir bölüme geçildiyse dur
+
     except Exception as e:
         print(f"Sakatlık verisi alınamadı: {e}", file=sys.stderr)
     return injuries
+
 
 def get_league_url(league_key: str) -> str | None:
     url_map = {
@@ -368,6 +423,7 @@ def get_league_url(league_key: str) -> str | None:
     }
     return url_map.get(league_key.lower())
 
+
 def get_form_url(league_key: str) -> str | None:
     url_map = {
         "en1": "https://www.transfermarkt.com.tr/premier-league/formtabelle/wettbewerb/GB1",
@@ -382,6 +438,7 @@ def get_form_url(league_key: str) -> str | None:
     }
     return url_map.get(league_key.lower())
 
+
 def get_league_position(team_name: str, league_key: str):
     try:
         url = get_league_url(league_key)
@@ -389,19 +446,26 @@ def get_league_position(team_name: str, league_key: str):
             return
         soup = get_soup(url)
         table = soup.find("table", class_="items")
+        if not table:
+            raise ValueError("Lig tablosu bulunamadı.")
+
         rows = table.find("tbody").find_all("tr", recursive=False)
         for row in rows:
             cells = row.find_all("td")
             if len(cells) < 3:
                 continue
             pos = cells[0].text.strip()
-            name = cells[2].text.strip()
+            # Takım adı 3. hücrede, bağlantı etiketi içindeki metin olarak alınmalıdır.
+            name_cell = cells[2].find("a")
+            name = name_cell.text.strip() if name_cell else cells[2].text.strip()
+
             if name.lower() == team_name.lower():
                 return int(pos) if pos.isdigit() else pos
         return
     except Exception as e:
         print(f"Lig sıralaması alınamadı: {e}", file=sys.stderr)
         return
+
 
 def get_recent_form(team_name: str, league_key: str) -> dict:
     try:
@@ -414,10 +478,16 @@ def get_recent_form(team_name: str, league_key: str) -> dict:
             team_cell = row.select_one("td.no-border-links.hauptlink a")
             if team_cell and team_name.lower() in team_cell.text.lower():
                 tds = row.find_all("td")
-                wins = int(tds[4].text.strip())
-                draws = int(tds[5].text.strip())
-                losses = int(tds[6].text.strip())
-                form_spans = tds[10].find_all("span")
+
+                # İndeksler Transfermarkt'ın yapısına bağlıdır, güvenliği artırıldı
+                if len(tds) < 11: continue
+
+                wins = extract_first_int(tds[4].text.strip())
+                draws = extract_first_int(tds[5].text.strip())
+                losses = extract_first_int(tds[6].text.strip())
+
+                form_cell = tds[10]
+                form_spans = form_cell.find_all("span")
                 recent_results = [s.text.strip() for s in form_spans if s.text.strip() in ["G", "B", "M"]]
                 return {"wins": wins, "draws": draws, "losses": losses, "last_matches": recent_results}
         return
@@ -425,12 +495,21 @@ def get_recent_form(team_name: str, league_key: str) -> dict:
         print(f"Form verisi alınamadı: {e}", file=sys.stderr)
         return
 
+
 def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dict], str]:
     name = team_info["name"]
     slug = team_info["slug"]
     team_id = team_info["id"]
 
-    squad = scrape_squad(slug, team_id)
+    # Kritik: squad verisi diğer scrape fonksiyonları için baz alınır, önce çekilmeli.
+    # scrape_squad içinde hata oluşursa, API 500 dönecektir.
+    try:
+        squad = scrape_squad(slug, team_id)
+    except Exception as e:
+        print(f"[KRİTİK HATA] Kadro bilgisi alınamadı ({name}): {e}", file=sys.stderr)
+        # 500 hatası almak yerine, boş kadro ile devam etmeyi tercih edebiliriz.
+        squad = []
+
     injuries = scrape_injuries(slug, team_id, squad)
     position = get_league_position(name, league_key)
     form = get_recent_form(name, league_key)
@@ -457,7 +536,12 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
 
     return data, stats, name.lower()
 
+
 def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) -> None:
+    if DB is None:
+        print(f"❌ Firestore bağlantısı yok. Veri ({team_name}) kaydedilemedi.", file=sys.stderr)
+        return
+
     try:
         # Save team data to team_data collection
         DB.collection("team_data").document(team_name.lower()).set(team_data, merge=True)
@@ -472,12 +556,17 @@ def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) ->
     except Exception as e:
         print(f"❌ Firestore kaydetme hatası ({team_name}): {e}", file=sys.stderr)
 
+
 @app.route("/")
 def index():
     return "API çalışıyor"
 
+
 @app.route("/generate-json", methods=["POST"])
 def generate_json_api():
+    if DB is None:
+        return jsonify({"status": "error", "message": "API Hazır değil: Firestore bağlantısı kurulamadı."}), 503
+
     try:
         body = request.get_json()
         home_key = body.get("home_team")
@@ -506,9 +595,16 @@ def generate_json_api():
             "message": f"{home_doc}, {away_doc} Firestore'a kaydedildi (team_data ve new_data)."
         }), 200
 
+    except requests.exceptions.HTTPError as he:
+        # Özellikle 403 hatasını yakalayıp kullanıcıya daha anlaşılır bir mesaj dön
+        print(f"Scraping Hatası (4xx/5xx): {he}", file=sys.stderr)
+        return jsonify({"status": "error",
+                        "message": f"Web sitesi verileri reddetti: {he}. Lütfen Transfermarkt'ın bot korumasını kontrol edin."}), 502  # Bad Gateway veya 500 yerine 502 daha uygun.
     except Exception as e:
-        print(f"İstek işlenirken hata oluştu: {str(e)}", file=sys.stderr)
+        # Diğer tüm hatalar
+        print(f"İstek işlenirken genel hata oluştu: {str(e)}", file=sys.stderr)
         return jsonify({"status": "error", "message": str(e)}), 500
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
