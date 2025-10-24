@@ -25,12 +25,13 @@ def init_firestore():
 
     try:
         cred_dict = json.loads(raw_key)
-    except json.JSONDecodeError:
-        with open(raw_key, "r", encoding="utf-8") as f:
-            cred_dict = json.load(f)
+    except json.JSONDecodeError as e:
+        print(f"HATA: FIRESTORE_KEY ortam değişkeni geçerli bir JSON dizesi değil. Detay: {e}", file=sys.stderr)
+        raise RuntimeError(f"FIRESTORE_KEY JSON ayrıştırma hatası: {e}")
 
     cred = credentials.Certificate(cred_dict)
     firebase_admin.initialize_app(cred)
+    print("✅ Firebase başarıyla başlatıldı.")
     return firestore.client()
 
 DB = init_firestore()
@@ -506,6 +507,7 @@ def generate_json_api():
         }), 200
 
     except Exception as e:
+        print(f"İstek işlenirken hata oluştu: {str(e)}", file=sys.stderr)
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
