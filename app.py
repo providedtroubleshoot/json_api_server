@@ -46,15 +46,17 @@ except Exception as e:
 
 # BOT KORUMASINI ATLATMAK İÇİN KRİTİK GÜNCELLEMELER
 # 1. Kullanılacak User-Agent listesi tanımlandı
+# Bu liste her istekte rastgele seçilir.
 USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6367.91 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:126.0) Gecko/20100101 Firefox/126.0",
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
 ]
 
-# 2. Sabit HTTP Başlıkları
+# 2. Gelişmiş HTTP Başlıkları (Tam Tarayıcı Taklidi)
+# Bot korumasını aşmak için gerekli tüm 'Sec-Fetch', 'Sec-Ch-Ua' gibi başlıklar eklendi.
 HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/ *;q=0.8",
     "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
@@ -64,7 +66,11 @@ HEADERS = {
     "Sec-Fetch-Mode": "navigate",
     "Sec-Fetch-User": "?1",
     "Sec-Fetch-Dest": "document",
-    "Upgrade-Insecure-Requests": "1"
+    "Upgrade-Insecure-Requests": "1",
+    # Chrome-Spesifik Başlıklar
+    "sec-ch-ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A;Brand";v="99"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"Windows"',  # Ya da "Linux", "macOS" olabilir
 }
 
 # ... (TEAMS dict'i burada değişmeden kalır)
@@ -249,17 +255,47 @@ def get_team_info(team_key: str) -> dict:
     return TEAMS[key]
 
 
-# get_soup fonksiyonu artık bir requests.Session objesi alıyor
+def get_league_url(league_key: str) -> str | None:
+    url_map = {
+        "en1": "https://www.transfermarkt.com.tr/premier-league/tabelle/wettbewerb/GB1",
+        "es1": "https://www.transfermarkt.com.tr/laliga/tabelle/wettbewerb/ES1",
+        "de1": "https://www.transfermarkt.com.tr/bundesliga/tabelle/wettbewerb/L1",
+        "tr1": "https://www.transfermarkt.com.tr/super-lig/tabelle/wettbewerb/TR1",
+        "fr1": "https://www.transfermarkt.com.tr/ligue-1/tabelle/wettbewerb/FR1",
+        "br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/tabelle/wettbewerb/BRA1",
+        "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/tabelle/wettbewerb/SA1",
+        "it1": "https://www.transfermarkt.com.tr/serie-a/tabelle/wettbewerb/IT1",
+        "hl1": "https://www.transfermarkt.com.tr/eredivisie/tabelle/wettbewerb/NL1"
+    }
+    return url_map.get(league_key.lower())
+
+
+def get_form_url(league_key: str) -> str | None:
+    url_map = {
+        "en1": "https://www.transfermarkt.com.tr/premier-league/formtabelle/wettbewerb/GB1",
+        "es1": "https://www.transfermarkt.com.tr/laliga/formtabelle/wettbewerb/ES1",
+        "de1": "https://www.transfermarkt.com.tr/bundesliga/formtabelle/wettbewerb/L1",
+        "tr1": "https://www.transfermarkt.com.tr/super-lig/formtabelle/wettbewerb/TR1",
+        "fr1": "https://www.transfermarkt.com.tr/ligue-1/formtabelle/wettbewerb/FR1",
+        "br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/formtabelle/wettbewerb/BRA1",
+        "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/formtabelle/wettbewerb/SA1",
+        "it1": "https://www.transfermarkt.com.tr/serie-a/formtabelle/wettbewerb/IT1",
+        "hl1": "https://www.transfermarkt.com.tr/eredivisie/formtabelle/wettbewerb/NL1"
+    }
+    return url_map.get(league_key.lower())
+
+
 def get_soup(url: str, session: requests.Session) -> BeautifulSoup:
     # Rastgele 2 ile 5 saniye arasında bekletme
     time.sleep(random.uniform(2, 5))
 
     # User-Agent'ı rastgele seçip oturum başlığına ekle
+    # NOT: Session'ın tüm başlıklarını silmemek için sadece User-Agent'ı güncelliyoruz.
     session.headers["User-Agent"] = random.choice(USER_AGENTS)
 
     # Oturum üzerinden isteği yap (Çerezler otomatik gönderilir)
     res = session.get(url, timeout=30)
-    # 403 hatası burada yakalanır
+    # 403 hatası burada yakalanır ve işlenir.
     res.raise_for_status()
     return BeautifulSoup(res.text, "lxml")
 
@@ -410,39 +446,11 @@ def scrape_injuries(team_slug: str, team_id: str, squad: List[dict], session: re
         print(f"Sakatlık verisi alınamadı: {e}", file=sys.stderr)
     return injuries
 
-def get_league_url(league_key: str) -> str | None:
-    url_map = {
-        "en1": "https://www.transfermarkt.com.tr/premier-league/tabelle/wettbewerb/GB1",
-        "es1": "https://www.transfermarkt.com.tr/laliga/tabelle/wettbewerb/ES1",
-        "de1": "https://www.transfermarkt.com.tr/bundesliga/tabelle/wettbewerb/L1",
-        "tr1": "https://www.transfermarkt.com.tr/super-lig/tabelle/wettbewerb/TR1",
-        "fr1": "https://www.transfermarkt.com.tr/ligue-1/tabelle/wettbewerb/FR1",
-        "br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/tabelle/wettbewerb/BRA1",
-        "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/tabelle/wettbewerb/SA1",
-        "it1": "https://www.transfermarkt.com.tr/serie-a/tabelle/wettbewerb/IT1",
-        "hl1": "https://www.transfermarkt.com.tr/eredivisie/tabelle/wettbewerb/NL1"
-    }
-    return url_map.get(league_key.lower())
-
-
-def get_form_url(league_key: str) -> str | None:
-    url_map = {
-        "en1": "https://www.transfermarkt.com.tr/premier-league/formtabelle/wettbewerb/GB1",
-        "es1": "https://www.transfermarkt.com.tr/laliga/formtabelle/wettbewerb/ES1",
-        "de1": "https://www.transfermarkt.com.tr/bundesliga/formtabelle/wettbewerb/L1",
-        "tr1": "https://www.transfermarkt.com.tr/super-lig/formtabelle/wettbewerb/TR1",
-        "fr1": "https://www.transfermarkt.com.tr/ligue-1/formtabelle/wettbewerb/FR1",
-        "br1": "https://www.transfermarkt.com.tr/campeonato-brasileiro-serie-a/formtabelle/wettbewerb/BRA1",
-        "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/formtabelle/wettbewerb/SA1",
-        "it1": "https://www.transfermarkt.com.tr/serie-a/formtabelle/wettbewerb/IT1",
-        "hl1": "https://www.transfermarkt.com.tr/eredivisie/formtabelle/wettbewerb/NL1"
-    }
-    return url_map.get(league_key.lower())
-
 
 # get_league_position ve get_recent_form da artık session almalı
 def get_league_position(team_name: str, league_key: str, session: requests.Session):
     try:
+        # get_league_url fonksiyonu artık tanımlı
         url = get_league_url(league_key)
         if not url:
             return
@@ -458,7 +466,9 @@ def get_league_position(team_name: str, league_key: str, session: requests.Sessi
                 continue
             pos = cells[0].text.strip()
             name_cell = cells[2].find("a")
-            name = name_cell.text.strip() if name_cell else cells[2].text.strip()
+            # Transfermarkt'ta takım ismi bazen 'title' attribute'unda da bulunur.
+            name = name_cell.get("title").strip() if name_cell and name_cell.get(
+                "title") else name_cell.text.strip() if name_cell else cells[2].text.strip()
 
             if name.lower() == team_name.lower():
                 return int(pos) if pos.isdigit() else pos
@@ -470,6 +480,7 @@ def get_league_position(team_name: str, league_key: str, session: requests.Sessi
 
 def get_recent_form(team_name: str, league_key: str, session: requests.Session) -> dict:
     try:
+        # get_form_url fonksiyonu artık tanımlı
         url = get_form_url(league_key)
         if not url:
             return
@@ -477,7 +488,11 @@ def get_recent_form(team_name: str, league_key: str, session: requests.Session) 
         rows = soup.select("div.responsive-table table tbody tr")
         for row in rows:
             team_cell = row.select_one("td.no-border-links.hauptlink a")
-            if team_cell and team_name.lower() in team_cell.text.lower():
+            # Transfermarkt'ta takım ismi bazen 'title' attribute'unda da bulunur.
+            name = team_cell.get("title").strip() if team_cell and team_cell.get(
+                "title") else team_cell.text.strip() if team_cell else ""
+
+            if name.lower() == team_name.lower():
                 tds = row.find_all("td")
 
                 if len(tds) < 11: continue
@@ -575,24 +590,21 @@ def generate_json_api():
         away_info = get_team_info(away_key)
 
         # 1. Oturum Başlatma ve Genel Başlıkları Atama
-        # Render'ın IP'sinin engellenmesini atlatmak için kritik adım
         session = requests.Session()
         session.headers.update(HEADERS)
 
         # Generate data for home team
-        # Oturum objesi artık fonksiyona geçiriliyor
         home_data, home_stats, home_doc = generate_team_data(home_info, league_key, session)
 
         # Generate data for away team
-        # Oturum objesi artık fonksiyona geçiriliyor
         away_data, away_stats, away_doc = generate_team_data(away_info, league_key, session)
 
-        # Oturumu kapat (Render ortamında kaynakları serbest bırakmak iyi bir pratik)
+        # Oturumu kapat
         session.close()
 
-        # Save both team data and player stats
+        # Firestore Hata Düzeltmesi: away_data yerine away_doc kullanılmıştı. Düzeltildi.
         save_team_data(home_doc, home_data, home_stats)
-        save_team_data(away_doc, away_doc, away_stats)  # Düzeltildi: away_data yerine away_doc kullanıldı.
+        save_team_data(away_doc, away_data, away_stats)
 
         print(f"Maç: {home_info['name']} vs {away_info['name']}", file=sys.stderr)
 
@@ -604,7 +616,7 @@ def generate_json_api():
     except requests.exceptions.HTTPError as he:
         print(f"Scraping Hatası (4xx/5xx): {he}", file=sys.stderr)
         return jsonify({"status": "error",
-                        "message": f"Web sitesi verileri reddetti: {he}. Son deneme: Oturum (Session) Yönetimi ve User-Agent Rotasyonu."}), 502
+                        "message": f"Web sitesi verileri reddetti: {he}. Son deneme: Gelişmiş Tarayıcı Başlıkları ile Oturum Yönetimi."}), 502
     except Exception as e:
         print(f"İstek işlenirken genel hata oluştu: {str(e)}", file=sys.stderr)
         return jsonify({"status": "error", "message": str(e)}), 500
