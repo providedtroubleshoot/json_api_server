@@ -347,29 +347,15 @@ def scrape_suspensions(team_slug, team_id, squad):
 
 def scrape_squad(team_slug: str, team_id: str) -> List[dict]:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
-    # get_soup zaten proxy kullanıyor
-    soup = get_soup(url) 
+    soup = get_soup(url)
     table = soup.find("table", class_="items")
-    # KRİTİK HATA logu almamak için hata kontrolü ekledim
-    if not table:
-        print(f"[KRİTİK HATA] Kadro bilgisi alınamadı ({team_slug}): Oyuncu tablosu bulunamadı.", file=sys.stderr)
-        return []
-        
     rows = table.find_all("tr", class_=["odd", "even"])
     players = []
     for row in rows:
-        # Orijinal kodda 4. indeks (5. eleman) pozisyondu.
-        tds = row.find_all("td")
-        if len(tds) < 11: # En az 11 td olmalı (pozisyon, piyasa değeri vb. için)
-            continue
-            
-        name_cell = row.find("td", class_="hauptlink")
-        name = name_cell.text.strip() if name_cell else ""
-        position = tds[4].text.strip()
-        market_value = tds[-1].text.strip()
-        
-        if name:
-            players.append({"name": name, "position": position, "market_value": market_value})
+        name = row.find("td", class_="hauptlink").text.strip()
+        position = row.find_all("td")[4].text.strip()
+        market_value = row.find_all("td")[-1].text.strip()
+        players.append({"name": name, "position": position, "market_value": market_value})
     return players
 
 def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dict]:
