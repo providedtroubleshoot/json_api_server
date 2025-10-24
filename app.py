@@ -9,11 +9,12 @@ from flask import Flask, request, jsonify
 import firebase_admin
 from firebase_admin import credentials, firestore
 import re
+import random  # Yeni eklendi
+import time  # Yeni eklendi
 
 load_dotenv()
 
 app = Flask(__name__)
-
 
 # Firebase / Firestore başlatma
 def init_firestore():
@@ -48,21 +49,27 @@ except Exception as e:
     # DB'nin başlatılamadığı durumda bile Flask'ın çalışmaya devam etmesi için (bazı ortamlarda gerekli)
     DB = None
 
-# 403 HATASINI ÇÖZMEK İÇİN KRİTİK GÜNCELLEMELER YAPILDI.
-# Referer ve Sec-Fetch-Site başlıkları eklendi.
+# BOT KORUMASINI ATLATMAK İÇİN KRİTİK GÜNCELLEMELER
+# 1. Kullanılacak User-Agent listesi tanımlandı
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:126.0) Gecko/20100101 Firefox/126.0",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+]
+
+# 2. User-Agent, get_soup içinde rastgele atanacağı için buradan kaldırıldı
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/ *;q=0.8",
     "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
     "Connection": "keep-alive",
-    # *** YENİ EKLENEN KRİTİK BAŞLIKLAR ***
-    "Referer": "https://www.transfermarkt.com.tr/",  # İsteklerin bu sayfadan geldiğini iddia eder
-    "Sec-Fetch-Site": "same-origin",  # İsteklerin aynı siteden geldiğini belirtir
+    "Referer": "https://www.transfermarkt.com.tr/",
+    "Sec-Fetch-Site": "same-origin",
     "Sec-Fetch-Mode": "navigate",
     "Sec-Fetch-User": "?1",
     "Sec-Fetch-Dest": "document",
     "Upgrade-Insecure-Requests": "1"
-    # ***********************************
 }
 
 TEAMS = {
@@ -246,9 +253,15 @@ def get_team_info(team_key: str) -> dict:
     return TEAMS[key]
 
 
-# get_soup, güncellenmiş HEADERS kullanacak
 def get_soup(url: str) -> BeautifulSoup:
-    res = requests.get(url, headers=HEADERS, timeout=30)
+    # Rastgele 2 ile 5 saniye arasında bekletme (İnsan davranışını taklit eder)
+    time.sleep(random.uniform(2, 5))
+
+    # User-Agent'ı rastgele seç ve başlıkları güncelle
+    current_headers = HEADERS.copy()
+    current_headers["User-Agent"] = random.choice(USER_AGENTS)
+
+    res = requests.get(url, headers=current_headers, timeout=30)
     # 403 hatası burada yakalanır
     res.raise_for_status()
     return BeautifulSoup(res.text, "lxml")
@@ -267,8 +280,9 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
     """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker."""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
     try:
-        # requests.get de güncel HEADERS'ı kullanır
-        response = requests.get(url, headers=HEADERS, timeout=30)
+        # requests.get, güncel HEADERS'ı ve gecikmeyi get_soup üzerinden kullanır
+        response = requests.get(url, headers=get_soup(url).request.headers,
+                                timeout=30)  # get_soup çağrısı ile User-Agent ve bekleme sağlanır
         response.raise_for_status()
         soup = BeautifulSoup(response.text, "html.parser")
 
@@ -303,8 +317,6 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
         if players:
             return players
         else:
-            # Transfermarkt'ın yapısına göre bazen oyuncu bilgisi (data) boş gelebilir,
-            # bu da hatalı bir 403'e neden olabilir, bu yüzden hata yerine boş liste döndürülür
             return []
 
     except Exception as e:
@@ -612,7 +624,7 @@ def generate_json_api():
         # Özellikle 403 hatasını yakalayıp kullanıcıya daha anlaşılır bir mesaj dön
         print(f"Scraping Hatası (4xx/5xx): {he}", file=sys.stderr)
         return jsonify({"status": "error",
-                        "message": f"Web sitesi verileri reddetti: {he}. Lütfen Transfermarkt'ın bot korumasını kontrol edin."}), 502
+                        "message": f"Web sitesi verileri reddetti: {he}. Lütfen Transfermarkt'ın bot korumasını kontrol edin. Son deneme: Gecikme ve User-Agent Rotasyonu."}), 502
     except Exception as e:
         # Diğer tüm hatalar
         print(f"İstek işlenirken genel hata oluştu: {str(e)}", file=sys.stderr)
