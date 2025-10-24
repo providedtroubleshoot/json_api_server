@@ -1,41 +1,18 @@
 import json
 import os
 import sys
-from typing import Union,Dict, List
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+from typing import Dict, List
+import requests
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 import firebase_admin
 from firebase_admin import credentials, firestore
 import re
-import time
 
 load_dotenv()
 
 app = Flask(__name__)
-
-# Selenium WebDriver kurulumu
-def init_driver():
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    chrome_options.add_argument(
-        "user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36")
-    chrome_options.binary_location = "/usr/bin/chromium"
-    driver = webdriver.Chrome(
-        service=Service('/usr/local/bin/chromedriver'),
-        options=chrome_options
-    )
-    return driver
 
 # Firebase / Firestore başlatma
 def init_firestore():
@@ -44,7 +21,7 @@ def init_firestore():
 
     raw_key = os.getenv("FIRESTORE_KEY")
     if not raw_key:
-        raise RuntimeError("FIRESTORE_KEY ortam değişkeni tanımlı değil!")
+        raise RuntimeError("FIRESTORE_KEY env değişkeni tanımlı değil!")
 
     try:
         cred_dict = json.loads(raw_key)
@@ -58,7 +35,6 @@ def init_firestore():
 
 DB = init_firestore()
 
-# Takım verileri (değişmedi)
 TEAMS = {
     "heracles": {"name": "Heracles", "slug": "heracles-almelo", "id": "1304"},
     "volendam": {"name": "Volendam", "slug": "fc-volendam", "id": "724"},
@@ -232,11 +208,18 @@ TEAMS = {
     "gençlerbirliği": {"name": "Gençlerbirliği", "slug": "genclerbirligi-ankara", "id": "820"},
 }
 
+HEADERS = {"User-Agent": "Mozilla/5.0"}
+
 def get_team_info(team_key: str) -> dict:
     key = team_key.lower()
     if key not in TEAMS:
         raise ValueError(f"{team_key} takımı bulunamadı. Geçerli takımlar: {list(TEAMS.keys())}")
     return TEAMS[key]
+
+def get_soup(url: str) -> BeautifulSoup:
+    res = requests.get(url, headers=HEADERS, timeout=30)
+    res.raise_for_status()
+    return BeautifulSoup(res.text, "lxml")
 
 def extract_first_int(s: str) -> int:
     """Bir string içindeki ilk tam sayıyı ayıkla. Yoksa 0 döner."""
@@ -246,152 +229,131 @@ def extract_first_int(s: str) -> int:
     m = re.search(r'(\d+)', s)
     return int(m.group(1)) if m else 0
 
-
-def scrape_stats(team_slug: str, team_id: str, driver) -> List[dict]:
+def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
     """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker."""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
-    print(f"[INFO] {team_slug} için istatistikler çekiliyor: {url}", file=sys.stderr)
     try:
-        driver.get(url)
-        time.sleep(5)
-        print(f"[DEBUG] Sayfaya erişildi: {url}", file=sys.stderr)
-        WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "table.items"))
-        )
-        print("[DEBUG] Tablo bulundu: table.items", file=sys.stderr)
-        rows = driver.find_elements(By.CSS_SELECTOR, "table.items tr.odd, table.items tr.even")
-        print(f"[DEBUG] Bulunan satır sayısı: {len(rows)}", file=sys.stderr)
+        response = requests.get(url, headers=HEADERS, timeout=30)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
 
+        rows = soup.select("table.items tbody tr")
         players = []
-        for row in rows:
-            try:
-                name_elem = row.find_element(By.CSS_SELECTOR, "td.hauptlink a")
-                name = name_elem.text.strip() if name_elem else "Bilinmeyen Oyuncu"
-                tds = row.find_elements(By.TAG_NAME, "td")
-                matches = tds[3].text.strip() if len(tds) > 3 else "0"
-                minutes = tds[6].text.strip() if len(tds) > 6 else "0"
-                players.append({"name": name, "matches": matches, "minutes": minutes})
-                print(f"[DEBUG] Oyuncu eklendi: {name}, {matches}, {minutes}", file=sys.stderr)
-            except Exception as e:
-                print(f"[UYARI] Oyuncu verisi alınamadı: {str(e)}", file=sys.stderr)
-                continue
-        return players
-    except Exception as e:
-        print(f"[HATA] İstatistik verisi alınamadı ({team_slug}): {str(e)}", file=sys.stderr)
-        print(f"[DEBUG] Sayfanın kaynak kodu: {driver.page_source[:1000]}", file=sys.stderr)
-        return []
 
-def scrape_suspensions(team_slug: str, team_id: str, squad: List[dict], driver) -> List[dict]:
-    """Cezalı oyuncu verilerini çeker."""
+        for row in rows:
+            td_list = row.find_all("td")
+            if len(td_list) < 5:
+                continue
+
+            # Oyuncu adı
+            name_td = row.find("td", class_="hauptlink")
+            a = name_td.find("a") if name_td else None
+            name = a.get("title") if a and a.get("title") else (a.text.strip() if a else "")
+
+            # Maç sayısı ve süre
+            td_texts = [td.get_text(" ", strip=True) for td in td_list]
+            raw_minutes = td_texts[-1] if len(td_texts) >= 1 else ""
+            raw_played_matches = td_texts[-3] if len(td_texts) >= 3 else ""
+
+            played_matches = extract_first_int(raw_played_matches)
+            minutes_played = extract_first_int(raw_minutes)
+
+            if name:
+                players.append({
+                    "name": name,
+                    "played_matches": played_matches,
+                    "minutes_played": minutes_played
+                })
+
+        if players:
+            return players
+        else:
+            raise ValueError("Stats is empty")
+
+    except Exception as e:
+        print(f"Oyuncu istatistikleri alınamadı ({team_slug}): {e}", file=sys.stderr)
+        return None
+
+def scrape_suspensions(team_slug, team_id, squad):
     try:
-        url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
-        driver.get(url)
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "table.items"))
-        )
+        url_squad = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
+        soup = get_soup(url_squad)
         suspensions = []
 
-        # Oyuncu tablosunu tara
-        rows = driver.find_elements(By.CSS_SELECTOR, "tr.odd, tr.even")
+        # Oyuncu tablosunu bul
+        table = soup.find("table", class_="items")
+        if not table:
+            print(f"{team_slug} için oyuncu tablosu bulunamadı", file=sys.stderr)
+            return suspensions
+
+        # Oyuncu satırlarını tara (odd ve even sınıfları)
+        rows = table.find_all("tr", class_=["odd", "even"])
         for row in rows:
-            try:
-                table_inline = row.find_element(By.CSS_SELECTOR, "table.inline-table")
-                name_tag = table_inline.find_element(By.CSS_SELECTOR, "a")
-                player_name = name_tag.text.strip()
-                span_tag = table_inline.find_elements(By.CSS_SELECTOR, "span.ausfall-1-table, span.ausfall-2-table, span.ausfall-3-table")
-                if span_tag:
-                    suspension_type = span_tag[0].get_attribute("title").strip()
-                    status = (
-                        "Kırmızı Kart" if "Kırmızı kart cezalısı" in suspension_type else
-                        "Sarı Kart" if "Sarı kart cezalısı" in suspension_type else
-                        "Bilinmeyen Ceza"
-                    )
-                    matched = next((p for p in squad if p["name"] == player_name), None)
-                    position = matched["position"] if matched else "Bilinmiyor"
-                    suspensions.append({
-                        "name": player_name,
-                        "position": position,
-                        "status": status,
-                        "details": suspension_type
-                    })
-            except:
-                continue
+            table_inline = row.find("table", class_="inline-table")
+            if table_inline:
+                name_tag = table_inline.find("a", href=True)
+                if name_tag:
+                    player_name = name_tag.get_text(strip=True)
+                    span_tag = name_tag.find("span", class_=["ausfall-1-table", "ausfall-2-table", "ausfall-3-table"])
+                    if span_tag:
+                        suspension_type = span_tag.get("title", "").strip()
+                        status = (
+                            "Kırmızı Kart" if "Kırmızı kart cezalısı" in suspension_type else
+                            "Sarı Kart" if "Sarı kart cezalısı" in suspension_type else
+                            "Bilinmeyen Ceza"
+                        )
+                        matched = next((p for p in squad if p["name"] == player_name), None)
+                        position = matched["position"] if matched else "Bilinmiyor"
+                        suspensions.append({
+                            "name": player_name,
+                            "position": position,
+                            "status": status,
+                            "details": suspension_type
+                        })
 
         return suspensions
     except Exception as e:
         print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
         return []
 
-
-def scrape_squad(team_slug: str, team_id: str, driver) -> List[dict]:
-    """Takım kadrosunu (oyuncu adı, pozisyon, piyasa değeri) çeker."""
+def scrape_squad(team_slug: str, team_id: str) -> List[dict]:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
-    print(f"[INFO] {team_slug} için kadro çekiliyor: {url}", file=sys.stderr)
-    try:
-        driver.get(url)
-        time.sleep(5)  # Sayfanın yüklenmesi için gecikme
-        print(f"[DEBUG] Sayfaya erişildi: {url}", file=sys.stderr)
+    soup = get_soup(url)
+    table = soup.find("table", class_="items")
+    rows = table.find_all("tr", class_=["odd", "even"])
+    players = []
+    for row in rows:
+        name = row.find("td", class_="hauptlink").text.strip()
+        position = row.find_all("td")[4].text.strip()
+        market_value = row.find_all("td")[-1].text.strip()
+        players.append({"name": name, "position": position, "market_value": market_value})
+    return players
 
-        WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "table.items"))
-        )
-        print("[DEBUG] Tablo bulundu: table.items", file=sys.stderr)
-        rows = driver.find_elements(By.CSS_SELECTOR, "table.items tr.odd, table.items tr.even")
-        print(f"[DEBUG] Bulunan satır sayısı: {len(rows)}", file=sys.stderr)
-
-        players = []
-        for row in rows:
-            try:
-                name_elem = row.find_element(By.CSS_SELECTOR, "td.hauptlink a")
-                name = name_elem.text.strip() if name_elem else "Bilinmeyen Oyuncu"
-
-                inline_table = row.find_element(By.CSS_SELECTOR, "table.inline-table")
-                position_elem = inline_table.find_elements(By.TAG_NAME, "td")[1] if inline_table else None
-                position = position_elem.text.strip() if position_elem else "Bilinmeyen Pozisyon"
-
-                market_value_elem = row.find_element(By.CSS_SELECTOR, "td.rechts.hauptlink")
-                market_value = market_value_elem.text.strip() if market_value_elem else "Bilinmeyen Değer"
-
-                players.append({"name": name, "position": position, "market_value": market_value})
-                print(f"[DEBUG] Oyuncu eklendi: {name}, {position}, {market_value}", file=sys.stderr)
-            except Exception as e:
-                print(f"[UYARI] Oyuncu verisi alınamadı: {str(e)}", file=sys.stderr)
-                continue
-        return players
-    except Exception as e:
-        print(f"[HATA] Kadro verisi alınamadı ({team_slug}): {str(e)}", file=sys.stderr)
-        print(f"[DEBUG] Sayfanın kaynak kodu: {driver.page_source[:1000]}", file=sys.stderr)
-        return []
-
-def scrape_injuries(team_slug: str, team_id: str, squad: List[dict], driver) -> List[dict]:
-    """Sakatlık verilerini çeker."""
+def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dict]:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/sperrenundverletzungen/verein/{team_id}"
     injuries = []
     try:
-        driver.get(url)
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//td[contains(text(), 'Sakatlıklar')]"))
-        )
-        inj_header = driver.find_element(By.XPATH, "//td[contains(text(), 'Sakatlıklar')]")
-        row = inj_header.find_element(By.XPATH, "./parent::tr")
-        next_row = row.find_element(By.XPATH, "./following-sibling::tr") if row else None
-        while next_row and "extrarow" not in (next_row.get_attribute("class") or ""):
-            try:
-                inline = next_row.find_element(By.CSS_SELECTOR, "table.inline-table")
-                name_tag = inline.find_element(By.CSS_SELECTOR, "a")
-                player_name = name_tag.text.strip()
-                matched = next((p for p in squad if p["name"] == player_name), None)
-                position = matched["position"] if matched else ""
-                injuries.append({"name": player_name, "position": position})
-            except:
-                pass
-            next_row = next_row.find_element(By.XPATH, "./following-sibling::tr") if next_row else None
+        soup = get_soup(url)
+        inj_header = soup.find("td", string="Sakatlıklar")
+        if not inj_header:
+            return injuries
+        row = inj_header.find_parent("tr")
+        next_row = row.find_next_sibling()
+        while next_row and "extrarow" not in (next_row.get("class") or []):
+            inline = next_row.find("table", class_="inline-table")
+            if inline:
+                name_tag = inline.find("a", href=True)
+                if name_tag:
+                    player_name = name_tag.get_text(strip=True)
+                    matched = next((p for p in squad if p["name"] == player_name), None)
+                    position = matched["position"] if matched else ""
+                    injuries.append({"name": player_name, "position": position})
+            next_row = next_row.find_next_sibling()
     except Exception as e:
         print(f"Sakatlık verisi alınamadı: {e}", file=sys.stderr)
     return injuries
 
-def get_league_url(league_key: str) -> Union[str, None]:
-    # [Lig URL eşleştirmesi değişmedi]
+def get_league_url(league_key: str) -> str | None:
     url_map = {
         "en1": "https://www.transfermarkt.com.tr/premier-league/tabelle/wettbewerb/GB1",
         "es1": "https://www.transfermarkt.com.tr/laliga/tabelle/wettbewerb/ES1",
@@ -405,8 +367,7 @@ def get_league_url(league_key: str) -> Union[str, None]:
     }
     return url_map.get(league_key.lower())
 
-def get_form_url(league_key: str) -> Union[str, None]:
-    # [Form URL eşleştirmesi değişmedi]
+def get_form_url(league_key: str) -> str | None:
     url_map = {
         "en1": "https://www.transfermarkt.com.tr/premier-league/formtabelle/wettbewerb/GB1",
         "es1": "https://www.transfermarkt.com.tr/laliga/formtabelle/wettbewerb/ES1",
@@ -420,68 +381,60 @@ def get_form_url(league_key: str) -> Union[str, None]:
     }
     return url_map.get(league_key.lower())
 
-def get_league_position(team_name: str, league_key: str, driver) -> Union[int, None]:
-    """Takımın ligdeki pozisyonunu alır."""
+def get_league_position(team_name: str, league_key: str):
     try:
         url = get_league_url(league_key)
         if not url:
-            return None
-        driver.get(url)
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "table.items tbody tr"))
-        )
-        rows = driver.find_elements(By.CSS_SELECTOR, "table.items tbody tr")
+            return
+        soup = get_soup(url)
+        table = soup.find("table", class_="items")
+        rows = table.find("tbody").find_all("tr", recursive=False)
         for row in rows:
-            cells = row.find_elements(By.TAG_NAME, "td")
+            cells = row.find_all("td")
             if len(cells) < 3:
                 continue
             pos = cells[0].text.strip()
             name = cells[2].text.strip()
             if name.lower() == team_name.lower():
                 return int(pos) if pos.isdigit() else pos
-        return None
+        return
     except Exception as e:
         print(f"Lig sıralaması alınamadı: {e}", file=sys.stderr)
-        return None
+        return
 
-def get_recent_form(team_name: str, league_key: str, driver) -> Union[dict, None]:
-    """Son form durumunu alır (galibiyet, beraberlik, mağlubiyet, son maçlar)."""
+def get_recent_form(team_name: str, league_key: str) -> dict:
     try:
         url = get_form_url(league_key)
         if not url:
-            return None
-        driver.get(url)
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "div.responsive-table table tbody tr"))
-        )
-        rows = driver.find_elements(By.CSS_SELECTOR, "div.responsive-table table tbody tr")
+            return
+        soup = get_soup(url)
+        rows = soup.select("div.responsive-table table tbody tr")
         for row in rows:
-            team_cell = row.find_element(By.CSS_SELECTOR, "td.no-border-links.hauptlink a")
-            if team_name.lower() in team_cell.text.lower():
-                tds = row.find_elements(By.TAG_NAME, "td")
+            team_cell = row.select_one("td.no-border-links.hauptlink a")
+            if team_cell and team_name.lower() in team_cell.text.lower():
+                tds = row.find_all("td")
                 wins = int(tds[4].text.strip())
                 draws = int(tds[5].text.strip())
                 losses = int(tds[6].text.strip())
-                form_spans = tds[10].find_elements(By.TAG_NAME, "span")
+                form_spans = tds[10].find_all("span")
                 recent_results = [s.text.strip() for s in form_spans if s.text.strip() in ["G", "B", "M"]]
                 return {"wins": wins, "draws": draws, "losses": losses, "last_matches": recent_results}
-        return None
+        return
     except Exception as e:
         print(f"Form verisi alınamadı: {e}", file=sys.stderr)
-        return None
+        return
 
-def generate_team_data(team_info: dict, league_key: str, driver) -> tuple[dict, List[dict], str]:
-    """Takım verilerini (kadro, sakatlıklar, cezalılar, pozisyon, form) oluşturur."""
+def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dict], str]:
     name = team_info["name"]
     slug = team_info["slug"]
     team_id = team_info["id"]
 
-    squad = scrape_squad(slug, team_id, driver)
-    injuries = scrape_injuries(slug, team_id, squad, driver)
-    position = get_league_position(name, league_key, driver)
-    form = get_recent_form(name, league_key, driver)
-    suspensions = scrape_suspensions(slug, team_id, squad, driver)
-    stats = scrape_stats(slug, team_id, driver)
+    squad = scrape_squad(slug, team_id)
+    injuries = scrape_injuries(slug, team_id, squad)
+    position = get_league_position(name, league_key)
+    form = get_recent_form(name, league_key)
+    suspensions = scrape_suspensions(slug, team_id, squad)
+    stats = scrape_stats(slug, team_id)
 
     data = {
         "team": name,
@@ -504,11 +457,12 @@ def generate_team_data(team_info: dict, league_key: str, driver) -> tuple[dict, 
     return data, stats, name.lower()
 
 def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) -> None:
-    """Takım verilerini ve oyuncu istatistiklerini Firestore'a kaydeder."""
     try:
+        # Save team data to team_data collection
         DB.collection("team_data").document(team_name.lower()).set(team_data, merge=True)
         print(f"✅ Firestore team_data'ya kaydedildi: {team_name}")
 
+        # Save player stats to new_data collection
         if player_stats is not None:
             DB.collection("new_data").document(team_name.lower()).set({"player_stats": player_stats}, merge=True)
             print(f"✅ Firestore new_data'ya kaydedildi: {team_name}")
@@ -523,10 +477,8 @@ def index():
 
 @app.route("/generate-json", methods=["POST"])
 def generate_json_api():
-    driver = None
     try:
         body = request.get_json()
-        print(f"[INFO] Gelen istek: {body}", file=sys.stderr)
         home_key = body.get("home_team")
         away_key = body.get("away_team")
         league_key = body.get("league_key")
@@ -534,20 +486,15 @@ def generate_json_api():
         if not home_key or not away_key or not league_key:
             return jsonify({"error": "Eksik parametreler"}), 400
 
-        print(f"[INFO] Takım bilgileri alınıyor: {home_key}, {away_key}", file=sys.stderr)
         home_info = get_team_info(home_key)
         away_info = get_team_info(away_key)
 
-        # Selenium driver'ı başlat
-        print("[INFO] Selenium driver başlatılıyor", file=sys.stderr)
-        driver = init_driver()
+        # Generate data for home team
+        home_data, home_stats, home_doc = generate_team_data(home_info, league_key)
+        # Generate data for away team
+        away_data, away_stats, away_doc = generate_team_data(away_info, league_key)
 
-        # Ev sahibi takım için veri oluştur
-        home_data, home_stats, home_doc = generate_team_data(home_info, league_key, driver)
-        # Deplasman takımı için veri oluştur
-        away_data, away_stats, away_doc = generate_team_data(away_info, league_key, driver)
-
-        # Her iki takımın verilerini ve oyuncu istatistiklerini kaydet
+        # Save both team data and player stats
         save_team_data(home_doc, home_data, home_stats)
         save_team_data(away_doc, away_data, away_stats)
 
@@ -558,22 +505,8 @@ def generate_json_api():
             "message": f"{home_doc}, {away_doc} Firestore'a kaydedildi (team_data ve new_data)."
         }), 200
 
-
     except Exception as e:
-
-        import traceback
-
-        tb = traceback.format_exc()
-
-        print(tb, file=sys.stderr)
-
-        return jsonify({"status": "error", "message": str(e), "trace": tb}), 500
-
-    finally:
-
-        if driver:
-            driver.quit()
-
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
