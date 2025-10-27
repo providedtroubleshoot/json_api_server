@@ -376,13 +376,10 @@ def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dic
                 name_tag = inline.find("a", href=True)
                 if name_tag:
                     player_name = name_tag.get_text(strip=True)
-                    # Sakatlık detaylarını al (isteğe bağlı, loglarda istenmedi ama faydalı olabilir)
-                    injury_reason = next_row.find("td", class_="verletzt-grund").text.strip() if next_row.find("td", class_="verletzt-grund") else "Bilinmiyor"
-                    
                     matched = next((p for p in squad if p["name"] == player_name), None)
                     position = matched["position"] if matched else ""
                     
-                    injuries.append({"name": player_name, "position": position, "reason": injury_reason})
+                    injuries.append({"name": player_name, "position": position})
             next_row = next_row.find_next_sibling()
             
     except Exception as e:
