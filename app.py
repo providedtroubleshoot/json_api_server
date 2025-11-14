@@ -358,7 +358,7 @@ def scrape_squad(team_slug: str, team_id: str) -> List[dict]:
         players.append({"name": name, "position": position, "market_value": market_value})
     return players
 
-def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dict]:
+def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dict] | None:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/sperrenundverletzungen/verein/{team_id}"
     injuries = []
     try:
@@ -381,10 +381,10 @@ def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dic
                     
                     injuries.append({"name": player_name, "position": position})
             next_row = next_row.find_next_sibling()
-            
+        return injuries
     except Exception as e:
         print(f"Sakatlık verisi alınamadı: {e}", file=sys.stderr)
-    return injuries
+    return None
 
 # Lig URL'leri (Değiştirilmedi)
 def get_league_url(league_key: str) -> str | None:
@@ -465,13 +465,11 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
     slug = team_info["slug"]
     team_id = team_info["id"]
 
-    # Kritik hata veren scrape_squad'a hata kontrolü eklendi.
     squad = scrape_squad(slug, team_id) 
-    
-    # Kadro bilgisi olmadan sakatlık ve cezalılar çekilemez
+
     if not squad:
          print(f"[KRİTİK HATA] Kadro bilgisi alınamadı ({name}), diğer veriler boş olacak.", file=sys.stderr)
-         injuries = []
+         injuries = None
          suspensions = []
     else:
         injuries = scrape_injuries(slug, team_id, squad)
@@ -484,10 +482,14 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
     data = {
         "team": name,
         "position_in_league": position,
-        "injuries": injuries,
         "suspensions": suspensions,
         "squad": squad
     }
+
+    if injuries is not None:
+        data["injuries"] = injuries
+    else:
+        print(f"[UYARI] {name} için sakatlık verisi alınamadı, mevcut JSON korunuyor", file=sys.stderr)
 
     if form is not None:
         data["recent_form"] = form
