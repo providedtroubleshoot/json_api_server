@@ -239,7 +239,7 @@ def get_soup(url: str) -> BeautifulSoup:
     if PROXIES:
         print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
         
-    res = requests.get(url, headers=HEADERS, proxies=PROXIES, timeout=30)
+    res = requests.get(url, headers=HEADERS, proxies=PROXIES, timeout=18)
     res.raise_for_status()
     return BeautifulSoup(res.text, "lxml") # lxml parser'ı artık yüklü olmalı
 
