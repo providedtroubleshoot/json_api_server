@@ -9,6 +9,7 @@ from flask import Flask, request, jsonify
 import firebase_admin
 from firebase_admin import credentials, firestore
 import re
+from requests.exceptions import HTTPError, RequestException
 
 # Ortam değişkenlerini yükle (.env dosyasından)
 load_dotenv()
@@ -460,47 +461,93 @@ def get_recent_form(team_name: str, league_key: str) -> dict:
         print(f"Form verisi alınamadı: {e}", file=sys.stderr)
         return
 
+
 def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dict], str]:
+    """
+    Belirli bir takım için tüm veriyi (kadro, sakatlık, form, istatistik) çekmeye çalışır.
+    Her scrape işlemi başarısız olursa, sadece o veriyi atlar ve None döndürür.
+    """
     name = team_info["name"]
     slug = team_info["slug"]
     team_id = team_info["id"]
 
-    squad = scrape_squad(slug, team_id) 
+    # Sonuçları tutacak değişkenler
+    squad = None
+    injuries = None
+    suspensions = None
+    position = None
+    form = None
+    stats = None
 
-    if not squad:
-         print(f"[KRİTİK HATA] Kadro bilgisi alınamadı ({name}), diğer veriler boş olacak.", file=sys.stderr)
-         injuries = None
-         suspensions = []
-    else:
-        injuries = scrape_injuries(slug, team_id, squad)
-        suspensions = scrape_suspensions(slug, team_id, squad)
-        
-    position = get_league_position(name, league_key)
-    form = get_recent_form(name, league_key)
-    stats = scrape_stats(slug, team_id)
+    print(f"🔄 {name} için veri çekme başlıyor...", file=sys.stderr)
+
+    try:
+        # 1. Kadro (Squad) bilgisi çekme (Bu genellikle diğerleri için gereklidir)
+        squad = scrape_squad(slug, team_id)
+        if not squad:
+            print(f"[UYARI] Kadro bilgisi alınamadı ({name}).", file=sys.stderr)
+            # Kadro yoksa diğer bağımlı scrape'leri atla
+        else:
+            try:
+                # 2. Sakatlık bilgisi çekme
+                injuries = scrape_injuries(slug, team_id, squad)
+            except (HTTPError, RequestException) as e:
+                print(f"❌ Sakatlık çekme hatası ({name}): {e}", file=sys.stderr)
+
+            try:
+                # 3. Ceza bilgisi çekme
+                suspensions = scrape_suspensions(slug, team_id, squad)
+            except (HTTPError, RequestException) as e:
+                print(f"❌ Ceza çekme hatası ({name}): {e}", file=sys.stderr)
+
+        # 4. Lig pozisyonu ve Form (Bunlar Transfermarkt'a bağımlı olmayabilir, ancak hata yaklama eklenmeli)
+        try:
+            position = get_league_position(name, league_key)
+        except Exception as e:
+            print(f"❌ Pozisyon çekme hatası ({name}): {e}", file=sys.stderr)
+
+        try:
+            form = get_recent_form(name, league_key)
+        except Exception as e:
+            print(f"❌ Form çekme hatası ({name}): {e}", file=sys.stderr)
+
+        # 5. İstatistik (Stats) çekme
+        try:
+            stats = scrape_stats(slug, team_id)
+        except (HTTPError, RequestException) as e:
+            # Eğer 429 hatası burada yakalanırsa, sadece bu veriyi atlarız.
+            print(f"[HATA İZOLE] İstatistik çekme hatası ({name}): {e}", file=sys.stderr)
+
+    except (HTTPError, RequestException) as e:
+        # Bu blok, scrape_squad (1. adım) sırasında oluşacak ağ hatalarını yakalar
+        print(f"[KRİTİK HATA] Takım ana verisi çekilemedi ({name}): {e}", file=sys.stderr)
+        # Eğer en temel veri bile çekilemezse, boş bir dictionary döndürürüz
+        return {}, None, name.lower()
+    except Exception as e:
+        # Diğer beklenmedik hatalar
+        print(f"[KRİTİK HATA] generate_team_data genel hatası ({name}): {e}", file=sys.stderr)
+        return {}, None, name.lower()
 
     data = {
         "team": name,
         "position_in_league": position,
-        "suspensions": suspensions,
-        "squad": squad
+        "suspensions": suspensions or [],  # None ise boş liste
+        "squad": squad or []
     }
 
     if injuries is not None:
         data["injuries"] = injuries
     else:
-        print(f"[UYARI] {name} için sakatlık verisi alınamadı, mevcut JSON korunuyor", file=sys.stderr)
+        print(f"[UYARI] {name} için sakatlık verisi alınamadı, boş bırakılıyor", file=sys.stderr)
 
     if form is not None:
         data["recent_form"] = form
     else:
-        print(f"[UYARI] {name} için recent_form alınamadı, mevcut JSON korunuyor", file=sys.stderr)
+        print(f"[UYARI] {name} için recent_form alınamadı, boş bırakılıyor", file=sys.stderr)
 
-    if stats is not None:
-        data["stats"] = stats
-    else:
-        print(f"[UYARI] {name} için istatistik alınamadı, mevcut JSON korunuyor", file=sys.stderr)
+    # İstatistikler ana dataya eklenmez, ayrı kaydedilir
 
+    print(f"✅ {name} için veri çekme tamamlandı.", file=sys.stderr)
     return data, stats, name.lower()
 
 def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) -> None:
@@ -524,6 +571,9 @@ def index():
 
 @app.route("/generate-json", methods=["POST"])
 def generate_json_api():
+    # Hata toplama ve raporlama için bir listesi
+    errors = []
+
     try:
         body = request.get_json()
         home_key = body.get("home_team")
@@ -536,27 +586,64 @@ def generate_json_api():
         home_info = get_team_info(home_key)
         away_info = get_team_info(away_key)
 
-        # Generate data for home team
-        home_data, home_stats, home_doc = generate_team_data(home_info, league_key)
-        # Generate data for away team
-        away_data, away_stats, away_doc = generate_team_data(away_info, league_key)
+        # --- EV SAHİBİ TAKIM İŞLEMİ (İzolasyon Bloğu) ---
+        home_data = None
+        home_stats = None
+        home_doc = home_info['name'].lower()
+        try:
+            home_data, home_stats, home_doc = generate_team_data(home_info, league_key)
+            if home_data:
+                save_team_data(home_doc, home_data, home_stats)
+            else:
+                errors.append(
+                    f"Ev sahibi takım ({home_info['name']}) için ana veri çekilemedi ve Firestore'a kaydedilemedi.")
 
-        # Save both team data and player stats
-        save_team_data(home_doc, home_data, home_stats)
-        save_team_data(away_doc, away_data, away_stats)
+        except Exception as e:
+            # Sadece bu takıma özel hataları yakala ve devam et
+            error_msg = f"Ev sahibi takım ({home_info['name']}) işlenirken kritik hata oluştu: {str(e)}"
+            print(f"[HATA İZOLASYONU] {error_msg}", file=sys.stderr)
+            errors.append(error_msg)
 
-        print(f"Maç: {home_info['name']} vs {away_info['name']}", file=sys.stderr)
+        # --- DEPLASMAN TAKIMI İŞLEMİ (İzolasyon Bloğu) ---
+        away_data = None
+        away_stats = None
+        away_doc = away_info['name'].lower()
+        try:
+            away_data, away_stats, away_doc = generate_team_data(away_info, league_key)
+            if away_data:
+                save_team_data(away_doc, away_data, away_stats)
+            else:
+                errors.append(
+                    f"Deplasman takımı ({away_info['name']}) için ana veri çekilemedi ve Firestore'a kaydedilemedi.")
 
-        return jsonify({
-            "status": "success",
-            "message": f"{home_doc}, {away_doc} Firestore'a kaydedildi (team_data ve new_data)."
-        }), 200
+        except Exception as e:
+            # Sadece bu takıma özel hataları yakala ve devam et
+            error_msg = f"Deplasman takımı ({away_info['name']}) işlenirken kritik hata oluştu: {str(e)}"
+            print(f"[HATA İZOLASYONU] {error_msg}", file=sys.stderr)
+            errors.append(error_msg)
+
+        # --- SONUÇ RAPORLAMA ---
+        if not errors:
+            return jsonify({
+                "status": "success",
+                "message": f"{home_doc}, {away_doc} Firestore'a başarıyla kaydedildi."
+            }), 200
+        else:
+            # İşlemlerin bir kısmı başarılı, ancak hatalar var. 200 veya 207 (Multi-Status) döndürülebilir.
+            # API'nin çökmemesi istendiği için 200 döndürüp hatayı mesajda gösteriyoruz.
+            return jsonify({
+                "status": "partial_success",
+                "message": "İstek işlendi ancak bazı takım verileri çekilemedi/kaydedilemedi.",
+                "errors": errors
+            }), 200  # 200 (OK) ile döndürerek genel bir API hatasını (500) önlüyoruz
 
     except Exception as e:
-        # Hata mesajını daha anlaşılır hale getirelim
-        error_message = f"Bir hata oluştu: {str(e)}"
-        print(f"[KRİTİK HATA] API işleme hatası: {error_message}", file=sys.stderr)
-        return jsonify({"status": "error", "message": error_message}), 500
+        # Bu en dıştaki blok, sadece ilk parametre kontrolü (get_json) veya
+        # get_team_info (takım adı bulunamadı) gibi, maçın başlamasını engelleyen
+        # hataları yakalar ve 500/400 döndürür.
+        error_message = f"Maç ön kontrol hatası: {str(e)}"
+        print(f"[KRİTİK HATA] API Başlangıç Hatası: {error_message}", file=sys.stderr)
+        return jsonify({"status": "fatal_error", "message": error_message}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
