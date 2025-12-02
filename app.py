@@ -50,7 +50,11 @@ def init_firestore():
     firebase_admin.initialize_app(cred)
     return firestore.client()
 
-DB = init_firestore()
+try:
+    DB = init_firestore()
+except RuntimeError as e:
+    print(f"[HATA] Firebase Başlatılamadı: {e}", file=sys.stderr)
+    DB = None
 
 # Takım Sözlüğü (Değiştirilmedi)
 TEAMS = {
@@ -463,91 +467,79 @@ def get_recent_form(team_name: str, league_key: str) -> dict:
 
 
 def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dict], str]:
-    """
-    Belirli bir takım için tüm veriyi (kadro, sakatlık, form, istatistik) çekmeye çalışır.
-    Her scrape işlemi başarısız olursa, sadece o veriyi atlar ve None döndürür.
-    """
     name = team_info["name"]
     slug = team_info["slug"]
     team_id = team_info["id"]
 
-    # Sonuçları tutacak değişkenler
-    squad = None
-    injuries = None
-    suspensions = None
-    position = None
-    form = None
-    stats = None
-
-    print(f"🔄 {name} için veri çekme başlıyor...", file=sys.stderr)
-
+    # 1. Kadro (SQUAD)
+    squad = []
     try:
-        # 1. Kadro (Squad) bilgisi çekme (Bu genellikle diğerleri için gereklidir)
         squad = scrape_squad(slug, team_id)
         if not squad:
-            print(f"[UYARI] Kadro bilgisi alınamadı ({name}).", file=sys.stderr)
-            # Kadro yoksa diğer bağımlı scrape'leri atla
-        else:
-            try:
-                # 2. Sakatlık bilgisi çekme
-                injuries = scrape_injuries(slug, team_id, squad)
-            except (HTTPError, RequestException) as e:
-                print(f"❌ Sakatlık çekme hatası ({name}): {e}", file=sys.stderr)
-
-            try:
-                # 3. Ceza bilgisi çekme
-                suspensions = scrape_suspensions(slug, team_id, squad)
-            except (HTTPError, RequestException) as e:
-                print(f"❌ Ceza çekme hatası ({name}): {e}", file=sys.stderr)
-
-        # 4. Lig pozisyonu ve Form (Bunlar Transfermarkt'a bağımlı olmayabilir, ancak hata yaklama eklenmeli)
-        try:
-            position = get_league_position(name, league_key)
-        except Exception as e:
-            print(f"❌ Pozisyon çekme hatası ({name}): {e}", file=sys.stderr)
-
-        try:
-            form = get_recent_form(name, league_key)
-        except Exception as e:
-            print(f"❌ Form çekme hatası ({name}): {e}", file=sys.stderr)
-
-        # 5. İstatistik (Stats) çekme
-        try:
-            stats = scrape_stats(slug, team_id)
-        except (HTTPError, RequestException) as e:
-            # Eğer 429 hatası burada yakalanırsa, sadece bu veriyi atlarız.
-            print(f"[HATA İZOLE] İstatistik çekme hatası ({name}): {e}", file=sys.stderr)
-
-    except (HTTPError, RequestException) as e:
-        # Bu blok, scrape_squad (1. adım) sırasında oluşacak ağ hatalarını yakalar
-        print(f"[KRİTİK HATA] Takım ana verisi çekilemedi ({name}): {e}", file=sys.stderr)
-        # Eğer en temel veri bile çekilemezse, boş bir dictionary döndürürüz
-        return {}, None, name.lower()
+            print(f"[UYARI] Kadro bilgisi alınamadı ({name}). Diğer verilere geçiliyor.", file=sys.stderr)
     except Exception as e:
-        # Diğer beklenmedik hatalar
-        print(f"[KRİTİK HATA] generate_team_data genel hatası ({name}): {e}", file=sys.stderr)
-        return {}, None, name.lower()
+        print(f"[HATA] Kadro çekme hatası ({name}): {e}", file=sys.stderr)
 
+    # 2. Sakatlıklar ve Cezalılar (SQUAD'a bağımlı)
+    injuries = []
+    suspensions = []
+    if squad:
+        try:
+            injuries = scrape_injuries(slug, team_id, squad)
+        except Exception as e:
+            print(f"[HATA] Sakatlık çekme hatası ({name}): {e}", file=sys.stderr)
+
+        try:
+            suspensions = scrape_suspensions(slug, team_id, squad)
+        except Exception as e:
+            print(f"[HATA] Ceza çekme hatası ({name}): {e}", file=sys.stderr)
+    else:
+        # Squad yoksa bu verileri çekemeyiz (çünkü isim eşleştirme yapılıyor)
+        print(f"[BİLGİ] Kadro olmadığı için sakatlık/ceza verisi atlanıyor ({name})", file=sys.stderr)
+
+    # 3. Bağımsız Veriler: Pozisyon, Form, İstatistik
+    position = None
+    try:
+        position = get_league_position(name, league_key)
+    except Exception as e:
+        print(f"[HATA] Pozisyon çekme hatası ({name}): {e}", file=sys.stderr)
+
+    form = None
+    try:
+        form = get_recent_form(name, league_key)
+    except Exception as e:
+        print(f"[HATA] Form çekme hatası ({name}): {e}", file=sys.stderr)
+
+    stats = None
+    try:
+        stats = scrape_stats(slug, team_id)
+    except Exception as e:
+        print(f"[HATA] İstatistik çekme hatası ({name}): {e}", file=sys.stderr)
+
+    # Veriyi birleştir
     data = {
         "team": name,
         "position_in_league": position,
-        "suspensions": suspensions or [],  # None ise boş liste
-        "squad": squad or []
+        "suspensions": suspensions,
+        "squad": squad
     }
 
-    if injuries is not None:
+    # Injuries varsa ekle, yoksa eski veri korunsun diye ekleme
+    if injuries:
         data["injuries"] = injuries
     else:
-        print(f"[UYARI] {name} için sakatlık verisi alınamadı, boş bırakılıyor", file=sys.stderr)
+        print(f"[UYARI] {name} için sakatlık verisi alınamadı (eski veri korunuyor).", file=sys.stderr)
 
-    if form is not None:
+    # Form varsa ekle
+    if form:
         data["recent_form"] = form
     else:
-        print(f"[UYARI] {name} için recent_form alınamadı, boş bırakılıyor", file=sys.stderr)
+        print(f"[UYARI] {name} için recent_form alınamadı (eski veri korunuyor).", file=sys.stderr)
 
-    # İstatistikler ana dataya eklenmez, ayrı kaydedilir
+    # İstatistik None değilse döndür
+    if stats is None:
+        print(f"[UYARI] {name} için istatistik alınamadı (eski veri korunuyor).", file=sys.stderr)
 
-    print(f"✅ {name} için veri çekme tamamlandı.", file=sys.stderr)
     return data, stats, name.lower()
 
 def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) -> None:
