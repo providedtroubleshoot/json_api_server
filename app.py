@@ -471,6 +471,7 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
     slug = team_info["slug"]
     team_id = team_info["id"]
 
+    print(f"🔄 {name} için veri çekme başlıyor...", file=sys.stderr)
     # 1. Kadro (SQUAD)
     squad = []
     try:
@@ -539,7 +540,8 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
     # İstatistik None değilse döndür
     if stats is None:
         print(f"[UYARI] {name} için istatistik alınamadı (eski veri korunuyor).", file=sys.stderr)
-
+        
+    print(f"✅ {name} için veri çekme tamamlandı.", file=sys.stderr)
     return data, stats, name.lower()
 
 def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) -> None:
