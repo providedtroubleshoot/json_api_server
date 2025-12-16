@@ -1,6 +1,8 @@
 import json
 import os
 import sys
+import time
+import random
 from typing import Dict, List
 import requests
 from bs4 import BeautifulSoup
