@@ -350,18 +350,36 @@ def scrape_suspensions(team_slug, team_id, squad):
         print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
         return []
 
-def scrape_squad(team_slug: str, team_id: str) -> List[dict]:
-    url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
-    soup = get_soup(url)
-    table = soup.find("table", class_="items")
-    rows = table.find_all("tr", class_=["odd", "even"])
-    players = []
-    for row in rows:
-        name = row.find("td", class_="hauptlink").text.strip()
-        position = row.find_all("td")[4].text.strip()
-        market_value = row.find_all("td")[-1].text.strip()
-        players.append({"name": name, "position": position, "market_value": market_value})
-    return players
+def scrape_squad(team_slug: str, team_id: str) -> List[dict] | None:
+    try:
+        url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
+        soup = get_soup(url)
+
+        table = soup.find("table", class_="items")
+        if not table:
+            raise ValueError("Squad table not found")
+
+        rows = table.find_all("tr", class_=["odd", "even"])
+        players = []
+
+        for row in rows:
+            name = row.find("td", class_="hauptlink").text.strip()
+            position = row.find_all("td")[4].text.strip()
+            market_value = row.find_all("td")[-1].text.strip()
+            players.append({
+                "name": name,
+                "position": position,
+                "market_value": market_value
+            })
+
+        if not players:
+            raise ValueError("Squad empty")
+
+        return players
+
+    except Exception as e:
+        print(f"[HATA] Squad scrape başarısız ({team_slug}): {e}", file=sys.stderr)
+        return None
 
 def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dict] | None:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/sperrenundverletzungen/verein/{team_id}"
@@ -465,6 +483,63 @@ def get_recent_form(team_name: str, league_key: str) -> dict:
         print(f"Form verisi alınamadı: {e}", file=sys.stderr)
         return
 
+def scrape_suspensions_kader(team_slug: str, team_id: str, season_id: int = 2025) -> list | None:
+
+    url = f"https://www.transfermarkt.com.tr/{team_slug}/kader/verein/{team_id}/saison_id/{season_id}"
+
+    try:
+        session = requests.Session()
+        session.headers.update(HEADERS)
+
+        if PROXIES:
+            session.proxies.update(PROXIES)
+
+        response = session.get(url, timeout=20)
+        response.raise_for_status()
+
+        soup = BeautifulSoup(response.content, "lxml")
+
+        cezali_oyuncular = []
+
+        for row in soup.find_all("tr", class_=["odd", "even"]):
+            ausfall_span = row.find("span", class_="ausfall-table")
+            if not ausfall_span:
+                continue
+
+            name_td = row.find("td", class_="hauptlink")
+            player_name = (
+                " ".join(name_td.get_text(strip=True).split())
+                if name_td else "İsim bulunamadı"
+            )
+
+            ceza_title = ausfall_span.get("title", "Ceza bilgisi yok")
+
+            numara_div = row.find("div", class_="rn_nummer")
+            numara = numara_div.get_text(strip=True) if numara_div else "-"
+
+            pos_td = row.find("td", class_="posrela")
+            pozisyon = "-"
+            if pos_td:
+                tds = pos_td.find_all("td")
+                if len(tds) > 1:
+                    pozisyon = tds[-1].get_text(strip=True)
+
+            cezali_oyuncular.append({
+                "name": player_name,
+                "number": numara,
+                "position": pozisyon,
+                "details": ceza_title,
+                "source": "kader"
+            })
+
+        time.sleep(random.uniform(1.5, 3.0))
+        return cezali_oyuncular
+
+    except Exception as e:
+        print(f"[UYARI] Kader cezalı scrape başarısız ({team_slug}): {e}", file=sys.stderr)
+        return None
+
+
 
 def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dict], str]:
     name = team_info["name"]
@@ -473,7 +548,7 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
 
     print(f"🔄 {name} için veri çekme başlıyor...", file=sys.stderr)
     # 1. Kadro (SQUAD)
-    squad = []
+    squad = None
     try:
         squad = scrape_squad(slug, team_id)
         if not squad:
@@ -491,9 +566,21 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
             print(f"[HATA] Sakatlık çekme hatası ({name}): {e}", file=sys.stderr)
 
         try:
-            suspensions = scrape_suspensions(slug, team_id, squad)
+            old_susp = scrape_suspensions(slug, team_id, squad)
+            if old_susp:
+                suspensions.extend(old_susp)
         except Exception as e:
-            print(f"[HATA] Ceza çekme hatası ({name}): {e}", file=sys.stderr)
+            print(f"[HATA] Eski ceza scrape hatası ({name}): {e}", file=sys.stderr)
+
+        try:
+            new_susp = scrape_suspensions_kader(slug, team_id)
+            if new_susp is not None:
+                suspensions.extend(new_susp)
+            else:
+                print(f"[UYARI] Yeni ceza scrape başarısız, eski veri korunuyor ({name})", file=sys.stderr)
+        except Exception as e:
+            print(f"[HATA] Yeni ceza scrape hatası ({name}): {e}", file=sys.stderr)
+
     else:
         # Squad yoksa bu verileri çekemeyiz (çünkü isim eşleştirme yapılıyor)
         print(f"[BİLGİ] Kadro olmadığı için sakatlık/ceza verisi atlanıyor ({name})", file=sys.stderr)
@@ -521,9 +608,13 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
     data = {
         "team": name,
         "position_in_league": position,
-        "suspensions": suspensions,
-        "squad": squad
+        "suspensions": suspensions
     }
+
+    if squad is not None:
+        data["squad"] = squad
+    else:
+        print(f"[UYARI] {name} için squad güncellenmedi (eski veri korunuyor).", file=sys.stderr)
 
     # Injuries varsa ekle, yoksa eski veri korunsun diye ekleme
     if injuries:
