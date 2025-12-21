@@ -4,7 +4,7 @@ import sys
 import time
 import random
 from typing import Dict, List
-import requests
+from curl_cffi import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
@@ -246,7 +246,7 @@ def get_soup(url: str) -> BeautifulSoup:
     if PROXIES:
         print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
         
-    res = requests.get(url, headers=HEADERS, proxies=PROXIES, timeout=18)
+    res = requests.get(url, proxies=PROXIES, impersonate="chrome120", timeout=18)
     res.raise_for_status()
     return BeautifulSoup(res.text, "lxml") # lxml parser'ı artık yüklü olmalı
 
