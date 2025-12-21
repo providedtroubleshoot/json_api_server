@@ -266,10 +266,7 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
         if PROXIES:
             print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
             
-        response = requests.get(url, headers=HEADERS, proxies=PROXIES, timeout=30)
-        response.raise_for_status()
-        # Not: scrape_stats'ta "html.parser" kullanılmıştı, lxml daha hızlıdır ancak orijinal mantığı koruyorum
-        soup = BeautifulSoup(response.text, "lxml") 
+        soup = get_soup(url)
 
         rows = soup.select("table.items tbody tr")
         players = []
@@ -490,16 +487,7 @@ def scrape_suspensions_kader(team_slug: str, team_id: str, season_id: int = 2025
     url = f"https://www.transfermarkt.com.tr/{team_slug}/kader/verein/{team_id}/saison_id/{season_id}"
 
     try:
-        session = requests.Session()
-        session.headers.update(HEADERS)
-
-        if PROXIES:
-            session.proxies.update(PROXIES)
-
-        response = session.get(url, timeout=20)
-        response.raise_for_status()
-
-        soup = BeautifulSoup(response.content, "lxml")
+        soup = get_soup(url)
 
         cezali_oyuncular = []
 
