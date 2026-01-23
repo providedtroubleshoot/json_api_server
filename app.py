@@ -330,10 +330,11 @@ def get_content_hash(element) -> str:
 
 def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
     """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker - cache destekli."""
-    url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"try:
-    # Proxy desteği (dışarıdan gelen global değişkenler)
-    if PROXIES:
-        print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
+    url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
+    try:
+        # Proxy desteği (dışarıdan gelen global değişkenler)
+        if PROXIES:
+            print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
 
     soup = get_soup(url)
 
