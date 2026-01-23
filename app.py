@@ -329,123 +329,130 @@ def get_content_hash(element) -> str:
 
 
 def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
-    url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
-    
-    try:
-        cached = load_cached_data(url)
-        soup = get_soup(url)
+    """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker - cache destekli."""
+    url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"try:
+    # Proxy desteği (dışarıdan gelen global değişkenler)
+    if PROXIES:
+        print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
 
-        stats_table = soup.select_one("table.items")
-        if not stats_table:
-            raise ValueError("Stats table not found")
+    soup = get_soup(url)
 
-        current_hash = get_content_hash(stats_table)
+    stats_table = soup.select_one("table.items")
+    if not stats_table:
+        raise ValueError("Stats table not found")
 
-        if cached["hash"] and cached["hash"] == current_hash:
-            print(f"[BİLGİ] {team_slug} stats değişmemiş, cached veri dönülüyor.")
-            return cached["data"] or []
+    current_hash = get_content_hash(stats_table)
 
-        print(f"[GÜNCELLEME] {team_slug} stats değişti, scrape ediliyor...")
+    old_hash = load_hash(url)
+    if old_hash and old_hash == current_hash:
+        print(f"[BİLGİ] {team_slug} için oyuncu istatistikleri değişmemiş, scrape atlanıyor.")
+        return None  # ← orijinal davranışını korudun, istersen [] döndürebilirsin
 
-        rows = stats_table.select("tbody tr")
-        players = []
+    print(f"[GÜNCELLEME] {team_slug} için verilerde değişiklik algılandı, scrape ediliyor...")
 
-        for row in rows:
-            td_list = row.find_all("td")
-            if len(td_list) < 11:
-                continue
+    rows = stats_table.select("tbody tr")
+    players = []
 
-            texts = [td.get_text(strip=True) for td in td_list]
+    for row in rows:
+        td_list = row.find_all("td")
+        if len(td_list) < 11:
+            continue
 
-            raw_name = texts[3] if len(texts) > 3 else ""
-            if not raw_name:
-                continue
+        # Düzeltme: cells yerine td_list kullanıyoruz
+        texts = [td.get_text(strip=True) for td in td_list]
 
-            pos_pattern = r"(Kaleci|Defans|Stoper|Sağ Bek|Sol Bek|Orta saha|Merkez Orta Saha|On Numara|Forvet|Santrafor|Sol Kanat|Sağ Kanat)"
-            name_part = re.sub(pos_pattern, "", raw_name, flags=re.IGNORECASE).strip()
+        # İsim temizleme
+        raw_name = texts[3] if len(texts) > 3 else ""
+        if not raw_name:
+            continue
 
-            name_part = re.sub(r"([A-Za-z\s]+?)([A-Z]\.\s*[A-Za-z]+?)\1?$", r"\1", name_part).strip()
-            name = re.sub(r"\b[A-Z]\.\s*", "", name_part).strip()
+        # Pozisyon kelimelerini kaldır
+        pos_pattern = r"(Kaleci|Defans|Stoper|Sağ Bek|Sol Bek|Orta saha|Merkez Orta Saha|On Numara|Forvet|Santrafor|Sol Kanat|Sağ Kanat)"
+        name_part = re.sub(pos_pattern, "", raw_name, flags=re.IGNORECASE).strip()
 
-            words = name.split()
-            if len(words) >= 2 and words[-1] == words[-2]:
-                name = " ".join(words[:-1]).strip()
+        # Tekrar eden soyisim / kısaltma temizliği
+        name_part = re.sub(r"([A-Za-z\s]+?)([A-Z]\.\s*[A-Za-z]+?)\1?$", r"\1", name_part).strip()
+        name = re.sub(r"\b[A-Z]\.\s*", "", name_part).strip()
 
-            if not name:
-                continue
+        words = name.split()
+        if len(words) >= 2 and words[-1] == words[-2]:
+            name = " ".join(words[:-1]).strip()
 
-            played_str = texts[8] if len(texts) > 8 else ""
-            minutes_str = texts[10].replace("'", "").replace(".", "") if len(texts) > 10 else ""
+        if not name:
+            continue
 
-            if "oynatılmadı" in " ".join(texts).lower() or not minutes_str.strip().isdigit():
-                continue
+        # Maç sayısı: index 8
+        played_str = texts[8] if len(texts) > 8 else ""
 
-            played = extract_first_int(played_str)
-            minutes = extract_first_int(minutes_str)
+        # Dakika: index 10
+        minutes_str = texts[10].replace("'", "").replace(".", "") if len(texts) > 10 else ""
 
-            if played > 0 and minutes > 0:
-                players.append({
-                    "name": name,
-                    "played_matches": played,
-                    "minutes_played": minutes
-                })
+        if "oynatılmadı" in " ".join(texts).lower() or not minutes_str.isdigit():
+            continue
 
-        save_cache(url, current_hash, players)
-        return players
+        played = extract_first_int(played_str)
+        minutes = extract_first_int(minutes_str)
 
-    except Exception as e:
-        print(f"[HATA] Stats ({team_slug}): {e}", file=sys.stderr)
+        if played is not None and minutes is not None and minutes > 0:
+            players.append({
+                "name": name,
+                "played_matches": played,
+                "minutes_played": minutes
+            })
+
+    if not players:
+        print(f"[UYARI] {team_slug} için oyuncu verisi çıkmadı.", file=sys.stderr)
         return None
+
+    # Cache'i sadece başarılı scrape sonrası kaydet
+    save_hash(url, current_hash)
+    return players
+
+except Exception as e:
+    print(f"[HATA] {team_slug}: {e}", file=sys.stderr)
+    return None
+
 
 def scrape_suspensions(team_slug, team_id, squad):
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
     try:
-        cached = load_cached_data(url)
-        soup = get_soup(url)
+        soup = get_soup(url)    table = soup.find("table", class_="items")
+    if not table:
+        raise ValueError("Suspensions table not found")
 
-        table = soup.find("table", class_="items")
-        if not table:
-            raise ValueError("Suspensions table not found")
+    print(f"[GÜNCELLEME] {team_slug} için suspensions (old) verilerde değişiklik algılandı, scrape ediliyor...")
 
-        current_hash = get_content_hash(table)
+    suspensions = []
 
-        if cached["hash"] and cached["hash"] == current_hash:
-            print(f"[BİLGİ] {team_slug} suspensions değişmemiş, cached veri dönülüyor.")
-            return cached["data"] or []
+    # Oyuncu satırlarını tara (odd ve even sınıfları)
+    rows = table.find_all("tr", class_=["odd", "even"])
+    for row in rows:
+        table_inline = row.find("table", class_="inline-table")
+        if table_inline:
+            name_tag = table_inline.find("a", href=True)
+            if name_tag:
+                player_name = name_tag.get_text(strip=True)
+                span_tag = name_tag.find("span", class_=["ausfall-1-table", "ausfall-2-table", "ausfall-3-table"])
+                if span_tag:
+                    suspension_type = span_tag.get("title", "").strip()
+                    status = (
+                        "Kırmızı Kart" if "Kırmızı kart cezalısı" in suspension_type else
+                        "Sarı Kart" if "Sarı kart cezalısı" in suspension_type else
+                        "Bilinmeyen Ceza"
+                    )
+                    matched = next((p for p in squad if p["name"] == player_name), None)
+                    position = matched["position"] if matched else "Bilinmiyor"
+                    suspensions.append({
+                        "name": player_name,
+                        "position": position,
+                        "status": status,
+                        "details": suspension_type
+                    })
 
-        print(f"[GÜNCELLEME] {team_slug} suspensions değişti, scrape ediliyor...")
-
-        suspensions = []
-        rows = table.find_all("tr", class_=["odd", "even"])
-        for row in rows:
-            table_inline = row.find("table", class_="inline-table")
-            if table_inline:
-                name_tag = table_inline.find("a", href=True)
-                if name_tag:
-                    player_name = name_tag.get_text(strip=True)
-                    span_tag = name_tag.find("span", class_=["ausfall-1-table", "ausfall-2-table", "ausfall-3-table"])
-                    if span_tag:
-                        suspension_type = span_tag.get("title", "").strip()
-                        status = (
-                            "Kırmızı Kart" if "Kırmızı kart cezalısı" in suspension_type else
-                            "Sarı Kart" if "Sarı kart cezalısı" in suspension_type else
-                            "Bilinmeyen Ceza"
-                        )
-                        matched = next((p for p in squad if p["name"] == player_name), None)
-                        position = matched["position"] if matched else "Bilinmiyor"
-                        suspensions.append({
-                            "name": player_name,
-                            "position": position,
-                            "status": status,
-                            "details": suspension_type
-                        })
-
-        save_cache(url, current_hash, suspensions)
-        return suspensions
-    except Exception as e:
-        print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
-        return None
-
+    return suspensions
+except Exception as e:
+    print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
+    return None
 
 def scrape_squad(team_slug: str, team_id: str) -> List[Dict]:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
@@ -638,11 +645,11 @@ def get_recent_form(team_name: str, league_key: str) -> dict:
         team_cell = row.select_one("td.no-border-links.hauptlink a")
         if team_cell and team_name.lower() in team_cell.text.lower():
             tds = row.find_all("td")
-            wins = int(tds[4].text.strip())
-            draws = int(tds[5].text.strip())
-            losses = int(tds[6].text.strip())
+            wins = int(tds[6].text.strip())
+            draws = int(tds[4].text.strip())
+            losses = int(tds[5].text.strip())
             form_spans = tds[10].find_all("span")
-            recent_results = [s.text.strip() for s in form_spans if s.text.strip() in ["G", "B", "M"]]
+            recent_results = [s.text.strip() for s in form_spans if s.text.strip() in ["B", "M", "G"]]
             form_data = {"wins": wins, "draws": draws, "losses": losses, "last_matches": recent_results}
             save_cache(url, current_hash, form_data)
             return form_data
