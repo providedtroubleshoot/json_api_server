@@ -400,6 +400,7 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
 def scrape_suspensions(team_slug, team_id, squad):
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
     try:
+        cached = load_cached_data(url)
         soup = get_soup(url)
 
         table = soup.find("table", class_="items")
@@ -408,16 +409,13 @@ def scrape_suspensions(team_slug, team_id, squad):
 
         current_hash = get_content_hash(table)
 
-        old_hash = load_hash(url)
-        if old_hash and old_hash == current_hash:
-            print(f"[BİLGİ] {team_slug} için suspensions (old) değişmemiş, scrape atlanıyor.")
-            return None
+        if cached["hash"] and cached["hash"] == current_hash:
+            print(f"[BİLGİ] {team_slug} suspensions değişmemiş, cached veri dönülüyor.")
+            return cached["data"] or []
 
-        print(f"[GÜNCELLEME] {team_slug} için suspensions (old) verilerde değişiklik algılandı, scrape ediliyor...")
+        print(f"[GÜNCELLEME] {team_slug} suspensions değişti, scrape ediliyor...")
 
         suspensions = []
-
-        # Oyuncu satırlarını tara (odd ve even sınıfları)
         rows = table.find_all("tr", class_=["odd", "even"])
         for row in rows:
             table_inline = row.find("table", class_="inline-table")
@@ -442,16 +440,17 @@ def scrape_suspensions(team_slug, team_id, squad):
                             "details": suspension_type
                         })
 
-        save_hash(url, current_hash)
+        save_cache(url, current_hash, suspensions)
         return suspensions
     except Exception as e:
         print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
         return None
 
 
-def scrape_squad(team_slug: str, team_id: str) -> List[dict] | None:
+def scrape_squad(team_slug: str, team_id: str) -> List[Dict]:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
     try:
+        cached = load_cached_data(url)
         soup = get_soup(url)
 
         table = soup.find("table", class_="items")
@@ -460,20 +459,20 @@ def scrape_squad(team_slug: str, team_id: str) -> List[dict] | None:
 
         current_hash = get_content_hash(table)
 
-        old_hash = load_hash(url)
-        if old_hash and old_hash == current_hash:
-            print(f"[BİLGİ] {team_slug} için squad değişmemiş, scrape atlanıyor.")
-            return None
+        if cached["hash"] and cached["hash"] == current_hash:
+            print(f"[BİLGİ] {team_slug} squad değişmemiş, cached veri dönülüyor.")
+            return cached["data"] or []
 
-        print(f"[GÜNCELLEME] {team_slug} için squad verilerde değişiklik algılandı, scrape ediliyor...")
+        print(f"[GÜNCELLEME] {team_slug} squad değişti, scrape ediliyor...")
 
         rows = table.find_all("tr", class_=["odd", "even"])
         players = []
 
         for row in rows:
             name = row.find("td", class_="hauptlink").text.strip()
-            position = row.find_all("td")[4].text.strip()
-            market_value = row.find_all("td")[-1].text.strip()
+            cells = row.find_all("td")
+            position = cells[4].text.strip() if len(cells) > 4 else "Bilinmiyor"
+            market_value = cells[-1].text.strip() if cells else "-"
             players.append({
                 "name": name,
                 "position": position,
@@ -483,7 +482,7 @@ def scrape_squad(team_slug: str, team_id: str) -> List[dict] | None:
         if not players:
             raise ValueError("Squad empty")
 
-        save_hash(url, current_hash)
+        save_cache(url, current_hash, players)
         return players
 
     except Exception as e:
@@ -494,12 +493,13 @@ def scrape_squad(team_slug: str, team_id: str) -> List[dict] | None:
 def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dict] | None:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/sperrenundverletzungen/verein/{team_id}"
     try:
+        cached = load_cached_data(url)
         soup = get_soup(url)
         inj_header = soup.find("td", string="Sakatlıklar")
         if not inj_header:
             return []
 
-        # Injury section'ı hash için topla
+        # Injury section hash (eski mantık korunuyor)
         injury_section = inj_header.find_parent("tr")
         injury_content = str(injury_section)
         next_row = injury_section.find_next_sibling()
@@ -509,12 +509,11 @@ def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dic
 
         current_hash = hashlib.md5(injury_content.encode('utf-8')).hexdigest()
 
-        old_hash = load_hash(url)
-        if old_hash and old_hash == current_hash:
-            print(f"[BİLGİ] {team_slug} için injuries değişmemiş, scrape atlanıyor.")
-            return None
+        if cached["hash"] and cached["hash"] == current_hash:
+            print(f"[BİLGİ] {team_slug} injuries değişmemiş, cached veri dönülüyor.")
+            return cached["data"] or []
 
-        print(f"[GÜNCELLEME] {team_slug} için injuries verilerde değişiklik algılandı, scrape ediliyor...")
+        print(f"[GÜNCELLEME] {team_slug} injuries değişti, scrape ediliyor...")
 
         injuries = []
         next_row = injury_section.find_next_sibling()
@@ -526,16 +525,14 @@ def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dic
                     player_name = name_tag.get_text(strip=True)
                     matched = next((p for p in squad if p["name"] == player_name), None)
                     position = matched["position"] if matched else ""
-
                     injuries.append({"name": player_name, "position": position})
             next_row = next_row.find_next_sibling()
 
-        save_hash(url, current_hash)
+        save_cache(url, current_hash, injuries)
         return injuries
     except Exception as e:
         print(f"Sakatlık verisi alınamadı: {e}", file=sys.stderr)
-    return None
-
+        return None
 
 # Lig URL'leri (Değiştirilmedi)
 def get_league_url(league_key: str) -> str | None:
@@ -618,61 +615,57 @@ def get_league_position(team_name: str, league_key: str):
 
 
 def get_recent_form(team_name: str, league_key: str) -> dict:
-    try:
-        url = get_form_url(league_key)
-        if not url:
-            return
-        soup = get_soup(url)
-        form_table = soup.select_one("div.responsive-table table")
-        if not form_table:
-            raise ValueError("Form table not found")
+    url = get_form_url(league_key)
+    if not url:
+        return {}
 
-        current_hash = get_content_hash(form_table)
+    cached = load_cached_data(url)
+    soup = get_soup(url)
+    form_table = soup.select_one("div.responsive-table table")
+    if not form_table:
+        return {}
 
-        old_hash = load_hash(url)
-        if old_hash and old_hash == current_hash:
-            print(f"[BİLGİ] Form tablosu değişmemiş, recent_form scrape atlanıyor.")
-            return None
+    current_hash = get_content_hash(form_table)
 
-        print(f"[GÜNCELLEME] Form tablosunda değişiklik algılandı, recent_form scrape ediliyor...")
+    if cached["hash"] and cached["hash"] == current_hash:
+        print(f"[BİLGİ] Form tablosu değişmemiş, cached veri dönülüyor.")
+        return cached["data"] or {}
 
-        rows = soup.select("div.responsive-table table tbody tr")
-        for row in rows:
-            team_cell = row.select_one("td.no-border-links.hauptlink a")
-            if team_cell and team_name.lower() in team_cell.text.lower():
-                tds = row.find_all("td")
-                wins = int(tds[4].text.strip())
-                draws = int(tds[5].text.strip())
-                losses = int(tds[6].text.strip())
-                form_spans = tds[10].find_all("span")
-                recent_results = [s.text.strip() for s in form_spans if s.text.strip() in ["G", "B", "M"]]
-                save_hash(url, current_hash)
-                return {"wins": wins, "draws": draws, "losses": losses, "last_matches": recent_results}
-        return
-    except Exception as e:
-        print(f"Form verisi alınamadı: {e}", file=sys.stderr)
-        return
+    print(f"[GÜNCELLEME] Form tablosu değişti, scrape ediliyor...")
+
+    rows = soup.select("div.responsive-table table tbody tr")
+    for row in rows:
+        team_cell = row.select_one("td.no-border-links.hauptlink a")
+        if team_cell and team_name.lower() in team_cell.text.lower():
+            tds = row.find_all("td")
+            wins = int(tds[4].text.strip())
+            draws = int(tds[5].text.strip())
+            losses = int(tds[6].text.strip())
+            form_spans = tds[10].find_all("span")
+            recent_results = [s.text.strip() for s in form_spans if s.text.strip() in ["G", "B", "M"]]
+            form_data = {"wins": wins, "draws": draws, "losses": losses, "last_matches": recent_results}
+            save_cache(url, current_hash, form_data)
+            return form_data
+    return
 
 
 def scrape_suspensions_kader(team_slug: str, team_id: str, season_id: int = 2025) -> list | None:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/kader/verein/{team_id}/saison_id/{season_id}"
-
     try:
+        cached = load_cached_data(url)
         soup = get_soup(url)
 
-        # Kader tablosunu bul
         kader_table = soup.find("table", class_="items")
         if not kader_table:
             raise ValueError("Kader table not found")
 
         current_hash = get_content_hash(kader_table)
 
-        old_hash = load_hash(url)
-        if old_hash and old_hash == current_hash:
-            print(f"[BİLGİ] {team_slug} için suspensions (kader) değişmemiş, scrape atlanıyor.")
-            return None
+        if cached["hash"] and cached["hash"] == current_hash:
+            print(f"[BİLGİ] {team_slug} kader cezalı değişmemiş, cached veri dönülüyor.")
+            return cached["data"] or []
 
-        print(f"[GÜNCELLEME] {team_slug} için suspensions (kader) verilerde değişiklik algılandı, scrape ediliyor...")
+        print(f"[GÜNCELLEME] {team_slug} kader cezalı değişti, scrape ediliyor...")
 
         cezali_oyuncular = []
 
@@ -682,10 +675,7 @@ def scrape_suspensions_kader(team_slug: str, team_id: str, season_id: int = 2025
                 continue
 
             name_td = row.find("td", class_="hauptlink")
-            player_name = (
-                " ".join(name_td.get_text(strip=True).split())
-                if name_td else "İsim bulunamadı"
-            )
+            player_name = " ".join(name_td.get_text(strip=True).split()) if name_td else "İsim bulunamadı"
 
             ceza_title = ausfall_span.get("title", "Ceza bilgisi yok")
 
@@ -708,7 +698,7 @@ def scrape_suspensions_kader(team_slug: str, team_id: str, season_id: int = 2025
             })
 
         time.sleep(random.uniform(1.5, 3.0))
-        save_hash(url, current_hash)
+        save_cache(url, current_hash, cezali_oyuncular)
         return cezali_oyuncular
 
     except Exception as e:
