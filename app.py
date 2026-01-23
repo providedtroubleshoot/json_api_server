@@ -588,33 +588,45 @@ def get_recent_form(team_name: str, league_key: str) -> dict:
     if not url:
         return {}
 
-    cached = load_cached_data(url)
     soup = get_soup(url)
     form_table = soup.select_one("div.responsive-table table")
     if not form_table:
         return {}
 
-    current_hash = get_content_hash(form_table)
-
-    if cached["hash"] and cached["hash"] == current_hash:
-        print(f"[BİLGİ] Form tablosu değişmemiş, cached veri dönülüyor.")
-        return cached["data"] or {}
-
-    print(f"[GÜNCELLEME] Form tablosu değişti, scrape ediliyor...")
-
     rows = soup.select("div.responsive-table table tbody tr")
+
     for row in rows:
         team_cell = row.select_one("td.no-border-links.hauptlink a")
-        if team_cell and team_name.lower() in team_cell.text.lower():
-            tds = row.find_all("td")
-            wins = int(tds[6].text.strip())
-            draws = int(tds[4].text.strip())
-            losses = int(tds[5].text.strip())
-            form_spans = tds[10].find_all("span")
-            recent_results = [s.text.strip() for s in form_spans if s.text.strip() in ["B", "M", "G"]]
-            form_data = {"wins": wins, "draws": draws, "losses": losses, "last_matches": recent_results}
-            save_cache(url, current_hash, form_data)
-            return form_data
+        if not team_cell:
+            continue
+
+        team_display_name = team_cell.get_text(strip=True)
+
+        if team_display_name.lower().strip() != team_name.lower().strip():
+            continue
+
+        tds = row.find_all("td")
+        if len(tds) < 11:
+            continue
+
+        wins = extract_first_int(tds[6].text)
+        draws = extract_first_int(tds[4].text)
+        losses = extract_first_int(tds[5].text)
+
+        form_spans = tds[10].find_all("span")
+        recent_results = [
+            s.text.strip()
+            for s in form_spans
+            if s.text.strip() in ["G", "B", "M"]
+        ]
+
+        return {
+            "wins": wins,
+            "draws": draws,
+            "losses": losses,
+            "last_matches": recent_results
+        }
+
     return {}
 
 
