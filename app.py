@@ -553,47 +553,35 @@ def get_league_position(team_name: str, league_key: str):
     if not url:
         return None
 
-    cached = load_cached_data(url)
     soup = get_soup(url)
     table = soup.select_one("table.items")
     if not table:
-        raise ValueError("League table not found")
-
-    current_hash = get_content_hash(table)
-
-    if cached["hash"] and cached["hash"] == current_hash:
-        print(f"[BİLGİ] {league_key} position değişmemiş, cached veri dönülüyor.")
-        return cached["data"]
-
-    print(f"[GÜNCELLEME] {league_key} position değişti, scrape ediliyor...")
+        return None
 
     rows = table.select("tbody tr")
     for row in rows:
         cells = row.find_all("td")
         if len(cells) < 9:
             continue
-        pos_td = cells[0]
-        pos_text = pos_td.get_text(strip=True)
+
+        pos_text = cells[0].get_text(strip=True)
         pos_clean = ''.join(c for c in pos_text if c.isdigit())
         if not pos_clean.isdigit():
             continue
 
         team_td = cells[2]
-        if "hauptlink" not in team_td.get("class", []):
-            continue
-
         a_tag = team_td.find("a")
         team_display_name = a_tag.get_text(strip=True) if a_tag else ""
+
         if not team_display_name:
-            team_display_name = re.sub(r"[↑↓→←★☆]+", "", team_td.get_text(strip=True)).strip()
+            team_display_name = re.sub(
+                r"[↑↓→←★☆]+", "", team_td.get_text(strip=True)
+            ).strip()
 
         if team_display_name.lower().strip() == team_name.lower().strip():
-            pos = int(pos_clean)
-            save_cache(url, current_hash, pos)
-            return pos
+            return int(pos_clean)
 
     return None
-
 
 def get_recent_form(team_name: str, league_key: str) -> dict:
     url = get_form_url(league_key)
