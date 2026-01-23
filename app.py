@@ -328,7 +328,7 @@ def get_content_hash(element) -> str:
     return hashlib.md5(text_content.encode('utf-8')).hexdigest()
 
 
-def scrape_stats(team_slug: str, team_id: str) -> List[dict] | None:
+def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
     """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker - cache destekli."""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
     
@@ -392,8 +392,8 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict] | None:
             if "oynatılmadı" in " ".join(texts).lower() or not minutes_str.isdigit():
                 continue
 
-            played = _extract_first_int(played_str)
-            minutes = _extract_first_int(minutes_str)
+            played = extract_first_int(played_str)
+            minutes = extract_first_int(minutes_str)
 
             if played is not None and minutes is not None and minutes > 0:
                 players.append({
