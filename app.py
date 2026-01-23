@@ -328,7 +328,7 @@ def get_content_hash(element) -> str:
     return hashlib.md5(text_content.encode('utf-8')).hexdigest()
 
 
-def scrape_stats(team_slug: str, team_id: str) -> Optional[List[Dict]]:
+def scrape_stats(team_slug: str, team_id: str) -> List[dict] | None:
     """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker - cache destekli."""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
     
