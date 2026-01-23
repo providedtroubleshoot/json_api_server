@@ -609,9 +609,9 @@ def get_recent_form(team_name: str, league_key: str) -> dict:
         if len(tds) < 11:
             continue
 
-        wins = extract_first_int(tds[6].text)
-        draws = extract_first_int(tds[4].text)
-        losses = extract_first_int(tds[5].text)
+        wins = extract_first_int(tds[4].text)
+        draws = extract_first_int(tds[5].text)
+        losses = extract_first_int(tds[6].text)
 
         form_spans = tds[10].find_all("span")
         recent_results = [
