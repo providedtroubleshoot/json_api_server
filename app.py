@@ -328,11 +328,12 @@ def get_content_hash(element) -> str:
     return hashlib.md5(text_content.encode('utf-8')).hexdigest()
 
 
-def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
-    """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker."""
+def scrape_stats(team_slug: str, team_id: str) -> Optional[List[Dict]]:
+    """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker - cache destekli."""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
+    
     try:
-        # requests.get'i PROXIES parametresi ile güncelle
+        # Proxy desteği (dışarıdan gelen global değişkenler)
         if PROXIES:
             print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
 
@@ -347,49 +348,71 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
         old_hash = load_hash(url)
         if old_hash and old_hash == current_hash:
             print(f"[BİLGİ] {team_slug} için oyuncu istatistikleri değişmemiş, scrape atlanıyor.")
-            return None
+            return None  # ← orijinal davranışını korudun, istersen [] döndürebilirsin
 
         print(f"[GÜNCELLEME] {team_slug} için verilerde değişiklik algılandı, scrape ediliyor...")
 
-        rows = soup.select("table.items tbody tr")
+        rows = stats_table.select("tbody tr")
         players = []
 
         for row in rows:
             td_list = row.find_all("td")
-            if len(td_list) < 5:
+            if len(td_list) < 11:
                 continue
 
-            # Oyuncu adı
-            name_td = row.find("td", class_="hauptlink")
-            a = name_td.find("a") if name_td else None
-            name = a.get("title") if a and a.get("title") else (a.text.strip() if a else "")
+            # Düzeltme: cells yerine td_list kullanıyoruz
+            texts = [td.get_text(strip=True) for td in td_list]
 
-            # Maç sayısı ve süre
-            td_texts = [td.get_text(" ", strip=True) for td in td_list]
-            # Orijinal kodda bu indeksler kullanılıyordu.
-            raw_minutes = td_texts[-1] if len(td_texts) >= 1 else ""
-            raw_played_matches = td_texts[-3] if len(td_texts) >= 3 else ""
+            # İsim temizleme
+            raw_name = texts[3] if len(texts) > 3 else ""
+            if not raw_name:
+                continue
 
-            played_matches = extract_first_int(raw_played_matches)
-            minutes_played = extract_first_int(raw_minutes)
+            # Pozisyon kelimelerini kaldır
+            pos_pattern = r"(Kaleci|Defans|Stoper|Sağ Bek|Sol Bek|Orta saha|Merkez Orta Saha|On Numara|Forvet|Santrafor|Sol Kanat|Sağ Kanat)"
+            name_part = re.sub(pos_pattern, "", raw_name, flags=re.IGNORECASE).strip()
 
-            if name:
+            # Tekrar eden soyisim / kısaltma temizliği
+            name_part = re.sub(r"([A-Za-z\s]+?)([A-Z]\.\s*[A-Za-z]+?)\1?$", r"\1", name_part).strip()
+            name = re.sub(r"\b[A-Z]\.\s*", "", name_part).strip()
+
+            words = name.split()
+            if len(words) >= 2 and words[-1] == words[-2]:
+                name = " ".join(words[:-1]).strip()
+
+            if not name:
+                continue
+
+            # Maç sayısı: index 8
+            played_str = texts[8] if len(texts) > 8 else ""
+
+            # Dakika: index 10
+            minutes_str = texts[10].replace("'", "").replace(".", "") if len(texts) > 10 else ""
+
+            if "oynatılmadı" in " ".join(texts).lower() or not minutes_str.isdigit():
+                continue
+
+            played = _extract_first_int(played_str)
+            minutes = _extract_first_int(minutes_str)
+
+            if played is not None and minutes is not None and minutes > 0:
                 players.append({
                     "name": name,
-                    "played_matches": played_matches,
-                    "minutes_played": minutes_played
+                    "played_matches": played,
+                    "minutes_played": minutes
                 })
 
-        if players:
-            save_hash(url, current_hash)
-            return players
-        else:
-            raise ValueError("Stats is empty")
+        if not players:
+            print(f"[UYARI] {team_slug} için oyuncu verisi çıkmadı.", file=sys.stderr)
+            return None
+
+        # Cache'i sadece başarılı scrape sonrası kaydet
+        save_hash(url, current_hash)
+        return players
 
     except Exception as e:
-        print(f"Oyuncu istatistikleri alınamadı ({team_slug}): {e}", file=sys.stderr)
+        print(f"[HATA] {team_slug}: {e}", file=sys.stderr)
         return None
-
 
 def scrape_suspensions(team_slug, team_id, squad):
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
@@ -570,7 +593,7 @@ def get_league_position(team_name: str, league_key: str):
         if not url:
             return
         soup = get_soup(url)
-        table = soup.find("table", class_="items")
+        table = soup.select_one("table.items")
         if not table:
             raise ValueError("League table not found")
 
@@ -583,20 +606,50 @@ def get_league_position(team_name: str, league_key: str):
 
         print(f"[GÜNCELLEME] Lig tablosunda değişiklik algılandı, position scrape ediliyor...")
 
-        rows = table.find("tbody").find_all("tr", recursive=False)
+        rows = table.select("tbody tr")
         for row in rows:
             cells = row.find_all("td")
-            if len(cells) < 3:
+            if len(cells) < 9:
                 continue
-            pos = cells[0].text.strip()
-            name = cells[2].text.strip()
-            if name.lower() == team_name.lower():
-                save_hash(url, current_hash)
-                return int(pos) if pos.isdigit() else pos
-        return
+            pos_td = cells[0]
+            pos_text = pos_td.get_text(strip=True)
+            pos_clean = ''.join(c for c in pos_text if c.isdigit())
+            if not pos_clean.isdigit():
+                continue
+
+            # Takım adı: üçüncü hücredeki hauptlink içindeki <a> metni (görünen isim)
+            team_td = cells[2]
+            if "hauptlink" not in team_td.get("class", []):
+                continue
+
+            # En temiz yol: hauptlink içindeki ilk <a> etiketinin TEXT'ini al
+            a_tag = team_td.find("a")
+            team_display_name = ""
+            if a_tag:
+                team_display_name = a_tag.get_text(strip=True)
+
+            if not team_display_name:
+                # Alternatif: tüm td metninden kupon ikonlarını vs. temizle
+                team_display_name = team_td.get_text(strip=True)
+                # Başarı ikonlarını ve diğer gereksiz kısımları temizle
+                team_display_name = re.sub(r"[↑↓→←★☆]+", "", team_display_name).strip()
+
+            if not team_display_name:
+                continue
+
+            # Karşılaştırma: case-insensitive + boşluk temiz
+            if team_display_name.lower().strip() == team_name.lower().strip():
+                return int(pos_clean)
+
+        print(f"[UYARI] '{team_name}' takımı {league_key} tablosunda bulunamadı.", file=sys.stderr)
+        return None
+
+    except requests.RequestException as e:
+        print(f"[HATA] Bağlantı sorunu ({league_key}): {e}", file=sys.stderr)
     except Exception as e:
-        print(f"Lig sıralaması alınamadı: {e}", file=sys.stderr)
-        return
+        print(f"[HATA] Parse hatası ({league_key}): {e}", file=sys.stderr)
+
+    return None
 
 
 def get_recent_form(team_name: str, league_key: str) -> dict:
