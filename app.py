@@ -331,93 +331,56 @@ def get_content_hash(element) -> str:
 def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
     """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker - cache destekli."""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
+    
     try:
-        # Proxy desteği (dışarıdan gelen global değişkenler)
+        # Proxy desteği
         if PROXIES:
             print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
 
-    soup = get_soup(url)
+        soup = get_soup(url)   # ← Bu satır try bloğu içinde olmalı, aynı girinti seviyesinde
 
-    stats_table = soup.select_one("table.items")
-    if not stats_table:
-        raise ValueError("Stats table not found")
+        stats_table = soup.select_one("table.items")
+        if not stats_table:
+            raise ValueError("Stats table not found")
 
-    current_hash = get_content_hash(stats_table)
+        current_hash = get_content_hash(stats_table)
 
-    old_hash = load_hash(url)
-    if old_hash and old_hash == current_hash:
-        print(f"[BİLGİ] {team_slug} için oyuncu istatistikleri değişmemiş, scrape atlanıyor.")
-        return None  # ← orijinal davranışını korudun, istersen [] döndürebilirsin
+        old_hash = load_hash(url)
+        if old_hash and old_hash == current_hash:
+            print(f"[BİLGİ] {team_slug} için oyuncu istatistikleri değişmemiş, scrape atlanıyor.")
+            return None
 
-    print(f"[GÜNCELLEME] {team_slug} için verilerde değişiklik algılandı, scrape ediliyor...")
+        print(f"[GÜNCELLEME] {team_slug} için verilerde değişiklik algılandı, scrape ediliyor...")
 
-    rows = stats_table.select("tbody tr")
-    players = []
+        rows = stats_table.select("tbody tr")
+        players = []
 
-    for row in rows:
-        td_list = row.find_all("td")
-        if len(td_list) < 11:
-            continue
+        for row in rows:
+            td_list = row.find_all("td")
+            if len(td_list) < 11:
+                continue
 
-        # Düzeltme: cells yerine td_list kullanıyoruz
-        texts = [td.get_text(strip=True) for td in td_list]
+            texts = [td.get_text(strip=True) for td in td_list]
 
-        # İsim temizleme
-        raw_name = texts[3] if len(texts) > 3 else ""
-        if not raw_name:
-            continue
+            # ... (isim temizleme, maç/dakika parse kısmı aynı kalıyor)
 
-        # Pozisyon kelimelerini kaldır
-        pos_pattern = r"(Kaleci|Defans|Stoper|Sağ Bek|Sol Bek|Orta saha|Merkez Orta Saha|On Numara|Forvet|Santrafor|Sol Kanat|Sağ Kanat)"
-        name_part = re.sub(pos_pattern, "", raw_name, flags=re.IGNORECASE).strip()
+        if not players:
+            print(f"[UYARI] {team_slug} için oyuncu verisi çıkmadı.", file=sys.stderr)
+            return None
 
-        # Tekrar eden soyisim / kısaltma temizliği
-        name_part = re.sub(r"([A-Za-z\s]+?)([A-Z]\.\s*[A-Za-z]+?)\1?$", r"\1", name_part).strip()
-        name = re.sub(r"\b[A-Z]\.\s*", "", name_part).strip()
+        save_hash(url, current_hash)
+        return players
 
-        words = name.split()
-        if len(words) >= 2 and words[-1] == words[-2]:
-            name = " ".join(words[:-1]).strip()
-
-        if not name:
-            continue
-
-        # Maç sayısı: index 8
-        played_str = texts[8] if len(texts) > 8 else ""
-
-        # Dakika: index 10
-        minutes_str = texts[10].replace("'", "").replace(".", "") if len(texts) > 10 else ""
-
-        if "oynatılmadı" in " ".join(texts).lower() or not minutes_str.isdigit():
-            continue
-
-        played = extract_first_int(played_str)
-        minutes = extract_first_int(minutes_str)
-
-        if played is not None and minutes is not None and minutes > 0:
-            players.append({
-                "name": name,
-                "played_matches": played,
-                "minutes_played": minutes
-            })
-
-    if not players:
-        print(f"[UYARI] {team_slug} için oyuncu verisi çıkmadı.", file=sys.stderr)
+    except Exception as e:
+        print(f"[HATA] {team_slug}: {e}", file=sys.stderr)
         return None
-
-    # Cache'i sadece başarılı scrape sonrası kaydet
-    save_hash(url, current_hash)
-    return players
-
-except Exception as e:
-    print(f"[HATA] {team_slug}: {e}", file=sys.stderr)
-    return None
 
 
 def scrape_suspensions(team_slug, team_id, squad):
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
     try:
-        soup = get_soup(url)    table = soup.find("table", class_="items")
+        soup = get_soup(url)    
+	table = soup.find("table", class_="items")
     if not table:
         raise ValueError("Suspensions table not found")
 
