@@ -283,60 +283,56 @@ def extract_first_int(s: str) -> int:
     return int(m.group(1)) if m else 0
 
 
-def load_hash(url: str) -> str | None:
-    """Firestore'dan belirli bir URL için kaydedilmiş hash değerini yükler."""
+def load_cached_data(url: str) -> dict:
     if not DB:
-        print("[UYARI] Firestore bağlantısı yok, hash kontrolü atlanıyor.")
-        return None
+        return {"hash": None, "data": None}
     try:
         doc_id = hashlib.md5(url.encode('utf-8')).hexdigest()
         doc = DB.collection("scrape_cache").document(doc_id).get()
         if doc.exists:
-            return doc.to_dict().get("hash")
-        return None
+            cached = doc.to_dict()
+            return {"hash": cached.get("hash"), "data": cached.get("data")}
+        return {"hash": None, "data": None}
     except Exception as e:
-        print(f"[UYARI] Hash yüklenemedi ({url}): {e}", file=sys.stderr)
-        return None
+        print(f"[UYARI] Cache yüklenemedi ({url}): {e}", file=sys.stderr)
+        return {"hash": None, "data": None}
 
 
-def save_hash(url: str, hash_value: str):
-    """Firestore'a belirli bir URL için hash değerini kaydeder."""
+def save_cache(url: str, hash_value: str, data: any):
     if not DB:
-        print("[UYARI] Firestore bağlantısı yok, hash kaydedilmiyor.")
         return
     try:
         doc_id = hashlib.md5(url.encode('utf-8')).hexdigest()
         DB.collection("scrape_cache").document(doc_id).set({
             "url": url,
             "hash": hash_value,
+            "data": data,
             "timestamp": firestore.SERVER_TIMESTAMP
         })
-        print(f"[BİLGİ] Hash kaydedildi: {url}")
+        print(f"[BİLGİ] Cache kaydedildi: {url}")
     except Exception as e:
-        print(f"[HATA] Hash kaydedilemedi ({url}): {e}", file=sys.stderr)
+        print(f"[HATA] Cache kaydedilemedi ({url}): {e}", file=sys.stderr)
 
 
 def get_content_hash(element) -> str:
-    """
-    Belirli bir HTML elementinin metin içeriğinin parmak izini alır.
-    Bu sayede sadece tablodaki veriler (dakika, maç vs.) değişince fark eder.
-    """
     if not element:
         return ""
-    # Sadece metin içeriğini alarak reklam/script değişimlerinden etkilenmeyi önlüyoruz
-    text_content = element.get_text(strip=True)
-    return hashlib.md5(text_content.encode('utf-8')).hexdigest()
+    critical_text = ""
+    rows = element.find_all("tr")
+    for row in rows:
+        cells = row.find_all(["td", "th"])
+        for cell in cells:
+            text = cell.get_text(strip=True)
+            if text.isdigit() or len(text) > 2:
+                critical_text += text + "|"
+    return hashlib.md5(critical_text.encode('utf-8')).hexdigest()
 
 
 def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
-    """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker - cache destekli."""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
     
     try:
-        # Proxy desteği (dışarıdan gelen global değişkenler)
-        if PROXIES:
-            print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
-
+        cached = load_cached_data(url)
         soup = get_soup(url)
 
         stats_table = soup.select_one("table.items")
@@ -345,12 +341,11 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
 
         current_hash = get_content_hash(stats_table)
 
-        old_hash = load_hash(url)
-        if old_hash and old_hash == current_hash:
-            print(f"[BİLGİ] {team_slug} için oyuncu istatistikleri değişmemiş, scrape atlanıyor.")
-            return None  # ← orijinal davranışını korudun, istersen [] döndürebilirsin
+        if cached["hash"] and cached["hash"] == current_hash:
+            print(f"[BİLGİ] {team_slug} stats değişmemiş, cached veri dönülüyor.")
+            return cached["data"] or []
 
-        print(f"[GÜNCELLEME] {team_slug} için verilerde değişiklik algılandı, scrape ediliyor...")
+        print(f"[GÜNCELLEME] {team_slug} stats değişti, scrape ediliyor...")
 
         rows = stats_table.select("tbody tr")
         players = []
@@ -360,19 +355,15 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
             if len(td_list) < 11:
                 continue
 
-            # Düzeltme: cells yerine td_list kullanıyoruz
             texts = [td.get_text(strip=True) for td in td_list]
 
-            # İsim temizleme
             raw_name = texts[3] if len(texts) > 3 else ""
             if not raw_name:
                 continue
 
-            # Pozisyon kelimelerini kaldır
             pos_pattern = r"(Kaleci|Defans|Stoper|Sağ Bek|Sol Bek|Orta saha|Merkez Orta Saha|On Numara|Forvet|Santrafor|Sol Kanat|Sağ Kanat)"
             name_part = re.sub(pos_pattern, "", raw_name, flags=re.IGNORECASE).strip()
 
-            # Tekrar eden soyisim / kısaltma temizliği
             name_part = re.sub(r"([A-Za-z\s]+?)([A-Z]\.\s*[A-Za-z]+?)\1?$", r"\1", name_part).strip()
             name = re.sub(r"\b[A-Z]\.\s*", "", name_part).strip()
 
@@ -383,35 +374,27 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
             if not name:
                 continue
 
-            # Maç sayısı: index 8
             played_str = texts[8] if len(texts) > 8 else ""
-
-            # Dakika: index 10
             minutes_str = texts[10].replace("'", "").replace(".", "") if len(texts) > 10 else ""
 
-            if "oynatılmadı" in " ".join(texts).lower() or not minutes_str.isdigit():
+            if "oynatılmadı" in " ".join(texts).lower() or not minutes_str.strip().isdigit():
                 continue
 
             played = extract_first_int(played_str)
             minutes = extract_first_int(minutes_str)
 
-            if played is not None and minutes is not None and minutes > 0:
+            if played > 0 and minutes > 0:
                 players.append({
                     "name": name,
                     "played_matches": played,
                     "minutes_played": minutes
                 })
 
-        if not players:
-            print(f"[UYARI] {team_slug} için oyuncu verisi çıkmadı.", file=sys.stderr)
-            return None
-
-        # Cache'i sadece başarılı scrape sonrası kaydet
-        save_hash(url, current_hash)
+        save_cache(url, current_hash, players)
         return players
 
     except Exception as e:
-        print(f"[HATA] {team_slug}: {e}", file=sys.stderr)
+        print(f"[HATA] Stats ({team_slug}): {e}", file=sys.stderr)
         return None
 
 def scrape_suspensions(team_slug, team_id, squad):
@@ -588,66 +571,48 @@ def get_form_url(league_key: str) -> str | None:
 
 
 def get_league_position(team_name: str, league_key: str):
-    try:
-        url = get_league_url(league_key)
-        if not url:
-            return
-        soup = get_soup(url)
-        table = soup.select_one("table.items")
-        if not table:
-            raise ValueError("League table not found")
-
-        current_hash = get_content_hash(table)
-
-        old_hash = load_hash(url)
-        if old_hash and old_hash == current_hash:
-            print(f"[BİLGİ] Lig tablosu değişmemiş, position scrape atlanıyor.")
-            return None
-
-        print(f"[GÜNCELLEME] Lig tablosunda değişiklik algılandı, position scrape ediliyor...")
-
-        rows = table.select("tbody tr")
-        for row in rows:
-            cells = row.find_all("td")
-            if len(cells) < 9:
-                continue
-            pos_td = cells[0]
-            pos_text = pos_td.get_text(strip=True)
-            pos_clean = ''.join(c for c in pos_text if c.isdigit())
-            if not pos_clean.isdigit():
-                continue
-
-            # Takım adı: üçüncü hücredeki hauptlink içindeki <a> metni (görünen isim)
-            team_td = cells[2]
-            if "hauptlink" not in team_td.get("class", []):
-                continue
-
-            # En temiz yol: hauptlink içindeki ilk <a> etiketinin TEXT'ini al
-            a_tag = team_td.find("a")
-            team_display_name = ""
-            if a_tag:
-                team_display_name = a_tag.get_text(strip=True)
-
-            if not team_display_name:
-                # Alternatif: tüm td metninden kupon ikonlarını vs. temizle
-                team_display_name = team_td.get_text(strip=True)
-                # Başarı ikonlarını ve diğer gereksiz kısımları temizle
-                team_display_name = re.sub(r"[↑↓→←★☆]+", "", team_display_name).strip()
-
-            if not team_display_name:
-                continue
-
-            # Karşılaştırma: case-insensitive + boşluk temiz
-            if team_display_name.lower().strip() == team_name.lower().strip():
-                return int(pos_clean)
-
-        print(f"[UYARI] '{team_name}' takımı {league_key} tablosunda bulunamadı.", file=sys.stderr)
+    url = get_league_url(league_key)
+    if not url:
         return None
 
-    except requests.RequestException as e:
-        print(f"[HATA] Bağlantı sorunu ({league_key}): {e}", file=sys.stderr)
-    except Exception as e:
-        print(f"[HATA] Parse hatası ({league_key}): {e}", file=sys.stderr)
+    cached = load_cached_data(url)
+    soup = get_soup(url)
+    table = soup.select_one("table.items")
+    if not table:
+        raise ValueError("League table not found")
+
+    current_hash = get_content_hash(table)
+
+    if cached["hash"] and cached["hash"] == current_hash:
+        print(f"[BİLGİ] {league_key} position değişmemiş, cached veri dönülüyor.")
+        return cached["data"]
+
+    print(f"[GÜNCELLEME] {league_key} position değişti, scrape ediliyor...")
+
+    rows = table.select("tbody tr")
+    for row in rows:
+        cells = row.find_all("td")
+        if len(cells) < 9:
+            continue
+        pos_td = cells[0]
+        pos_text = pos_td.get_text(strip=True)
+        pos_clean = ''.join(c for c in pos_text if c.isdigit())
+        if not pos_clean.isdigit():
+            continue
+
+        team_td = cells[2]
+        if "hauptlink" not in team_td.get("class", []):
+            continue
+
+        a_tag = team_td.find("a")
+        team_display_name = a_tag.get_text(strip=True) if a_tag else ""
+        if not team_display_name:
+            team_display_name = re.sub(r"[↑↓→←★☆]+", "", team_td.get_text(strip=True)).strip()
+
+        if team_display_name.lower().strip() == team_name.lower().strip():
+            pos = int(pos_clean)
+            save_cache(url, current_hash, pos)
+            return pos
 
     return None
 
