@@ -337,7 +337,7 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
         if PROXIES:
             print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
 
-        soup = get_soup(url)   # ← Bu satır try bloğu içinde olmalı, aynı girinti seviyesinde
+        soup = get_soup(url)
 
         stats_table = soup.select_one("table.items")
         if not stats_table:
@@ -345,8 +345,8 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
 
         current_hash = get_content_hash(stats_table)
 
-        old_hash = load_hash(url)
-        if old_hash and old_hash == current_hash:
+        cached = load_cached_data(url)
+        if cached["hash"] and cached["hash"] == current_hash:
             print(f"[BİLGİ] {team_slug} için oyuncu istatistikleri değişmemiş, scrape atlanıyor.")
             return None
 
@@ -361,14 +361,23 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
                 continue
 
             texts = [td.get_text(strip=True) for td in td_list]
-
-            # ... (isim temizleme, maç/dakika parse kısmı aynı kalıyor)
+            
+            # İsim temizleme ve diğer parse işlemleri
+            player_name = texts[1]
+            matches_played = extract_first_int(texts[3])
+            minutes_played = extract_first_int(texts[4])
+            
+            players.append({
+                "name": player_name,
+                "matches": matches_played,
+                "minutes": minutes_played
+            })
 
         if not players:
             print(f"[UYARI] {team_slug} için oyuncu verisi çıkmadı.", file=sys.stderr)
             return None
 
-        save_hash(url, current_hash)
+        save_cache(url, current_hash, players)
         return players
 
     except Exception as e:
@@ -379,44 +388,45 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
 def scrape_suspensions(team_slug, team_id, squad):
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
     try:
-        soup = get_soup(url)    
-	table = soup.find("table", class_="items")
-    if not table:
-        raise ValueError("Suspensions table not found")
+        soup = get_soup(url)
+        table = soup.find("table", class_="items")
+        if not table:
+            raise ValueError("Suspensions table not found")
 
-    print(f"[GÜNCELLEME] {team_slug} için suspensions (old) verilerde değişiklik algılandı, scrape ediliyor...")
+        print(f"[GÜNCELLEME] {team_slug} için suspensions (old) verilerde değişiklik algılandı, scrape ediliyor...")
 
-    suspensions = []
+        suspensions = []
 
-    # Oyuncu satırlarını tara (odd ve even sınıfları)
-    rows = table.find_all("tr", class_=["odd", "even"])
-    for row in rows:
-        table_inline = row.find("table", class_="inline-table")
-        if table_inline:
-            name_tag = table_inline.find("a", href=True)
-            if name_tag:
-                player_name = name_tag.get_text(strip=True)
-                span_tag = name_tag.find("span", class_=["ausfall-1-table", "ausfall-2-table", "ausfall-3-table"])
-                if span_tag:
-                    suspension_type = span_tag.get("title", "").strip()
-                    status = (
-                        "Kırmızı Kart" if "Kırmızı kart cezalısı" in suspension_type else
-                        "Sarı Kart" if "Sarı kart cezalısı" in suspension_type else
-                        "Bilinmeyen Ceza"
-                    )
-                    matched = next((p for p in squad if p["name"] == player_name), None)
-                    position = matched["position"] if matched else "Bilinmiyor"
-                    suspensions.append({
-                        "name": player_name,
-                        "position": position,
-                        "status": status,
-                        "details": suspension_type
-                    })
+        # Oyuncu satırlarını tara (odd ve even sınıfları)
+        rows = table.find_all("tr", class_=["odd", "even"])
+        for row in rows:
+            table_inline = row.find("table", class_="inline-table")
+            if table_inline:
+                name_tag = table_inline.find("a", href=True)
+                if name_tag:
+                    player_name = name_tag.get_text(strip=True)
+                    span_tag = name_tag.find("span", class_=["ausfall-1-table", "ausfall-2-table", "ausfall-3-table"])
+                    if span_tag:
+                        suspension_type = span_tag.get("title", "").strip()
+                        status = (
+                            "Kırmızı Kart" if "Kırmızı kart cezalısı" in suspension_type else
+                            "Sarı Kart" if "Sarı kart cezalısı" in suspension_type else
+                            "Bilinmeyen Ceza"
+                        )
+                        matched = next((p for p in squad if p["name"] == player_name), None)
+                        position = matched["position"] if matched else "Bilinmiyor"
+                        suspensions.append({
+                            "name": player_name,
+                            "position": position,
+                            "status": status,
+                            "details": suspension_type
+                        })
 
-    return suspensions
-except Exception as e:
-    print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
-    return None
+        return suspensions
+    except Exception as e:
+        print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
+        return None
+
 
 def scrape_squad(team_slug: str, team_id: str) -> List[Dict]:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
@@ -505,7 +515,7 @@ def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dic
         print(f"Sakatlık verisi alınamadı: {e}", file=sys.stderr)
         return None
 
-# Lig URL'leri (Değiştirilmedi)
+
 def get_league_url(league_key: str) -> str | None:
     url_map = {
         "en1": "https://www.transfermarkt.com.tr/premier-league/tabelle/wettbewerb/GB1",
@@ -617,7 +627,7 @@ def get_recent_form(team_name: str, league_key: str) -> dict:
             form_data = {"wins": wins, "draws": draws, "losses": losses, "last_matches": recent_results}
             save_cache(url, current_hash, form_data)
             return form_data
-    return
+    return {}
 
 
 def scrape_suspensions_kader(team_slug: str, team_id: str, season_id: int = 2025) -> list | None:
