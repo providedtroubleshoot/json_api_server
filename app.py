@@ -255,13 +255,11 @@ TEAMS = {
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
-
 def get_team_info(team_key: str) -> dict:
     key = team_key.lower()
     if key not in TEAMS:
         raise ValueError(f"{team_key} takımı bulunamadı. Geçerli takımlar: {list(TEAMS.keys())}")
     return TEAMS[key]
-
 
 def get_soup(url: str) -> BeautifulSoup:
     """Verilen URL'den HTML çekip BeautifulSoup objesine dönüştürür (Proxy kullanarak)."""
@@ -271,8 +269,7 @@ def get_soup(url: str) -> BeautifulSoup:
 
     res = requests.get(url, proxies=PROXIES, impersonate="chrome120", timeout=18)
     res.raise_for_status()
-    return BeautifulSoup(res.text, "lxml")  # lxml parser'ı artık yüklü olmalı
-
+    return BeautifulSoup(res.text, "lxml") # lxml parser'ı artık yüklü olmalı
 
 def extract_first_int(s: str) -> int:
     """Bir string içindeki ilk tam sayıyı ayıkla. Yoksa 0 döner."""
@@ -282,143 +279,66 @@ def extract_first_int(s: str) -> int:
     m = re.search(r'(\d+)', s)
     return int(m.group(1)) if m else 0
 
-
-def load_cached_data(url: str) -> dict:
-    if not DB:
-        return {"hash": None, "data": None}
-    try:
-        doc_id = hashlib.md5(url.encode('utf-8')).hexdigest()
-        doc = DB.collection("scrape_cache").document(doc_id).get()
-        if doc.exists:
-            cached = doc.to_dict()
-            return {"hash": cached.get("hash"), "data": cached.get("data")}
-        return {"hash": None, "data": None}
-    except Exception as e:
-        print(f"[UYARI] Cache yüklenemedi ({url}): {e}", file=sys.stderr)
-        return {"hash": None, "data": None}
-
-
-def save_cache(url: str, hash_value: str, data: any):
-    if not DB:
-        return
-    try:
-        doc_id = hashlib.md5(url.encode('utf-8')).hexdigest()
-        DB.collection("scrape_cache").document(doc_id).set({
-            "url": url,
-            "hash": hash_value,
-            "data": data,
-            "timestamp": firestore.SERVER_TIMESTAMP
-        })
-        print(f"[BİLGİ] Cache kaydedildi: {url}")
-    except Exception as e:
-        print(f"[HATA] Cache kaydedilemedi ({url}): {e}", file=sys.stderr)
-
-
-def get_content_hash(element) -> str:
-    if not element:
-        return ""
-    critical_text = ""
-    rows = element.find_all("tr")
-    for row in rows:
-        cells = row.find_all(["td", "th"])
-        for cell in cells:
-            text = cell.get_text(strip=True)
-            if text.isdigit() or len(text) > 2:
-                critical_text += text + "|"
-    return hashlib.md5(critical_text.encode('utf-8')).hexdigest()
-
-
-def scrape_stats(team_slug: str, team_id: str) -> List[dict] | None:
-
+def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
+    """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker."""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
-
     try:
-        print(f"[SCRAPE] {team_slug} için istatistikler çekiliyor...", file=sys.stderr)
-        
-        # get_soup kullanarak HTML'i çek
+        # requests.get'i PROXIES parametresi ile güncelle
+        if PROXIES:
+            print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
+
         soup = get_soup(url)
 
-        table = soup.select_one("table.items")
-        if not table:
-            print(f"[HATA] table.items bulunamadı → {team_slug}", file=sys.stderr)
-            return None
-
+        rows = soup.select("table.items tbody tr")
         players = []
-        rows = table.select("tbody tr")
 
         for row in rows:
-            cells = row.find_all("td")
-            if len(cells) < 11:
+            td_list = row.find_all("td")
+            if len(td_list) < 5:
                 continue
 
-            texts = [td.get_text(strip=True) for td in cells]
+            # Oyuncu adı
+            name_td = row.find("td", class_="hauptlink")
+            a = name_td.find("a") if name_td else None
+            name = a.get("title") if a and a.get("title") else (a.text.strip() if a else "")
 
-            # İsim temizleme
-            raw_name = texts[3] if len(texts) > 3 else ""
-            if not raw_name:
-                continue
+            # Maç sayısı ve süre
+            td_texts = [td.get_text(" ", strip=True) for td in td_list]
+            # Orijinal kodda bu indeksler kullanılıyordu.
+            raw_minutes = td_texts[-1] if len(td_texts) >= 1 else ""
+            raw_played_matches = td_texts[-3] if len(td_texts) >= 3 else "" 
 
-            # Pozisyon kelimelerini kaldır
-            pos_pattern = r"(Kaleci|Defans|Stoper|Sağ Bek|Sol Bek|Orta saha|Merkez Orta Saha|On Numara|Forvet|Santrafor|Sol Kanat|Sağ Kanat)"
-            name_part = re.sub(pos_pattern, "", raw_name, flags=re.IGNORECASE).strip()
+            played_matches = extract_first_int(raw_played_matches)
+            minutes_played = extract_first_int(raw_minutes)
 
-            # Tekrar eden soyisim / kısaltma temizliği
-            name_part = re.sub(r"([A-Za-z\s]+?)([A-Z]\.\s*[A-Za-z]+?)\1?$", r"\1", name_part).strip()
-            name = re.sub(r"\b[A-Z]\.\s*", "", name_part).strip()
-
-            words = name.split()
-            if len(words) >= 2 and words[-1] == words[-2]:
-                name = " ".join(words[:-1]).strip()
-
-            if not name:
-                continue
-
-            # Maç sayısı: index 8
-            played_str = texts[8] if len(texts) > 8 else ""
-
-            # Dakika: index 10 - replace işlemleri ekle
-            minutes_str = texts[10].replace("'", "").replace(".", "").replace(",", "") if len(texts) > 10 else ""
-
-            # "oynatılmadı" kontrolü ve dakika digit kontrolü
-            if "oynatılmadı" in " ".join(texts).lower():
-                continue
-            
-            if not minutes_str or not minutes_str.isdigit():
-                continue
-
-            played = extract_first_int(played_str)
-            minutes = extract_first_int(minutes_str)
-
-            # Her ikisi de geçerli ve dakika > 0 olmalı
-            if played > 0 and minutes > 0:
+            if name:
                 players.append({
                     "name": name,
-                    "played_matches": played,
-                    "minutes_played": minutes
+                    "played_matches": played_matches,
+                    "minutes_played": minutes_played
                 })
 
-        if not players:
-            print(f"[UYARI] {team_slug} için oyuncu verisi çıkmadı.", file=sys.stderr)
-            return None
-
-        print(f"[BAŞARI] {team_slug} için {len(players)} oyuncu istatistiği alındı.", file=sys.stderr)
-        return players
+        if players:
+            return players
+        else:
+            raise ValueError("Stats is empty")
 
     except Exception as e:
-        print(f"[HATA] Stats scrape başarısız ({team_slug}): {type(e).__name__}: {e}", file=sys.stderr)
+        print(f"Oyuncu istatistikleri alınamadı ({team_slug}): {e}", file=sys.stderr)
         return None
 
 def scrape_suspensions(team_slug, team_id, squad):
-    url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
     try:
-        soup = get_soup(url)
+        url_squad = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
+        # get_soup zaten proxy kullanıyor
+        soup = get_soup(url_squad) 
+        suspensions = []
+
+        # Oyuncu tablosunu bul
         table = soup.find("table", class_="items")
         if not table:
-            raise ValueError("Suspensions table not found")
-
-        print(f"[GÜNCELLEME] {team_slug} için suspensions (old) verilerde değişiklik algılandı, scrape ediliyor...")
-
-        suspensions = []
+            print(f"{team_slug} için oyuncu tablosu bulunamadı", file=sys.stderr)
+            return suspensions
 
         # Oyuncu satırlarını tara (odd ve even sınıfları)
         rows = table.find_all("tr", class_=["odd", "even"])
@@ -448,35 +368,24 @@ def scrape_suspensions(team_slug, team_id, squad):
         return suspensions
     except Exception as e:
         print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
-        return None
+        return []
 
-
-def scrape_squad(team_slug: str, team_id: str) -> List[Dict]:
-    url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
+def scrape_squad(team_slug: str, team_id: str) -> List[dict] | None:
     try:
-        cached = load_cached_data(url)
+        url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
         soup = get_soup(url)
 
         table = soup.find("table", class_="items")
         if not table:
             raise ValueError("Squad table not found")
 
-        current_hash = get_content_hash(table)
-
-        if cached["hash"] and cached["hash"] == current_hash:
-            print(f"[BİLGİ] {team_slug} squad değişmemiş, cached veri dönülüyor.")
-            return cached["data"] or []
-
-        print(f"[GÜNCELLEME] {team_slug} squad değişti, scrape ediliyor...")
-
         rows = table.find_all("tr", class_=["odd", "even"])
         players = []
 
         for row in rows:
             name = row.find("td", class_="hauptlink").text.strip()
-            cells = row.find_all("td")
-            position = cells[4].text.strip() if len(cells) > 4 else "Bilinmiyor"
-            market_value = cells[-1].text.strip() if cells else "-"
+            position = row.find_all("td")[4].text.strip()
+            market_value = row.find_all("td")[-1].text.strip()
             players.append({
                 "name": name,
                 "position": position,
@@ -486,41 +395,24 @@ def scrape_squad(team_slug: str, team_id: str) -> List[Dict]:
         if not players:
             raise ValueError("Squad empty")
 
-        save_cache(url, current_hash, players)
         return players
 
     except Exception as e:
         print(f"[HATA] Squad scrape başarısız ({team_slug}): {e}", file=sys.stderr)
         return None
 
-
 def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dict] | None:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/sperrenundverletzungen/verein/{team_id}"
+    injuries = []
     try:
-        cached = load_cached_data(url)
+        # get_soup zaten proxy kullanıyor
         soup = get_soup(url)
         inj_header = soup.find("td", string="Sakatlıklar")
         if not inj_header:
-            return []
+            return injuries
 
-        # Injury section hash (eski mantık korunuyor)
-        injury_section = inj_header.find_parent("tr")
-        injury_content = str(injury_section)
-        next_row = injury_section.find_next_sibling()
-        while next_row and "extrarow" not in (next_row.get("class") or []):
-            injury_content += str(next_row)
-            next_row = next_row.find_next_sibling()
-
-        current_hash = hashlib.md5(injury_content.encode('utf-8')).hexdigest()
-
-        if cached["hash"] and cached["hash"] == current_hash:
-            print(f"[BİLGİ] {team_slug} injuries değişmemiş, cached veri dönülüyor.")
-            return cached["data"] or []
-
-        print(f"[GÜNCELLEME] {team_slug} injuries değişti, scrape ediliyor...")
-
-        injuries = []
-        next_row = injury_section.find_next_sibling()
+        row = inj_header.find_parent("tr")
+        next_row = row.find_next_sibling()
         while next_row and "extrarow" not in (next_row.get("class") or []):
             inline = next_row.find("table", class_="inline-table")
             if inline:
@@ -529,14 +421,13 @@ def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dic
                     player_name = name_tag.get_text(strip=True)
                     matched = next((p for p in squad if p["name"] == player_name), None)
                     position = matched["position"] if matched else ""
+
                     injuries.append({"name": player_name, "position": position})
             next_row = next_row.find_next_sibling()
-
-        save_cache(url, current_hash, injuries)
         return injuries
     except Exception as e:
         print(f"Sakatlık verisi alınamadı: {e}", file=sys.stderr)
-        return None
+    return None
 
 
 def get_league_url(league_key: str) -> str | None:
@@ -572,104 +463,56 @@ def get_form_url(league_key: str) -> str | None:
 
 
 def get_league_position(team_name: str, league_key: str):
-    url = get_league_url(league_key)
-    if not url:
-        return None
-
-    soup = get_soup(url)
-    table = soup.select_one("table.items")
-    if not table:
-        return None
-
-    rows = table.select("tbody tr")
-    for row in rows:
-        cells = row.find_all("td")
-        if len(cells) < 9:
-            continue
-
-        pos_text = cells[0].get_text(strip=True)
-        pos_clean = ''.join(c for c in pos_text if c.isdigit())
-        if not pos_clean.isdigit():
-            continue
-
-        team_td = cells[2]
-        a_tag = team_td.find("a")
-        team_display_name = a_tag.get_text(strip=True) if a_tag else ""
-
-        if not team_display_name:
-            team_display_name = re.sub(
-                r"[↑↓→←★☆]+", "", team_td.get_text(strip=True)
-            ).strip()
-
-        if team_display_name.lower().strip() == team_name.lower().strip():
-            return int(pos_clean)
-
-    return None
+    try:
+        url = get_league_url(league_key)
+        if not url:
+            return
+        # get_soup zaten proxy kullanıyor
+        soup = get_soup(url) 
+        table = soup.find("table", class_="items")
+        rows = table.find("tbody").find_all("tr", recursive=False)
+        for row in rows:
+            cells = row.find_all("td")
+            if len(cells) < 3:
+                continue
+            pos = cells[0].text.strip()
+            name = cells[2].text.strip()
+            if name.lower() == team_name.lower():
+                return int(pos) if pos.isdigit() else pos
+        return
+    except Exception as e:
+        print(f"Lig sıralaması alınamadı: {e}", file=sys.stderr)
+        return
 
 def get_recent_form(team_name: str, league_key: str) -> dict:
-    url = get_form_url(league_key)
-    if not url:
-        return {}
-
-    soup = get_soup(url)
-    form_table = soup.select_one("div.responsive-table table")
-    if not form_table:
-        return {}
-
-    rows = soup.select("div.responsive-table table tbody tr")
-
-    for row in rows:
-        team_cell = row.select_one("td.no-border-links.hauptlink a")
-        if not team_cell:
-            continue
-
-        team_display_name = team_cell.get_text(strip=True)
-
-        if team_display_name.lower().strip() != team_name.lower().strip():
-            continue
-
-        tds = row.find_all("td")
-        if len(tds) < 11:
-            continue
-
-        wins = extract_first_int(tds[4].text)
-        draws = extract_first_int(tds[5].text)
-        losses = extract_first_int(tds[6].text)
-
-        form_spans = tds[10].find_all("span")
-        recent_results = [
-            s.text.strip()
-            for s in form_spans
-            if s.text.strip() in ["G", "B", "M"]
-        ]
-
-        return {
-            "wins": wins,
-            "draws": draws,
-            "losses": losses,
-            "last_matches": recent_results
-        }
-
-    return {}
-
+    try:
+        url = get_form_url(league_key)
+        if not url:
+            return
+        # get_soup zaten proxy kullanıyor
+        soup = get_soup(url)
+        rows = soup.select("div.responsive-table table tbody tr")
+        for row in rows:
+            team_cell = row.select_one("td.no-border-links.hauptlink a")
+            if team_cell and team_name.lower() in team_cell.text.lower():
+                tds = row.find_all("td")
+                wins = int(tds[4].text.strip())
+                draws = int(tds[5].text.strip())
+                losses = int(tds[6].text.strip())
+                form_spans = tds[10].find_all("span")
+                recent_results = [s.text.strip() for s in form_spans if s.text.strip() in ["G", "B", "M"]]
+                return {"wins": wins, "draws": draws, "losses": losses, "last_matches": recent_results}
+        return
+    except Exception as e:
+        print(f"Form verisi alınamadı: {e}", file=sys.stderr)
+        return
 
 def scrape_suspensions_kader(team_slug: str, team_id: str, season_id: int = 2025) -> list | None:
+
     url = f"https://www.transfermarkt.com.tr/{team_slug}/kader/verein/{team_id}/saison_id/{season_id}"
+
     try:
-        cached = load_cached_data(url)
         soup = get_soup(url)
-
-        kader_table = soup.find("table", class_="items")
-        if not kader_table:
-            raise ValueError("Kader table not found")
-
-        current_hash = get_content_hash(kader_table)
-
-        if cached["hash"] and cached["hash"] == current_hash:
-            print(f"[BİLGİ] {team_slug} kader cezalı değişmemiş, cached veri dönülüyor.")
-            return cached["data"] or []
-
-        print(f"[GÜNCELLEME] {team_slug} kader cezalı değişti, scrape ediliyor...")
 
         cezali_oyuncular = []
 
@@ -679,7 +522,10 @@ def scrape_suspensions_kader(team_slug: str, team_id: str, season_id: int = 2025
                 continue
 
             name_td = row.find("td", class_="hauptlink")
-            player_name = " ".join(name_td.get_text(strip=True).split()) if name_td else "İsim bulunamadı"
+            player_name = (
+                " ".join(name_td.get_text(strip=True).split())
+                if name_td else "İsim bulunamadı"
+            )
 
             ceza_title = ausfall_span.get("title", "Ceza bilgisi yok")
 
@@ -702,12 +548,12 @@ def scrape_suspensions_kader(team_slug: str, team_id: str, season_id: int = 2025
             })
 
         time.sleep(random.uniform(1.5, 3.0))
-        save_cache(url, current_hash, cezali_oyuncular)
         return cezali_oyuncular
 
     except Exception as e:
         print(f"[UYARI] Kader cezalı scrape başarısız ({team_slug}): {e}", file=sys.stderr)
         return None
+
 
 
 def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dict], str]:
@@ -720,38 +566,30 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
     squad = None
     try:
         squad = scrape_squad(slug, team_id)
-        if squad is None:
-            print(f"[UYARI] Kadro bilgisi değişmemiş ({name}). Eski veri korunuyor.", file=sys.stderr)
-        elif not squad:
+        if not squad:
             print(f"[UYARI] Kadro bilgisi alınamadı ({name}). Diğer verilere geçiliyor.", file=sys.stderr)
     except Exception as e:
         print(f"[HATA] Kadro çekme hatası ({name}): {e}", file=sys.stderr)
 
     # 2. Sakatlıklar ve Cezalılar (SQUAD'a bağımlı)
-    injuries = None
+    injuries = []
     suspensions = []
-    if squad or squad is None:  # Squad cache'de aynı olsa bile, diğerlerini dene (bağımsız)
+    if squad:
         try:
-            injuries = scrape_injuries(slug, team_id, squad or [])  # squad None ise boş list kullan
-            if injuries is None:
-                print(f"[UYARI] Sakatlık verisi değişmemiş ({name}). Eski veri korunuyor.", file=sys.stderr)
+            injuries = scrape_injuries(slug, team_id, squad)
         except Exception as e:
             print(f"[HATA] Sakatlık çekme hatası ({name}): {e}", file=sys.stderr)
 
         try:
-            old_susp = scrape_suspensions(slug, team_id, squad or [])
-            if old_susp is None:
-                print(f"[UYARI] Eski ceza verisi değişmemiş ({name}). Eski veri korunuyor.", file=sys.stderr)
-            elif old_susp:
+            old_susp = scrape_suspensions(slug, team_id, squad)
+            if old_susp:
                 suspensions.extend(old_susp)
         except Exception as e:
             print(f"[HATA] Eski ceza scrape hatası ({name}): {e}", file=sys.stderr)
 
         try:
             new_susp = scrape_suspensions_kader(slug, team_id)
-            if new_susp is None:
-                print(f"[UYARI] Yeni ceza verisi değişmemiş ({name}). Eski veri korunuyor.", file=sys.stderr)
-            elif new_susp is not None:
+            if new_susp is not None:
                 suspensions.extend(new_susp)
             else:
                 print(f"[UYARI] Yeni ceza scrape başarısız, eski veri korunuyor ({name})", file=sys.stderr)
@@ -759,59 +597,58 @@ def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dic
             print(f"[HATA] Yeni ceza scrape hatası ({name}): {e}", file=sys.stderr)
 
     else:
-        # Squad hata verdiyse atla
+        # Squad yoksa bu verileri çekemeyiz (çünkü isim eşleştirme yapılıyor)
         print(f"[BİLGİ] Kadro olmadığı için sakatlık/ceza verisi atlanıyor ({name})", file=sys.stderr)
 
     # 3. Bağımsız Veriler: Pozisyon, Form, İstatistik
     position = None
     try:
         position = get_league_position(name, league_key)
-        if position is None:
-            print(f"[UYARI] Position verisi değişmemiş ({name}). Eski veri korunuyor.", file=sys.stderr)
     except Exception as e:
         print(f"[HATA] Pozisyon çekme hatası ({name}): {e}", file=sys.stderr)
 
     form = None
     try:
         form = get_recent_form(name, league_key)
-        if form is None:
-            print(f"[UYARI] Recent form verisi değişmemiş ({name}). Eski veri korunuyor.", file=sys.stderr)
     except Exception as e:
         print(f"[HATA] Form çekme hatası ({name}): {e}", file=sys.stderr)
 
     stats = None
     try:
         stats = scrape_stats(slug, team_id)
-        if stats is None:
-            print(f"[UYARI] İstatistik verisi değişmemiş ({name}). Eski veri korunuyor.", file=sys.stderr)
     except Exception as e:
         print(f"[HATA] İstatistik çekme hatası ({name}): {e}", file=sys.stderr)
 
     # Veriyi birleştir
     data = {
         "team": name,
+        "position_in_league": position,
+        "suspensions": suspensions
     }
-
-    if position is not None:
-        data["position_in_league"] = position
-
-    if suspensions:
-        data["suspensions"] = suspensions
 
     if squad is not None:
         data["squad"] = squad
+    else:
+        print(f"[UYARI] {name} için squad güncellenmedi (eski veri korunuyor).", file=sys.stderr)
 
-    # Injuries varsa ekle
-    if injuries is not None:
-        data["injuries"] = injuries or []  # None değilse, boş olsa bile ekle
+    # Injuries varsa ekle, yoksa eski veri korunsun diye ekleme
+    if injuries:
+        data["injuries"] = injuries
+    else:
+        print(f"[UYARI] {name} için sakatlık verisi alınamadı (eski veri korunuyor).", file=sys.stderr)
 
     # Form varsa ekle
-    if form is not None:
+    if form:
         data["recent_form"] = form
+    else:
+        print(f"[UYARI] {name} için recent_form alınamadı (eski veri korunuyor).", file=sys.stderr)
+
+    # İstatistik None değilse döndür
+    if stats is None:
+        print(f"[UYARI] {name} için istatistik alınamadı (eski veri korunuyor).", file=sys.stderr)
 
     print(f"✅ {name} için veri çekme tamamlandı.", file=sys.stderr)
     return data, stats, name.lower()
-
 
 def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) -> None:
     try:
@@ -824,16 +661,13 @@ def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) ->
             DB.collection("new_data").document(team_name.lower()).set({"player_stats": player_stats}, merge=True)
             print(f"✅ Firestore new_data'ya kaydedildi: {team_name}")
         else:
-            print(f"[UYARI] {team_name} için player_stats kaydedilmedi (değişiklik yok veya alınamadı)",
-                  file=sys.stderr)
+            print(f"[UYARI] {team_name} için player_stats kaydedilmedi (istatistik alınamadı)", file=sys.stderr)
     except Exception as e:
         print(f"❌ Firestore kaydetme hatası ({team_name}): {e}", file=sys.stderr)
-
 
 @app.route("/")
 def index():
     return "API çalışıyor"
-
 
 @app.route("/generate-json", methods=["POST"])
 def generate_json_api():
@@ -910,7 +744,6 @@ def generate_json_api():
         error_message = f"Maç ön kontrol hatası: {str(e)}"
         print(f"[KRİTİK HATA] API Başlangıç Hatası: {error_message}", file=sys.stderr)
         return jsonify({"status": "fatal_error", "message": error_message}), 500
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
