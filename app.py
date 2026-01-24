@@ -328,62 +328,79 @@ def get_content_hash(element) -> str:
     return hashlib.md5(critical_text.encode('utf-8')).hexdigest()
 
 
-def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
-    """Oyuncu istatistiklerini (oynadığı maç ve süre) çeker - cache destekli."""
+def scrape_stats(team_slug: str, team_id: str) -> List[dict] | None:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
-    
-    try:
-        # Proxy desteği
-        if PROXIES:
-            print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
 
+    try:
         soup = get_soup(url)
 
-        stats_table = soup.select_one("table.items")
-        if not stats_table:
-            raise ValueError("Stats table not found")
-
-        current_hash = get_content_hash(stats_table)
-
-        cached = load_cached_data(url)
-        if cached["hash"] and cached["hash"] == current_hash:
-            print(f"[BİLGİ] {team_slug} için oyuncu istatistikleri değişmemiş, scrape atlanıyor.")
+        table = soup.select_one("table.items")
+        if not table:
+            print(f"[HATA] table.items bulunamadı → {team_slug}", file=sys.stderr)
             return None
 
-        print(f"[GÜNCELLEME] {team_slug} için verilerde değişiklik algılandı, scrape ediliyor...")
+        current_hash = get_content_hash(table)
+        cached = load_cached_data(url)
 
-        rows = stats_table.select("tbody tr")
+        if cached["hash"] and cached["hash"] == current_hash:
+            print(f"[BİLGİ] {team_slug} stats değişmemiş, cached veri dönülüyor.")
+            return cached["data"] or []
+
+        print(f"[GÜNCELLEME] {team_slug} için istatistikler scrape ediliyor...", file=sys.stderr)
+
         players = []
+        rows = table.select("tbody tr")
 
         for row in rows:
-            td_list = row.find_all("td")
-            if len(td_list) < 11:
+            cells = row.find_all("td")
+            if len(cells) < 11:
                 continue
 
-            texts = [td.get_text(strip=True) for td in td_list]
-            
-            # İsim temizleme ve diğer parse işlemleri
-            player_name = texts[1]
-            matches_played = extract_first_int(texts[3])
-            minutes_played = extract_first_int(texts[4])
-            
-            players.append({
-                "name": player_name,
-                "matches": matches_played,
-                "minutes": minutes_played
-            })
+            texts = [td.get_text(strip=True) for td in cells]
+
+            raw_name = texts[3]
+            if not raw_name:
+                continue
+
+            # Pozisyon temizliği
+            pos_pattern = r"(Kaleci|Defans|Stoper|Sağ Bek|Sol Bek|Orta saha|Merkez Orta Saha|On Numara|Forvet|Santrafor|Sol Kanat|Sağ Kanat)"
+            name = re.sub(pos_pattern, "", raw_name, flags=re.IGNORECASE).strip()
+
+            # Kısaltma & tekrar temizliği
+            name = re.sub(r"\b[A-Z]\.\s*", "", name).strip()
+            words = name.split()
+            if len(words) >= 2 and words[-1] == words[-2]:
+                name = " ".join(words[:-1])
+
+            if not name:
+                continue
+
+            played_str = texts[8]
+            minutes_str = texts[10].replace("'", "").replace(".", "")
+
+            if "oynatılmadı" in " ".join(texts).lower():
+                continue
+
+            played = extract_first_int(played_str)
+            minutes = extract_first_int(minutes_str)
+
+            if played > 0 and minutes > 0:
+                players.append({
+                    "name": name,
+                    "played_matches": played,
+                    "minutes_played": minutes
+                })
 
         if not players:
-            print(f"[UYARI] {team_slug} için oyuncu verisi çıkmadı.", file=sys.stderr)
+            print(f"[UYARI] {team_slug} için stats boş.", file=sys.stderr)
             return None
 
         save_cache(url, current_hash, players)
         return players
 
     except Exception as e:
-        print(f"[HATA] {team_slug}: {e}", file=sys.stderr)
+        print(f"[HATA] Stats scrape başarısız ({team_slug}): {e}", file=sys.stderr)
         return None
-
 
 def scrape_suspensions(team_slug, team_id, squad):
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
