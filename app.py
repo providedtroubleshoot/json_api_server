@@ -329,17 +329,19 @@ def get_content_hash(element) -> str:
 
 
 def scrape_stats(team_slug: str, team_id: str) -> List[dict] | None:
+
     url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
 
     try:
+        print(f"[SCRAPE] {team_slug} için istatistikler çekiliyor...", file=sys.stderr)
+        
+        # get_soup kullanarak HTML'i çek
         soup = get_soup(url)
 
         table = soup.select_one("table.items")
         if not table:
             print(f"[HATA] table.items bulunamadı → {team_slug}", file=sys.stderr)
             return None
-
-        print(f"[GÜNCELLEME] {team_slug} için istatistikler scrape ediliyor...", file=sys.stderr)
 
         players = []
         rows = table.select("tbody tr")
@@ -351,32 +353,43 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict] | None:
 
             texts = [td.get_text(strip=True) for td in cells]
 
+            # İsim temizleme
             raw_name = texts[3] if len(texts) > 3 else ""
             if not raw_name:
                 continue
 
-            # Pozisyon temizliği
+            # Pozisyon kelimelerini kaldır
             pos_pattern = r"(Kaleci|Defans|Stoper|Sağ Bek|Sol Bek|Orta saha|Merkez Orta Saha|On Numara|Forvet|Santrafor|Sol Kanat|Sağ Kanat)"
-            name = re.sub(pos_pattern, "", raw_name, flags=re.IGNORECASE).strip()
+            name_part = re.sub(pos_pattern, "", raw_name, flags=re.IGNORECASE).strip()
 
-            # Kısaltma & tekrar temizliği
-            name = re.sub(r"\b[A-Z]\.\s*", "", name).strip()
+            # Tekrar eden soyisim / kısaltma temizliği
+            name_part = re.sub(r"([A-Za-z\s]+?)([A-Z]\.\s*[A-Za-z]+?)\1?$", r"\1", name_part).strip()
+            name = re.sub(r"\b[A-Z]\.\s*", "", name_part).strip()
+
             words = name.split()
             if len(words) >= 2 and words[-1] == words[-2]:
-                name = " ".join(words[:-1])
+                name = " ".join(words[:-1]).strip()
 
             if not name:
                 continue
 
-            played_str = texts[8]
-            minutes_str = texts[10].replace("'", "").replace(".", "")
+            # Maç sayısı: index 8
+            played_str = texts[8] if len(texts) > 8 else ""
 
+            # Dakika: index 10 - replace işlemleri ekle
+            minutes_str = texts[10].replace("'", "").replace(".", "").replace(",", "") if len(texts) > 10 else ""
+
+            # "oynatılmadı" kontrolü ve dakika digit kontrolü
             if "oynatılmadı" in " ".join(texts).lower():
+                continue
+            
+            if not minutes_str or not minutes_str.isdigit():
                 continue
 
             played = extract_first_int(played_str)
             minutes = extract_first_int(minutes_str)
 
+            # Her ikisi de geçerli ve dakika > 0 olmalı
             if played > 0 and minutes > 0:
                 players.append({
                     "name": name,
@@ -385,13 +398,14 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict] | None:
                 })
 
         if not players:
-            print(f"[UYARI] {team_slug} için stats boş.", file=sys.stderr)
+            print(f"[UYARI] {team_slug} için oyuncu verisi çıkmadı.", file=sys.stderr)
             return None
 
+        print(f"[BAŞARI] {team_slug} için {len(players)} oyuncu istatistiği alındı.", file=sys.stderr)
         return players
 
     except Exception as e:
-        print(f"[HATA] Stats scrape başarısız ({team_slug}): {e}", file=sys.stderr)
+        print(f"[HATA] Stats scrape başarısız ({team_slug}): {type(e).__name__}: {e}", file=sys.stderr)
         return None
 
 def scrape_suspensions(team_slug, team_id, squad):
