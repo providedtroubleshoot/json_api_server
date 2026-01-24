@@ -289,42 +289,63 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
 
         soup = get_soup(url)
 
-        rows = soup.select("table.items tbody tr")
+        table = soup.select_one("table.items")
+        if not table:
+            print(f"[HATA] table.items bulunamadı → {team_slug}", file=sys.stderr)
+            return None
         players = []
-
+        rows = table.select("tbody tr")
         for row in rows:
-            td_list = row.find_all("td")
-            if len(td_list) < 5:
+            cells = row.find_all("td")
+            if len(cells) < 11:
+                continue
+            texts = [td.get_text(strip=True) for td in cells]
+
+            raw_name = texts[3] if len(texts) > 3 else ""
+            if not raw_name:
                 continue
 
-            # Oyuncu adı
-            name_td = row.find("td", class_="hauptlink")
-            a = name_td.find("a") if name_td else None
-            name = a.get("title") if a and a.get("title") else (a.text.strip() if a else "")
+            pos_pattern = r"(Kaleci|Defans|Stoper|Sağ Bek|Sol Bek|Orta saha|Merkez Orta Saha|On Numara|Forvet|Santrafor|Sol Kanat|Sağ Kanat)"
+            name_part = re.sub(pos_pattern, "", raw_name, flags=re.IGNORECASE).strip()
 
-            # Maç sayısı ve süre
-            td_texts = [td.get_text(" ", strip=True) for td in td_list]
-            # Orijinal kodda bu indeksler kullanılıyordu.
-            raw_minutes = td_texts[-1] if len(td_texts) >= 1 else ""
-            raw_played_matches = td_texts[-3] if len(td_texts) >= 3 else "" 
+            # Tekrar eden soyisim / kısaltma temizliği
+            name_part = re.sub(r"([A-Za-z\s]+?)([A-Z]\.\s*[A-Za-z]+?)\1?$", r"\1", name_part).strip()
+            name = re.sub(r"\b[A-Z]\.\s*", "", name_part).strip()
 
-            played_matches = extract_first_int(raw_played_matches)
-            minutes_played = extract_first_int(raw_minutes)
+            words = name.split()
+            if len(words) >= 2 and words[-1] == words[-2]:
+                name = " ".join(words[:-1]).strip()
 
-            if name:
+            if not name:
+                continue
+
+            # Maç sayısı: index 8
+            played_str = texts[8] if len(texts) > 8 else ""
+
+            # Dakika: index 10
+            minutes_str = texts[10].replace("'", "").replace(".", "") if len(texts) > 10 else ""
+
+            if "oynatılmadı" in " ".join(texts).lower() or not minutes_str.isdigit():
+                continue
+
+            played = _extract_first_int(played_str)
+            minutes = _extract_first_int(minutes_str)
+
+            if played is not None and minutes is not None and minutes > 0:
                 players.append({
                     "name": name,
-                    "played_matches": played_matches,
-                    "minutes_played": minutes_played
+                    "played_matches": played,
+                    "minutes_played": minutes
                 })
 
-        if players:
-            return players
-        else:
-            raise ValueError("Stats is empty")
+        if not players:
+            print(f"[UYARI] {team_slug} için oyuncu verisi çıkmadı.", file=sys.stderr)
+            return None
+
+        return players
 
     except Exception as e:
-        print(f"Oyuncu istatistikleri alınamadı ({team_slug}): {e}", file=sys.stderr)
+        print(f"[HATA] {team_slug}: {e}", file=sys.stderr)
         return None
 
 def scrape_suspensions(team_slug, team_id, squad):
