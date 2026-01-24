@@ -339,13 +339,6 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict] | None:
             print(f"[HATA] table.items bulunamadı → {team_slug}", file=sys.stderr)
             return None
 
-        current_hash = get_content_hash(table)
-        cached = load_cached_data(url)
-
-        if cached["hash"] and cached["hash"] == current_hash:
-            print(f"[BİLGİ] {team_slug} stats değişmemiş, cached veri dönülüyor.")
-            return cached["data"] or []
-
         print(f"[GÜNCELLEME] {team_slug} için istatistikler scrape ediliyor...", file=sys.stderr)
 
         players = []
@@ -358,7 +351,7 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict] | None:
 
             texts = [td.get_text(strip=True) for td in cells]
 
-            raw_name = texts[3]
+            raw_name = texts[3] if len(texts) > 3 else ""
             if not raw_name:
                 continue
 
@@ -395,7 +388,6 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict] | None:
             print(f"[UYARI] {team_slug} için stats boş.", file=sys.stderr)
             return None
 
-        save_cache(url, current_hash, players)
         return players
 
     except Exception as e:
