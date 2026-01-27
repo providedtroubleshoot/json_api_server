@@ -6,7 +6,7 @@ import random
 from typing import Dict, List
 import hashlib
 from curl_cffi import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup	
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 import firebase_admin
@@ -60,6 +60,139 @@ try:
 except RuntimeError as e:
     print(f"[HATA] Firebase Başlatılamadı: {e}", file=sys.stderr)
     DB = None
+
+class CacheManager:
+    """
+    Her veri tipi için ayrı cache kontrolü yapan sınıf.
+    HTML içeriğinden hash üretir ve değişiklik varsa scrape eder.
+    """
+    
+    # Her veri tipi için cache süresi (dakika cinsinden)
+    CACHE_DURATIONS = {
+        'squad': 1440,          # 24 saat (kadro nadiren değişir)
+        'injuries': 360,        # 6 saat (sakatlıklar günlük değişebilir)
+        'suspensions': 360,     # 6 saat (cezalar günlük değişebilir)
+        'suspensions_kader': 360, # 6 saat (cezalar günlük değişebilir)
+        'position': 60,         # 1 saat (lig pozisyonu sık değişir)
+        'form': 120,            # 2 saat (form tablosu maç sonuçlarıyla değişir)
+        'stats': 180,           # 3 saat (oyuncu istatistikleri)
+    }
+    
+    def __init__(self, db):
+        self.db = db
+    
+    def get_content_hash(self, url: str, selector: str = None) -> Optional[str]:
+        """
+        Verilen URL'den içerik çeker ve hash oluşturur.
+        
+        Args:
+            url: Scrape edilecek URL
+            selector: CSS seçici (belirli bir bölümü hash'lemek için)
+        
+        Returns:
+            İçeriğin SHA256 hash'i veya hata durumunda None
+        """
+        try:
+            soup = get_soup(url)
+            
+            if selector:
+                content = soup.select_one(selector)
+                if not content:
+                    print(f"[CACHE] Seçici bulunamadı: {selector}", file=sys.stderr)
+                    return None
+                text = content.get_text(strip=True)
+            else:
+                text = soup.get_text(strip=True)
+            
+            # Whitespace'leri normalize et
+            normalized = re.sub(r'\s+', ' ', text).strip()
+            
+            # Hash oluştur
+            return hashlib.sha256(normalized.encode('utf-8')).hexdigest()
+        
+        except Exception as e:
+            print(f"[CACHE HATA] Hash oluşturulamadı ({url}): {e}", file=sys.stderr)
+            return None
+    
+    def should_scrape(self, team_name: str, data_type: str, current_hash: str) -> bool:
+        """
+        Cache kontrolü yapar ve scrape gerekip gerekmediğini döner.
+        
+        Args:
+            team_name: Takım adı (küçük harf)
+            data_type: Veri tipi ('squad', 'injuries', vs.)
+            current_hash: Şu anki içeriğin hash'i
+        
+        Returns:
+            True ise scrape et, False ise cache'den kullan
+        """
+        try:
+            # Firestore'dan cache metadata'yı çek
+            cache_ref = self.db.collection('cache_metadata').document(team_name)
+            cache_doc = cache_ref.get()
+            
+            if not cache_doc.exists:
+                print(f"[CACHE] İlk scrape: {team_name}/{data_type}", file=sys.stderr)
+                return True
+            
+            cache_data = cache_doc.to_dict()
+            
+            # Bu veri tipi için cache bilgisi var mı?
+            if data_type not in cache_data:
+                print(f"[CACHE] Yeni veri tipi: {team_name}/{data_type}", file=sys.stderr)
+                return True
+            
+            type_cache = cache_data[data_type]
+            last_hash = type_cache.get('hash')
+            last_update = type_cache.get('last_update')
+            
+            # Hash değişmiş mi?
+            if current_hash != last_hash:
+                print(f"[CACHE] İçerik değişmiş: {team_name}/{data_type}", file=sys.stderr)
+                return True
+            
+            # Cache süresi dolmuş mu?
+            if last_update:
+                cache_duration = self.CACHE_DURATIONS.get(data_type, 60)
+                expiry_time = last_update + timedelta(minutes=cache_duration)
+                
+                if datetime.now() > expiry_time:
+                    print(f"[CACHE] Süresi dolmuş: {team_name}/{data_type} ({cache_duration} dk)", file=sys.stderr)
+                    return True
+            
+            print(f"[CACHE HIT] ✓ Kullanılıyor: {team_name}/{data_type}", file=sys.stderr)
+            return False
+        
+        except Exception as e:
+            print(f"[CACHE HATA] Kontrol başarısız ({team_name}/{data_type}): {e}", file=sys.stderr)
+            # Hata durumunda güvenli taraf: scrape et
+            return True
+    
+    def update_cache(self, team_name: str, data_type: str, content_hash: str):
+        """
+        Cache metadata'yı günceller.
+        
+        Args:
+            team_name: Takım adı (küçük harf)
+            data_type: Veri tipi
+            content_hash: Yeni hash değeri
+        """
+        try:
+            cache_ref = self.db.collection('cache_metadata').document(team_name)
+            
+            cache_ref.set({
+                data_type: {
+                    'hash': content_hash,
+                    'last_update': datetime.now(),
+                    'last_scraped': datetime.now().isoformat()
+                }
+            }, merge=True)
+            
+            print(f"[CACHE] ✓ Güncellendi: {team_name}/{data_type}", file=sys.stderr)
+        
+        except Exception as e:
+            print(f"[CACHE HATA] Güncellenemedi ({team_name}/{data_type}): {e}", file=sys.stderr)
+
 
 # Takım Sözlüğü (Değiştirilmedi)
 TEAMS = {
@@ -348,6 +481,24 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
         print(f"[HATA] {team_slug}: {e}", file=sys.stderr)
         return None
 
+def scrape_stats_cached(team_slug: str, team_id: str, team_name: str, cache_mgr: CacheManager) -> List[dict] | None:
+    """Cache-aware oyuncu istatistikleri"""
+    url = f"https://www.transfermarkt.com.tr/{team_slug}/leistungsdaten/verein/{team_id}"
+    
+    content_hash = cache_mgr.get_content_hash(url, "table.items")
+    if not content_hash:
+        return scrape_stats(team_slug, team_id)
+    
+    if not cache_mgr.should_scrape(team_name, 'stats', content_hash):
+        return None
+    
+    stats = scrape_stats(team_slug, team_id)
+    
+    if stats is not None:
+        cache_mgr.update_cache(team_name, 'stats', content_hash)
+    
+    return stats
+
 def scrape_suspensions(team_slug, team_id, squad):
     try:
         url_squad = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
@@ -391,6 +542,37 @@ def scrape_suspensions(team_slug, team_id, squad):
         print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
         return []
 
+def scrape_suspensions_cached(team_slug: str, team_id: str, squad: List[dict],
+                              team_name: str, cache_mgr: CacheManager) -> List[dict] | None:
+    """Cache-aware ceza scraping (hem eski hem yeni metod)"""
+    url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
+    
+    content_hash = cache_mgr.get_content_hash(url, "table.items")
+    if not content_hash:
+        # Hash oluşturulamazsa normal scrape
+        old_susp = scrape_suspensions(team_slug, team_id, squad) or []
+        new_susp = scrape_suspensions_kader(team_slug, team_id) or []
+        return old_susp + new_susp
+    
+    if not cache_mgr.should_scrape(team_name, 'suspensions', content_hash):
+        return None
+    
+    # Scrape et (her iki metod)
+    suspensions = []
+    old_susp = scrape_suspensions(team_slug, team_id, squad)
+    if old_susp:
+        suspensions.extend(old_susp)
+    
+    new_susp = scrape_suspensions_kader(team_slug, team_id)
+    if new_susp:
+        suspensions.extend(new_susp)
+    
+    if suspensions:
+        cache_mgr.update_cache(team_name, 'suspensions', content_hash)
+    
+    return suspensions if suspensions else None
+
+
 def scrape_squad(team_slug: str, team_id: str) -> List[dict] | None:
     try:
         url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
@@ -422,6 +604,29 @@ def scrape_squad(team_slug: str, team_id: str) -> List[dict] | None:
         print(f"[HATA] Squad scrape başarısız ({team_slug}): {e}", file=sys.stderr)
         return None
 
+def scrape_squad_cached(team_slug: str, team_id: str, team_name: str, cache_mgr: CacheManager) -> List[dict] | None:
+    """Cache-aware kadro scraping"""
+    url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
+    
+    # Hash oluştur
+    content_hash = cache_mgr.get_content_hash(url, "table.items")
+    if not content_hash:
+        print(f"[UYARI] Squad hash oluşturulamadı: {team_name}", file=sys.stderr)
+        return scrape_squad(team_slug, team_id)  # Normal scrape'e devam et
+    
+    # Cache kontrolü
+    if not cache_mgr.should_scrape(team_name, 'squad', content_hash):
+        return None  # None = cache kullan, eski veriyi koru
+    
+    # Scrape et
+    squad = scrape_squad(team_slug, team_id)
+    
+    # Başarılıysa cache'i güncelle
+    if squad is not None:
+        cache_mgr.update_cache(team_name, 'squad', content_hash)
+    
+    return squad
+
 def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dict] | None:
     url = f"https://www.transfermarkt.com.tr/{team_slug}/sperrenundverletzungen/verein/{team_id}"
     injuries = []
@@ -449,6 +654,29 @@ def scrape_injuries(team_slug: str, team_id: str, squad: List[dict]) -> List[dic
     except Exception as e:
         print(f"Sakatlık verisi alınamadı: {e}", file=sys.stderr)
     return None
+
+def scrape_injuries_cached(team_slug: str, team_id: str, squad: List[dict], 
+                           team_name: str, cache_mgr: CacheManager) -> List[dict] | None:
+    """Cache-aware sakatlık scraping"""
+    url = f"https://www.transfermarkt.com.tr/{team_slug}/sperrenundverletzungen/verein/{team_id}"
+    
+    # Hash oluştur (sadece sakatlıklar bölümünden)
+    content_hash = cache_mgr.get_content_hash(url, "table.items")
+    if not content_hash:
+        return scrape_injuries(team_slug, team_id, squad)
+    
+    # Cache kontrolü
+    if not cache_mgr.should_scrape(team_name, 'injuries', content_hash):
+        return None
+    
+    # Scrape et
+    injuries = scrape_injuries(team_slug, team_id, squad)
+    
+    if injuries is not None:
+        cache_mgr.update_cache(team_name, 'injuries', content_hash)
+    
+    return injuries
+
 
 
 def get_league_url(league_key: str) -> str | None:
@@ -505,6 +733,26 @@ def get_league_position(team_name: str, league_key: str):
         print(f"Lig sıralaması alınamadı: {e}", file=sys.stderr)
         return
 
+def get_league_position_cached(team_name: str, league_key: str, cache_mgr: CacheManager) -> int | None:
+    """Cache-aware lig pozisyonu"""
+    url = get_league_url(league_key)
+    if not url:
+        return None
+    
+    content_hash = cache_mgr.get_content_hash(url, "table.items")
+    if not content_hash:
+        return get_league_position(team_name, league_key)
+    
+    if not cache_mgr.should_scrape(team_name.lower(), 'position', content_hash):
+        return None
+    
+    position = get_league_position(team_name, league_key)
+    
+    if position is not None:
+        cache_mgr.update_cache(team_name.lower(), 'position', content_hash)
+    
+    return position
+
 def get_recent_form(team_name: str, league_key: str) -> dict:
     try:
         url = get_form_url(league_key)
@@ -527,6 +775,26 @@ def get_recent_form(team_name: str, league_key: str) -> dict:
     except Exception as e:
         print(f"Form verisi alınamadı: {e}", file=sys.stderr)
         return
+
+def get_recent_form_cached(team_name: str, league_key: str, cache_mgr: CacheManager) -> dict | None:
+    """Cache-aware form tablosu"""
+    url = get_form_url(league_key)
+    if not url:
+        return None
+    
+    content_hash = cache_mgr.get_content_hash(url, "div.responsive-table")
+    if not content_hash:
+        return get_recent_form(team_name, league_key)
+    
+    if not cache_mgr.should_scrape(team_name.lower(), 'form', content_hash):
+        return None
+    
+    form = get_recent_form(team_name, league_key)
+    
+    if form is not None:
+        cache_mgr.update_cache(team_name.lower(), 'form', content_hash)
+    
+    return form
 
 def scrape_suspensions_kader(team_slug: str, team_id: str, season_id: int = 2025) -> list | None:
 
@@ -575,101 +843,101 @@ def scrape_suspensions_kader(team_slug: str, team_id: str, season_id: int = 2025
         print(f"[UYARI] Kader cezalı scrape başarısız ({team_slug}): {e}", file=sys.stderr)
         return None
 
+ef scrape_suspensions_kader_cached(team_slug: str, team_id: str, team_name: str, 
+                                     cache_mgr: CacheManager, season_id: int = 2025) -> list | None:
+    """Cache-aware kader cezalı scraping"""
+    url = f"https://www.transfermarkt.com.tr/{team_slug}/kader/verein/{team_id}/saison_id/{season_id}"
+    
+    # Hash oluştur
+    content_hash = cache_mgr.get_content_hash(url, "table.items")
+    if not content_hash:
+        return scrape_suspensions_kader(team_slug, team_id, season_id)
+    
+    # Cache kontrolü - 'suspensions_kader' ayrı bir key
+    if not cache_mgr.should_scrape(team_name, 'suspensions_kader', content_hash):
+        return None
+    
+    # Scrape et
+    suspensions = scrape_suspensions_kader(team_slug, team_id, season_id)
+    
+    if suspensions is not None:
+        cache_mgr.update_cache(team_name, 'suspensions_kader', content_hash)
+    
+    return suspensions
 
 
-def generate_team_data(team_info: dict, league_key: str) -> tuple[dict, List[dict], str]:
+def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager) -> tuple[dict, List[dict], str]:
+    """
+    Cache-aware veri çekme. 
+    None dönen değerler = eski veri kullanılacak (Firestore'da merge=True ile)
+    """
     name = team_info["name"]
     slug = team_info["slug"]
     team_id = team_info["id"]
+    team_doc = name.lower()
+    
+    print(f"🔄 {name} için cache-aware veri çekme başlıyor...", file=sys.stderr)
+    
+    # 1. Kadro (Cache-aware)
+    squad = scrape_squad_cached(slug, team_id, team_doc, cache_mgr)
+    
+    # 2. Sakatlıklar ve Cezalılar (Kadro gerekli, ama cache'den gelebilir)
+    injuries = None
+    suspensions = None
+    suspensions_kader = None
 
-    print(f"🔄 {name} için veri çekme başlıyor...", file=sys.stderr)
-    # 1. Kadro (SQUAD)
-    squad = None
-    try:
-        squad = scrape_squad(slug, team_id)
-        if not squad:
-            print(f"[UYARI] Kadro bilgisi alınamadı ({name}). Diğer verilere geçiliyor.", file=sys.stderr)
-    except Exception as e:
-        print(f"[HATA] Kadro çekme hatası ({name}): {e}", file=sys.stderr)
-
-    # 2. Sakatlıklar ve Cezalılar (SQUAD'a bağımlı)
-    injuries = []
-    suspensions = []
-    if squad:
+    # Eğer squad None ise (cache hit), mevcut squad'ı Firestore'dan çek
+    if squad is None:
         try:
-            injuries = scrape_injuries(slug, team_id, squad)
-        except Exception as e:
-            print(f"[HATA] Sakatlık çekme hatası ({name}): {e}", file=sys.stderr)
+            doc = DB.collection("team_data").document(team_doc).get()
+            if doc.exists:
+                existing_squad = doc.to_dict().get('squad', [])
+                # Sakatlık/ceza scrape için mevcut squad'ı kullan
+                injuries = scrape_injuries_cached(slug, team_id, existing_squad, team_doc, cache_mgr)
+                suspensions = scrape_suspensions_cached(slug, team_id, existing_squad, team_doc, cache_mgr)
+                suspensions_kader = scrape_suspensions_kader_cached(slug, team_id, team_doc, cache_mgr)
 
-        try:
-            old_susp = scrape_suspensions(slug, team_id, squad)
-            if old_susp:
-                suspensions.extend(old_susp)
         except Exception as e:
-            print(f"[HATA] Eski ceza scrape hatası ({name}): {e}", file=sys.stderr)
-
-        try:
-            new_susp = scrape_suspensions_kader(slug, team_id)
-            if new_susp is not None:
-                suspensions.extend(new_susp)
-            else:
-                print(f"[UYARI] Yeni ceza scrape başarısız, eski veri korunuyor ({name})", file=sys.stderr)
-        except Exception as e:
-            print(f"[HATA] Yeni ceza scrape hatası ({name}): {e}", file=sys.stderr)
-
+            print(f"[HATA] Firestore'dan squad alınamadı: {e}", file=sys.stderr)
     else:
-        # Squad yoksa bu verileri çekemeyiz (çünkü isim eşleştirme yapılıyor)
-        print(f"[BİLGİ] Kadro olmadığı için sakatlık/ceza verisi atlanıyor ({name})", file=sys.stderr)
-
-    # 3. Bağımsız Veriler: Pozisyon, Form, İstatistik
-    position = None
-    try:
-        position = get_league_position(name, league_key)
-    except Exception as e:
-        print(f"[HATA] Pozisyon çekme hatası ({name}): {e}", file=sys.stderr)
-
-    form = None
-    try:
-        form = get_recent_form(name, league_key)
-    except Exception as e:
-        print(f"[HATA] Form çekme hatası ({name}): {e}", file=sys.stderr)
-
-    stats = None
-    try:
-        stats = scrape_stats(slug, team_id)
-    except Exception as e:
-        print(f"[HATA] İstatistik çekme hatası ({name}): {e}", file=sys.stderr)
-
-    # Veriyi birleştir
+        # Yeni squad scrape edildi, onunla devam et
+        injuries = scrape_injuries_cached(slug, team_id, squad, team_doc, cache_mgr)
+        suspensions = scrape_suspensions_cached(slug, team_id, squad, team_doc, cache_mgr)
+        suspensions_kader = scrape_suspensions_kader_cached(slug, team_id, team_doc, cache_mgr)
+    
+    # 3. Bağımsız veriler (Cache-aware)
+    position = get_league_position_cached(name, league_key, cache_mgr)
+    form = get_recent_form_cached(name, league_key, cache_mgr)
+    stats = scrape_stats_cached(slug, team_id, team_doc, cache_mgr)
+    
+    # 4. Veriyi birleştir (None olanlar eklenmez = eski veri korunur)
     data = {
         "team": name,
-        "position_in_league": position,
-        "suspensions": suspensions
+        "last_checked": datetime.now().isoformat()  # Her zaman güncelle
     }
-
+    
+    if position is not None:
+        data["position_in_league"] = position
+    
     if squad is not None:
         data["squad"] = squad
-    else:
-        print(f"[UYARI] {name} için squad güncellenmedi (eski veri korunuyor).", file=sys.stderr)
-
-    # Injuries varsa ekle, yoksa eski veri korunsun diye ekleme
-    if injuries:
+    
+    if injuries is not None:
         data["injuries"] = injuries
-    else:
-        print(f"[UYARI] {name} için sakatlık verisi alınamadı (eski veri korunuyor).", file=sys.stderr)
+    
+    if suspensions is not None:
+        data["suspensions"] = suspensions
+    
+    if suspensions_kader is not None:
+        data["suspensions_kader"] = suspensions_kader
 
-    # Form varsa ekle
-    if form:
+    if form is not None:
         data["recent_form"] = form
-    else:
-        print(f"[UYARI] {name} için recent_form alınamadı (eski veri korunuyor).", file=sys.stderr)
-
-    # İstatistik None değilse döndür
-    if stats is None:
-        print(f"[UYARI] {name} için istatistik alınamadı (eski veri korunuyor).", file=sys.stderr)
-
-    print(f"✅ {name} için veri çekme tamamlandı.", file=sys.stderr)
-    return data, stats, name.lower()
+    
+    print(f"✅ {name} için cache-aware veri çekme tamamlandı.", file=sys.stderr)
+    print(f"   → Güncellenecek alanlar: {list(data.keys())}", file=sys.stderr)
+    
+    return data, stats, team_doc
 
 def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) -> None:
     try:
@@ -707,12 +975,14 @@ def generate_json_api():
         home_info = get_team_info(home_key)
         away_info = get_team_info(away_key)
 
+        cache_mgr = CacheManager(DB)
+
         # --- EV SAHİBİ TAKIM İŞLEMİ (İzolasyon Bloğu) ---
         home_data = None
         home_stats = None
         home_doc = home_info['name'].lower()
         try:
-            home_data, home_stats, home_doc = generate_team_data(home_info, league_key)
+            home_data, home_stats, home_doc = generate_team_data(home_info, league_key, cache_mgr)
             if home_data:
                 save_team_data(home_doc, home_data, home_stats)
             else:
@@ -730,7 +1000,7 @@ def generate_json_api():
         away_stats = None
         away_doc = away_info['name'].lower()
         try:
-            away_data, away_stats, away_doc = generate_team_data(away_info, league_key)
+            away_data, away_stats, away_doc = generate_team_data(away_info, league_key, cache_mgr)
             if away_data:
                 save_team_data(away_doc, away_data, away_stats)
             else:
