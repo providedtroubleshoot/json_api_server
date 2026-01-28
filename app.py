@@ -5,6 +5,7 @@ import time
 import random
 from typing import Dict, List
 import hashlib
+from datetime import datetime, timedelta
 from curl_cffi import requests
 from bs4 import BeautifulSoup	
 from dotenv import load_dotenv
@@ -465,8 +466,8 @@ def scrape_stats(team_slug: str, team_id: str) -> List[dict]:
             if "oynatılmadı" in " ".join(texts).lower() or not minutes_str.isdigit():
                 continue
 
-            played = _extract_first_int(played_str)
-            minutes = _extract_first_int(minutes_str)
+            played = extract_first_int(played_str)
+            minutes = extract_first_int(minutes_str)
 
             if played is not None and minutes is not None and minutes > 0:
                 players.append({
