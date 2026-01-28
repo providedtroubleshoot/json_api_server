@@ -847,7 +847,7 @@ def scrape_suspensions_kader(team_slug: str, team_id: str, season_id: int = 2025
         print(f"[UYARI] Kader cezalı scrape başarısız ({team_slug}): {e}", file=sys.stderr)
         return None
 
-ef scrape_suspensions_kader_cached(team_slug: str, team_id: str, team_name: str, 
+def scrape_suspensions_kader_cached(team_slug: str, team_id: str, team_name: str, 
                                      cache_mgr: CacheManager, season_id: int = 2025) -> list | None:
     """Cache-aware kader cezalı scraping"""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/kader/verein/{team_id}/saison_id/{season_id}"
