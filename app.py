@@ -196,6 +196,10 @@ class CacheManager:
 
 # Takım Sözlüğü (Değiştirilmedi)
 TEAMS = {
+    "chapecoense": {"name": "Chapecoense", "slug": "chapecoense", "id": "17776"},
+    "remo": {"name": "Remo", "slug": "clube-do-remo-pa-", "id": "10997"},
+    "coritiba": {"name": "Coritiba", "slug": "coritiba-fc", "id": "776"},
+    "athletico": {"name": "Athletico", "slug": "club-athletico-paranaense", "id": "679"},
     "tondela": {"name": "Tondela", "slug": "cd-tondela", "id": "7179"},
     "moreirense": {"name": "Moreirense", "slug": "moreirense-fc", "id": "979"},
     "santa clara": {"name": "Santa Clara", "slug": "cd-santa-clara", "id": "2423"},
@@ -885,7 +889,7 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     injuries = None
     suspensions = None
     suspensions_kader = None
-
+    
     # Eğer squad None ise (cache hit), mevcut squad'ı Firestore'dan çek
     if squad is None:
         try:
@@ -896,7 +900,6 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
                 injuries = scrape_injuries_cached(slug, team_id, existing_squad, team_doc, cache_mgr)
                 suspensions = scrape_suspensions_cached(slug, team_id, existing_squad, team_doc, cache_mgr)
                 suspensions_kader = scrape_suspensions_kader_cached(slug, team_id, team_doc, cache_mgr)
-
         except Exception as e:
             print(f"[HATA] Firestore'dan squad alınamadı: {e}", file=sys.stderr)
     else:
@@ -930,7 +933,7 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     
     if suspensions_kader is not None:
         data["suspensions_kader"] = suspensions_kader
-
+    
     if form is not None:
         data["recent_form"] = form
     
@@ -939,12 +942,17 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     
     return data, stats, team_doc
 
+
 def save_team_data(team_name: str, team_data: dict, player_stats: List[dict]) -> None:
     try:
+        # Player stats'ı team_data'ya ekle
+        if player_stats is not None:
+            team_data["stats"] = player_stats
+        
         # Save team data to team_data collection
         DB.collection("team_data").document(team_name.lower()).set(team_data, merge=True)
         print(f"✅ Firestore team_data'ya kaydedildi: {team_name}")
-
+        
         # Save player stats to new_data collection
         if player_stats is not None:
             DB.collection("new_data").document(team_name.lower()).set({"player_stats": player_stats}, merge=True)
