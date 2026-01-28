@@ -81,7 +81,7 @@ class CacheManager:
     def __init__(self, db):
         self.db = db
     
-    def get_content_hash(self, url: str, selector: str = None) -> Optional[str]:
+    def get_content_hash(self, url: str, selector: str = None) -> str | None:
         """
         Verilen URL'den içerik çeker ve hash oluşturur.
         
