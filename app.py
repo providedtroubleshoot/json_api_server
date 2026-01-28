@@ -5,7 +5,7 @@ import time
 import random
 from typing import Dict, List
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from curl_cffi import requests
 from bs4 import BeautifulSoup	
 from dotenv import load_dotenv
@@ -155,9 +155,10 @@ class CacheManager:
             # Cache süresi dolmuş mu?
             if last_update:
                 cache_duration = self.CACHE_DURATIONS.get(data_type, 60)
+                now = datetime.now(timezone.utc)
                 expiry_time = last_update + timedelta(minutes=cache_duration)
                 
-                if datetime.now() > expiry_time:
+                if now> expiry_time:
                     print(f"[CACHE] Süresi dolmuş: {team_name}/{data_type} ({cache_duration} dk)", file=sys.stderr)
                     return True
             
@@ -180,12 +181,12 @@ class CacheManager:
         """
         try:
             cache_ref = self.db.collection('cache_metadata').document(team_name)
-            
+            now = datetime.now(timezone.utc)
             cache_ref.set({
                 data_type: {
                     'hash': content_hash,
-                    'last_update': datetime.now(),
-                    'last_scraped': datetime.now().isoformat()
+                    'last_update': now,
+                    'last_scraped': now.isoformat()
                 }
             }, merge=True)
             
@@ -917,7 +918,7 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     # 4. Veriyi birleştir (None olanlar eklenmez = eski veri korunur)
     data = {
         "team": name,
-        "last_checked": datetime.now().isoformat()  # Her zaman güncelle
+        "last_checked": datetime.now(timezone.utc).isoformat()  # Her zaman güncelle
     }
     
     if position is not None:
