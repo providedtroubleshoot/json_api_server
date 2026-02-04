@@ -926,11 +926,18 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     if injuries is not None:
         data["injuries"] = injuries
     
-    if suspensions is not None:
-        data["suspensions"] = suspensions
-    
-    if suspensions_kader is not None:
-        data["suspensions_kader"] = suspensions_kader
+    if suspensions is not None or suspensions_kader is not None:
+        combined_suspensions = []
+        
+        # suspensions varsa ekle
+        if suspensions is not None:
+            combined_suspensions.extend(suspensions)
+        
+        # suspensions_kader varsa ekle
+        if suspensions_kader is not None:
+            combined_suspensions.extend(suspensions_kader)
+        
+        data["suspensions"] = combined_suspensions
     
     if form is not None:
         data["recent_form"] = form
