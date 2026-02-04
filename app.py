@@ -70,13 +70,13 @@ class CacheManager:
     
     # Her veri tipi için cache süresi (dakika cinsinden)
     CACHE_DURATIONS = {
-        'squad': 1440,          # 24 saat (kadro nadiren değişir)
-        'injuries': 360,        # 6 saat (sakatlıklar günlük değişebilir)
-        'suspensions': 360,     # 6 saat (cezalar günlük değişebilir)
-        'suspensions_kader': 360, # 6 saat (cezalar günlük değişebilir)
-        'position': 60,         # 1 saat (lig pozisyonu sık değişir)
-        'form': 120,            # 2 saat (form tablosu maç sonuçlarıyla değişir)
-        'stats': 180,           # 3 saat (oyuncu istatistikleri)
+        'squad': 10080,         
+        'injuries': 10080,        
+        'suspensions': 10080,    
+        'suspensions_kader': 10080, 
+        'position': 1440,         
+        'form': 10080,            
+        'stats': 4320,         
     }
     
     def __init__(self, db):
