@@ -550,33 +550,27 @@ def scrape_suspensions(team_slug, team_id, squad):
 
 def scrape_suspensions_cached(team_slug: str, team_id: str, squad: List[dict],
                               team_name: str, cache_mgr: CacheManager) -> List[dict] | None:
-    """Cache-aware ceza scraping (hem eski hem yeni metod)"""
+    """Cache-aware ceza scraping (startseite endpoint)"""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
     
     content_hash = cache_mgr.get_content_hash(url, "table.items")
     if not content_hash:
-        # Hash oluşturulamazsa normal scrape
-        old_susp = scrape_suspensions(team_slug, team_id, squad) or []
-        new_susp = scrape_suspensions_kader(team_slug, team_id) or []
-        return old_susp + new_susp
+        return scrape_suspensions(team_slug, team_id, squad)
     
     if not cache_mgr.should_scrape(team_name, 'suspensions', content_hash):
+        print(f"[CACHE HIT] {team_name}/suspensions")  # ← LOG
         return None
     
-    # Scrape et (her iki metod)
-    suspensions = []
-    old_susp = scrape_suspensions(team_slug, team_id, squad)
-    if old_susp:
-        suspensions.extend(old_susp)
+    print(f"[SCRAPING] {team_name}/suspensions")  # ← LOG
+    suspensions = scrape_suspensions(team_slug, team_id, squad)
     
-    new_susp = scrape_suspensions_kader(team_slug, team_id)
-    if new_susp:
-        suspensions.extend(new_susp)
+    print(f"[SONUÇ] {team_name}/suspensions = {len(suspensions) if suspensions else 0} oyuncu")  # ← LOG
     
-    if suspensions:
+    # Boş liste bile olsa cache'i güncelle
+    if suspensions is not None:  # [] bile olsa güncelle
         cache_mgr.update_cache(team_name, 'suspensions', content_hash)
     
-    return suspensions if suspensions else None
+    return suspensions
 
 
 def scrape_squad(team_slug: str, team_id: str) -> List[dict] | None:
