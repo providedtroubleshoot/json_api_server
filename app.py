@@ -854,19 +854,21 @@ def scrape_suspensions_kader_cached(team_slug: str, team_id: str, team_name: str
     """Cache-aware kader cezalı scraping"""
     url = f"https://www.transfermarkt.com.tr/{team_slug}/kader/verein/{team_id}/saison_id/{season_id}"
     
-    # Hash oluştur
     content_hash = cache_mgr.get_content_hash(url, "table.items")
     if not content_hash:
         return scrape_suspensions_kader(team_slug, team_id, season_id)
     
-    # Cache kontrolü - 'suspensions_kader' ayrı bir key
     if not cache_mgr.should_scrape(team_name, 'suspensions_kader', content_hash):
+        print(f"[CACHE HIT] {team_name}/suspensions_kader")  # ← LOG EKLE
         return None
     
-    # Scrape et
+    print(f"[SCRAPING] {team_name}/suspensions_kader")  # ← LOG EKLE
     suspensions = scrape_suspensions_kader(team_slug, team_id, season_id)
     
-    if suspensions is not None:
+    print(f"[SONUÇ] {team_name}/suspensions_kader = {len(suspensions) if suspensions else 0} oyuncu")  # ← LOG EKLE
+    
+    # ÖNEMLİ: Boş liste bile olsa cache'i güncelle
+    if suspensions is not None:  # [] bile olsa güncelle
         cache_mgr.update_cache(team_name, 'suspensions_kader', content_hash)
     
     return suspensions
