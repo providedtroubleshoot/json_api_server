@@ -169,16 +169,17 @@ class CacheManager:
             print(f"[CACHE HATA] Kontrol başarısız ({team_name}/{data_type}): {e}", file=sys.stderr)
             # Hata durumunda güvenli taraf: scrape et
             return True
+
     def get_suspension_hash(self, url: str) -> str | None:
         """
         Suspension sayfası için özel hash - sadece cezalı oyuncu isimlerini hashler.
         """
         try:
             soup = get_soup(url)
-            
-            # Cezalı oyuncuları bul (ausfall-table class'ı olan span'lar)
+
+            # Cezalı oyuncuları bul
             suspended_players = []
-            
+
             for row in soup.find_all("tr", class_=["odd", "even"]):
                 ausfall_span = row.find("span", class_="ausfall-table")
                 if ausfall_span:
@@ -187,17 +188,20 @@ class CacheManager:
                         player_name = name_td.get_text(strip=True)
                         ceza_bilgi = ausfall_span.get("title", "")
                         suspended_players.append(f"{player_name}:{ceza_bilgi}")
-            
-            # Oyuncuları sırala (sıra farkını önlemek için)
+
+            # Oyuncuları sırala
             suspended_players.sort()
-            
-            # Hash oluştur
-            hash_data = "|".join(suspended_players)
-            
+
+            # ← ÖNEMLİ DEĞİŞİKLİK: Boş liste için özel işaret
+            if not suspended_players:
+                hash_data = "NO_SUSPENSIONS"  # Boş liste için özel değer
+            else:
+                hash_data = "|".join(suspended_players)
+
             print(f"[SUSPENSION HASH] Cezalılar: {hash_data[:100]}", file=sys.stderr)
-            
+
             return hashlib.sha256(hash_data.encode('utf-8')).hexdigest()
-        
+
         except Exception as e:
             print(f"[CACHE HATA] Suspension hash oluşturulamadı: {e}", file=sys.stderr)
             return None
