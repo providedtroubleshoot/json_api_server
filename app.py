@@ -1061,30 +1061,38 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     name = team_info["name"]
     slug = team_info["slug"]
     team_id = team_info["id"]
-    besoccer_slug = team_info.get("besoccer_slug")
     team_doc = name.lower()
+    besoccer_slug = team_info.get("besoccer_slug")
     
     print(f"🔄 {name} için cache-aware veri çekme başlıyor...", file=sys.stderr)
     
     # 1. Kadro (Cache-aware)
     squad = scrape_squad_cached(slug, team_id, team_doc, cache_mgr)
     
-    # 2. Sakatlıklar ve Cezalılar (Kadro gerekli, ama cache'den gelebilir)
+    # ← ÖNEMLİ: existing_squad'ı EN BAŞTA tanımla
+    existing_squad = []
+    
+    # 2. Sakatlıklar (Kadro gerekli, ama cache'den gelebilir)
     injuries = None
-    suspensions = None
-
+    
     # Eğer squad None ise (cache hit), mevcut squad'ı Firestore'dan çek
     if squad is None:
         try:
             doc = DB.collection("team_data").document(team_doc).get()
             if doc.exists:
                 existing_squad = doc.to_dict().get('squad', [])
-                # Sakatlık/ceza scrape için mevcut squad'ı kullan
+                # Sadece sakatlık scrape et
                 injuries = scrape_injuries_cached(slug, team_id, existing_squad, team_doc, cache_mgr)
+            # ← EKLE: doc.exists False ise ne olsun?
+            else:
+                print(f"[UYARI] {name} için Firestore'da veri yok, boş squad kullanılıyor", file=sys.stderr)
+                existing_squad = []
         except Exception as e:
             print(f"[HATA] Firestore'dan squad alınamadı: {e}", file=sys.stderr)
+            existing_squad = []
     else:
         # Yeni squad scrape edildi, onunla devam et
+        existing_squad = squad
         injuries = scrape_injuries_cached(slug, team_id, squad, team_doc, cache_mgr)
     
     # 3. Bağımsız veriler (Cache-aware)
@@ -1092,15 +1100,18 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     form = get_recent_form_cached(name, league_key, cache_mgr)
     stats = scrape_stats_cached(slug, team_id, team_doc, cache_mgr)
     
+    # 4. BeSoccer'dan suspension (artık ana kaynak bu)
+    suspensions = None
     if besoccer_slug:
+        # ← Artık existing_squad her durumda tanımlı
         suspensions = scrape_besoccer_suspensions_cached(besoccer_slug, team_doc, existing_squad, cache_mgr)
     else:
         print(f"[UYARI] {name} için besoccer_slug tanımlı değil, suspension atlanıyor", file=sys.stderr)
     
-    # 4. Veriyi birleştir (None olanlar eklenmez = eski veri korunur)
+    # 5. Veriyi birleştir (None olanlar eklenmez = eski veri korunur)
     data = {
         "team": name,
-        "last_checked": datetime.now(timezone.utc).isoformat()  # Her zaman güncelle
+        "last_checked": datetime.now(timezone.utc).isoformat()
     }
     
     if position is not None:
@@ -1111,7 +1122,7 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     
     if injuries is not None:
         data["injuries"] = injuries
-
+    
     if suspensions is not None:
         data["suspensions"] = suspensions
     
