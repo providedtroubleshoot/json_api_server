@@ -586,108 +586,111 @@ def scrape_suspensions(team_slug, team_id, squad):
 
 def scrape_besoccer_suspensions(soup: BeautifulSoup, squad: List[dict] = None) -> list:
     """
-    Sadece soup üzerinden veriyi parse eden yardımcı fonksiyon.
-    Sayfayı çekmez, sadece parse eder.
+    Sadece soup üzerinden veriyi parse eder.
+    Sayfayı çekmez.
     """
     injuries_suspensions = []
-    item_list = soup.find("ul", class_="item-list")
-    
+
+    container = soup.find("div", id="mod_injuries_suspensions")
+    if not container:
+        return []
+
+    item_list = container.find("ul", class_="item-list")
     if not item_list:
         return []
 
-    items = item_list.find_all("li")
-    
-    for item in items:
+    for item in item_list.find_all("li"):
         name_div = item.find("div", class_="main-text")
         reason_div = item.find("div", class_="sub-text1")
-        
+
         if not name_div or not reason_div:
             continue
-        
+
         player_name = name_div.get_text(strip=True)
         reason = reason_div.get_text(strip=True)
-        
+
         # Pozisyon eşleştirme (squad'dan)
         position = ""
         if squad:
             matched = next((p for p in squad if p["name"] == player_name), None)
             position = matched["position"] if matched else ""
-        
+
         # Status belirleme
         status = "Sakatlık"
         if "red card" in reason.lower():
             status = "Kırmızı Kart"
         elif "yellow" in reason.lower() or "suspension" in reason.lower():
             status = "Sarı Kart"
-        
+
         injuries_suspensions.append({
             "name": player_name,
             "position": position,
             "status": status,
             "details": reason
         })
-    
+
     return injuries_suspensions
 
-def scrape_besoccer_suspensions_cached(besoccer_slug: str, team_name: str, 
-                                        squad: List[dict], cache_mgr: CacheManager) -> list | None:
+
+def scrape_besoccer_suspensions_cached(
+    besoccer_slug: str,
+    team_name: str,
+    squad: List[dict],
+    cache_mgr: CacheManager
+) -> list | None:
     """
     Cache-aware BeSoccer suspension scraping.
-    Sayfayı sadece BİR KEZ çeker, hem hash hem scraping için kullanır.
+    Sayfayı sadece BİR KEZ çeker.
     """
     url = f"https://www.besoccer.com/team/injuries-suspensions/{besoccer_slug}"
-    
+
     try:
-        # 1. Sayfayı BİR KEZ çek
         print(f"[BeSoccer] {besoccer_slug} için sayfa çekiliyor...", file=sys.stderr)
         soup = get_soup(url)
-        
+
         if not soup:
             print(f"[HATA] {besoccer_slug} için soup oluşturulamadı", file=sys.stderr)
             return None
 
-        # 2. Hash hesapla (aynı soup ile)
-        item_list = soup.find("ul", class_="item-list")
-        
-        if not item_list:
-            # Sayfa yüklendi ama liste yok (cezalı/sakatlı yok)
-            print(f"[BeSoccer] {besoccer_slug} için item-list bulunamadı (boş liste)", file=sys.stderr)
+        container = soup.find("div", id="mod_injuries_suspensions")
+        if not container:
+            print(f"[BeSoccer] {besoccer_slug} için mod_injuries_suspensions yok", file=sys.stderr)
             content_hash = hashlib.sha256("NO_DATA_BESOCCER".encode()).hexdigest()
             suspensions = []
         else:
-            # Hash için veriyi topla
-            raw_data = []
-            for li in item_list.find_all("li"):
-                name_div = li.find("div", class_="main-text")
-                reason_div = li.find("div", class_="sub-text1")
-                if name_div and reason_div:
-                    raw_data.append(f"{name_div.get_text(strip=True)}:{reason_div.get_text(strip=True)}")
-            
-            raw_data.sort()  # Sıralama önemli (hash tutarlılığı için)
-            
-            if raw_data:
-                hash_string = "|".join(raw_data)
-            else:
-                hash_string = "NO_DATA_BESOCCER"
-            
-            content_hash = hashlib.sha256(hash_string.encode()).hexdigest()
-            
-            print(f"[BESOCCER HASH] {hash_string[:100]}", file=sys.stderr)
-            
-            # 3. Veriyi parse et (aynı soup ile)
-            suspensions = scrape_besoccer_suspensions(soup, squad)
+            item_list = container.find("ul", class_="item-list")
 
-        # 4. Cache kontrolü
-        if not cache_mgr.should_scrape(team_name, 'suspensions', content_hash):
+            if not item_list:
+                print(f"[BeSoccer] {besoccer_slug} için item-list yok (boş)", file=sys.stderr)
+                content_hash = hashlib.sha256("NO_DATA_BESOCCER".encode()).hexdigest()
+                suspensions = []
+            else:
+                raw_data = []
+                for li in item_list.find_all("li"):
+                    name_div = li.find("div", class_="main-text")
+                    reason_div = li.find("div", class_="sub-text1")
+                    if name_div and reason_div:
+                        raw_data.append(
+                            f"{name_div.get_text(strip=True)}:{reason_div.get_text(strip=True)}"
+                        )
+
+                raw_data.sort()
+
+                hash_string = "|".join(raw_data) if raw_data else "NO_DATA_BESOCCER"
+                content_hash = hashlib.sha256(hash_string.encode()).hexdigest()
+
+                print(f"[BESOCCER HASH] {hash_string[:120]}", file=sys.stderr)
+
+                suspensions = scrape_besoccer_suspensions(soup, squad)
+
+        if not cache_mgr.should_scrape(team_name, "suspensions", content_hash):
             print(f"[CACHE HIT] {team_name}/suspensions (BeSoccer)", file=sys.stderr)
             return None
 
-        # 5. Cache güncelle ve dön
         print(f"[SONUÇ] {team_name}/suspensions = {len(suspensions)} kayıt (BeSoccer)", file=sys.stderr)
-        cache_mgr.update_cache(team_name, 'suspensions', content_hash)
-        
+        cache_mgr.update_cache(team_name, "suspensions", content_hash)
+
         time.sleep(random.uniform(1.5, 3.0))
-        
         return suspensions
 
     except Exception as e:
