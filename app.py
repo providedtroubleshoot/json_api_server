@@ -72,9 +72,7 @@ class CacheManager:
     CACHE_DURATIONS = {
         'squad': 10080,         
         'injuries': 10080,        
-        'suspensions': 10080,    
-        'suspensions_kader': 10080,
-        'new_suspensions': 10080,
+        'suspensions': 10080,
         'position': 1440,         
         'form': 10080,            
         'stats': 4320,         
@@ -142,8 +140,8 @@ class CacheManager:
                     player_name = name_div.get_text(strip=True)
                     reason = reason_div.get_text(strip=True)
 
-                    if "red card" in reason.lower() or "suspension" in reason.lower():
-                        player_data.append(f"{player_name}:{reason}")
+                    # ← FİLTRE KALDIRILDI: Tüm sakatlık ve cezaları hash'e dahil et
+                    player_data.append(f"{player_name}:{reason}")
 
             # Sırala
             player_data.sort()
@@ -281,198 +279,198 @@ class CacheManager:
 
 # Takım Sözlüğü (Değiştirilmedi)
 TEAMS = {
-    "chapecoense": {"name": "Chapecoense", "slug": "chapecoense", "id": "17776"},
-    "remo": {"name": "Remo", "slug": "clube-do-remo-pa-", "id": "10997"},
-    "coritiba": {"name": "Coritiba", "slug": "coritiba-fc", "id": "776"},
-    "athletico": {"name": "Athletico", "slug": "club-athletico-paranaense", "id": "679"},
-    "tondela": {"name": "Tondela", "slug": "cd-tondela", "id": "7179"},
-    "moreirense": {"name": "Moreirense", "slug": "moreirense-fc", "id": "979"},
-    "santa clara": {"name": "Santa Clara", "slug": "cd-santa-clara", "id": "2423"},
-    "nacional": {"name": "Nacional", "slug": "cd-nacional", "id": "982"},
-    "avs": {"name": "AVS", "slug": "avs-futebol-sad", "id": "110302"},
-    "porto": {"name": "Porto", "slug": "fc-porto", "id": "720"},
-    "rio ave": {"name": "Rio Ave", "slug": "rio-ave-fc", "id": "2425"},
-    "sporting": {"name": "Sporting", "slug": "sporting-lissabon", "id": "336"},
-    "benfica": {"name": "Benfica", "slug": "benfica-lissabon", "id": "294"},
-    "braga": {"name": "Braga", "slug": "sc-braga", "id": "1075"},
-    "gil vicente": {"name": "Gil Vicente", "slug": "gil-vicente-fc", "id": "2424"},
-    "arouca": {"name": "Arouca", "slug": "fc-arouca", "id": "8024"},
-    "vitória sc": {"name": "Vitória SC", "slug": "vitoria-guimaraes-sc", "id": "2420"},
-    "casa pia": {"name": "Casa Pia", "slug": "casa-pia-ac", "id": "3268"},
-    "alverca": {"name": "Alverca", "slug": "fc-alverca", "id": "2521"},
-    "estoril": {"name": "Estoril", "slug": "gd-estoril-praia", "id": "1465"},
-    "estrela": {"name": "Estrela", "slug": "cf-estrela-amadora-sad", "id": "2431"},
-    "famalicão": {"name": "Famalicão", "slug": "fc-famalicao", "id": "3329"},
-    "heracles": {"name": "Heracles", "slug": "heracles-almelo", "id": "1304"},
-    "volendam": {"name": "Volendam", "slug": "fc-volendam", "id": "724"},
-    "telstar": {"name": "Telstar", "slug": "sc-telstar", "id": "1434"},
-    "excelsior": {"name": "Excelsior", "slug": "sbv-excelsior-rotterdam", "id": "798"},
-    "nac breda": {"name": "NAC Breda", "slug": "nac-breda", "id": "132"},
-    "pec zwolle": {"name": "PEC Zwolle", "slug": "pec-zwolle", "id": "1269"},
-    "go ahead": {"name": "Go Ahead", "slug": "go-ahead-eagles-deventer", "id": "1435"},
-    "heerenveen": {"name": "Heerenveen", "slug": "sc-heerenveen", "id": "306"},
-    "sparta": {"name": "Sparta", "slug": "sparta-rotterdam", "id": "468"},
-    "f. sittard": {"name": "F. Sittard", "slug": "fortuna-sittard", "id": "385"},
-    "utrecht": {"name": "Utrecht", "slug": "fc-utrecht", "id": "200"},
-    "twente": {"name": "Twente", "slug": "fc-twente-enschede", "id": "317"},
-    "nec nijmegen": {"name": "NEC Nijmegen", "slug": "nec-nijmegen", "id": "467"},
-    "groningen": {"name": "Groningen", "slug": "fc-groningen", "id": "202"},
-    "az alkmaar": {"name": "AZ Alkmaar", "slug": "az-alkmaar", "id": "1090"},
-    "ajax": {"name": "Ajax", "slug": "ajax-amsterdam", "id": "610"},
-    "psv": {"name": "PSV", "slug": "psv-eindhoven", "id": "383"},
-    "feyenoord": {"name": "Feyenoord", "slug": "feyenoord-rotterdam", "id": "234"},
-    "lecce": {"name": "Lecce", "slug": "us-lecce", "id": "1005"},
-    "cremonese": {"name": "Cremonese", "slug": "us-cremonese", "id": "2239"},
-    "cagliari": {"name": "Cagliari", "slug": "cagliari-calcio", "id": "1390"},
+    "chapecoense": {"name": "Chapecoense", "slug": "chapecoense", "id": "17776", "besoccer_slug": "chapecoense"},
+    "remo": {"name": "Remo", "slug": "clube-do-remo-pa-", "id": "10997", "besoccer_slug": "remo"},
+    "coritiba": {"name": "Coritiba", "slug": "coritiba-fc", "id": "776", "besoccer_slug": "coritiba-fbc"},
+    "athletico": {"name": "Athletico", "slug": "club-athletico-paranaense", "id": "679", "besoccer_slug": "atletico-paranaense"},
+    "tondela": {"name": "Tondela", "slug": "cd-tondela", "id": "7179", "besoccer_slug": "tondela"},
+    "moreirense": {"name": "Moreirense", "slug": "moreirense-fc", "id": "979", "besoccer_slug": "moreirense-fc"},
+    "santa clara": {"name": "Santa Clara", "slug": "cd-santa-clara", "id": "2423", "besoccer_slug": "santa-clara"},
+    "nacional": {"name": "Nacional", "slug": "cd-nacional", "id": "982", "besoccer_slug": "nacional"},
+    "avs": {"name": "AVS", "slug": "avs-futebol-sad", "id": "110302", "besoccer_slug": "aves-futebol-sad"},
+    "porto": {"name": "Porto", "slug": "fc-porto", "id": "720", "besoccer_slug": "fc-porto"},
+    "rio ave": {"name": "Rio Ave", "slug": "rio-ave-fc", "id": "2425", "besoccer_slug": "rio-ave"},
+    "sporting": {"name": "Sporting", "slug": "sporting-lissabon", "id": "336", "besoccer_slug": "sporting-lisbon"},
+    "benfica": {"name": "Benfica", "slug": "benfica-lissabon", "id": "294", "besoccer_slug": "benfica"},
+    "braga": {"name": "Braga", "slug": "sc-braga", "id": "1075", "besoccer_slug": "sporting-braga"},
+    "gil vicente": {"name": "Gil Vicente", "slug": "gil-vicente-fc", "id": "2424", "besoccer_slug": "gil-vicente"},
+    "arouca": {"name": "Arouca", "slug": "fc-arouca", "id": "8024", "besoccer_slug": "arouca"},
+    "vitória sc": {"name": "Vitória SC", "slug": "vitoria-guimaraes-sc", "id": "2420", "besoccer_slug": "vitoria-guimaraes"},
+    "casa pia": {"name": "Casa Pia", "slug": "casa-pia-ac", "id": "3268", "besoccer_slug": "casa-pia"},
+    "alverca": {"name": "Alverca", "slug": "fc-alverca", "id": "2521", "besoccer_slug": "alverca"},
+    "estoril": {"name": "Estoril", "slug": "gd-estoril-praia", "id": "1465", "besoccer_slug": "estoril"},
+    "estrela": {"name": "Estrela", "slug": "cf-estrela-amadora-sad", "id": "2431", "besoccer_slug": "cf-estrela-de-amadora"},
+    "famalicão": {"name": "Famalicão", "slug": "fc-famalicao", "id": "3329", "besoccer_slug": "famalicao"},
+    "heracles": {"name": "Heracles", "slug": "heracles-almelo", "id": "1304", "besoccer_slug": "heracles"},
+    "volendam": {"name": "Volendam", "slug": "fc-volendam", "id": "724", "besoccer_slug": "fc-volendam"},
+    "telstar": {"name": "Telstar", "slug": "sc-telstar", "id": "1434", "besoccer_slug": "stormvogels-telstar"},
+    "excelsior": {"name": "Excelsior", "slug": "sbv-excelsior-rotterdam", "id": "798", "besoccer_slug": "excelsior"},
+    "nac breda": {"name": "NAC Breda", "slug": "nac-breda", "id": "132", "besoccer_slug": "nac-breda"},
+    "pec zwolle": {"name": "PEC Zwolle", "slug": "pec-zwolle", "id": "1269", "besoccer_slug": "fc-zwolle"},
+    "go ahead": {"name": "Go Ahead", "slug": "go-ahead-eagles-deventer", "id": "1435", "besoccer_slug": "go-ahead-eagles"},
+    "heerenveen": {"name": "Heerenveen", "slug": "sc-heerenveen", "id": "306", "besoccer_slug": "heerenveen"},
+    "sparta": {"name": "Sparta", "slug": "sparta-rotterdam", "id": "468", "besoccer_slug": "sparta-rotterdam"},
+    "f. sittard": {"name": "F. Sittard", "slug": "fortuna-sittard", "id": "385", "besoccer_slug": "fortuna-sittard"},
+    "utrecht": {"name": "Utrecht", "slug": "fc-utrecht", "id": "200", "besoccer_slug": "fc-utrecht"},
+    "twente": {"name": "Twente", "slug": "fc-twente-enschede", "id": "317", "besoccer_slug": "fc-twente-1965"},
+    "nec nijmegen": {"name": "NEC Nijmegen", "slug": "nec-nijmegen", "id": "467", "besoccer_slug": "nec"},
+    "groningen": {"name": "Groningen", "slug": "fc-groningen", "id": "202", "besoccer_slug": "fc-groningen"},
+    "az alkmaar": {"name": "AZ Alkmaar", "slug": "az-alkmaar", "id": "1090", "besoccer_slug": "az"},
+    "ajax": {"name": "Ajax", "slug": "ajax-amsterdam", "id": "610", "besoccer_slug": "ajax"},
+    "psv": {"name": "PSV", "slug": "psv-eindhoven", "id": "383", "besoccer_slug": "psv"},
+    "feyenoord": {"name": "Feyenoord", "slug": "feyenoord-rotterdam", "id": "234", "besoccer_slug": "feyenoord"},
+    "lecce": {"name": "Lecce", "slug": "us-lecce", "id": "1005", "besoccer_slug": "lecce"},
+    "cremonese": {"name": "Cremonese", "slug": "us-cremonese", "id": "2239", "besoccer_slug": "us-cremonese"},
+    "cagliari": {"name": "Cagliari", "slug": "cagliari-calcio", "id": "1390", "besoccer_slug": "cagliari"},
     "verona": {"name": "Verona", "slug": "hellas-verona", "id": "276", "besoccer_slug": "hellas-verona-fc"},
-    "pisa": {"name": "Pisa", "slug": "ac-pisa-1909", "id": "4172"},
-    "genoa": {"name": "Genoa", "slug": "genua-cfc", "id": "252"},
+    "pisa": {"name": "Pisa", "slug": "ac-pisa-1909", "id": "4172", "besoccer_slug": "pisa-calcio"},
+    "genoa": {"name": "Genoa", "slug": "genua-cfc", "id": "252", "besoccer_slug": "genoa"},
     "udinese": {"name": "Udinese", "slug": "udinese-calcio", "id": "410", "besoccer_slug": "udinese"},
     "sassuolo": {"name": "Sassuolo", "slug": "us-sassuolo", "id": "6574", "besoccer_slug": "us-sassuolo-calcio"},
     "parma": {"name": "Parma", "slug": "parma-calcio-1913", "id": "130", "besoccer_slug": "parma-fc" },
-    "torino": {"name": "Torino", "slug": "fc-turin", "id": "416"},
-    "como": {"name": "Como", "slug": "como-1907", "id": "1047"},
+    "torino": {"name": "Torino", "slug": "fc-turin", "id": "416", "besoccer_slug": "torino-fc"},
+    "como": {"name": "Como", "slug": "como-1907", "id": "1047", "besoccer_slug": "como"},
     "bologna": {"name": "Bologna", "slug": "fc-bologna", "id": "1025", "besoccer_slug": "bologna"},
-    "lazio": {"name": "Lazio", "slug": "lazio-rom", "id": "398"},
-    "fiorentina": {"name": "Fiorentina", "slug": "ac-florenz", "id": "430"},
-    "roma": {"name": "Roma", "slug": "as-rom", "id": "12"},
-    "atalanta": {"name": "Atalanta", "slug": "atalanta-bergamo", "id": "800"},
-    "napoli": {"name": "Napoli", "slug": "ssc-neapel", "id": "6195"},
-    "milan": {"name": "Milan", "slug": "ac-mailand", "id": "5"},
-    "juventus": {"name": "Juventus", "slug": "juventus-turin", "id": "506"},
-    "inter": {"name": "Inter", "slug": "inter-mailand", "id": "46"},
-    "al-hazem": {"name": "Al-Hazem", "slug": "al-hazm", "id": "9131"},
-    "al-najma": {"name": "Al-Najma", "slug": "al-najma", "id": "32328"},
-    "neom sc": {"name": "NEOM SC", "slug": "al-suqoor", "id": "34911"},
-    "al-okhdood": {"name": "Al-Okhdood", "slug": "al-akhdoud-club", "id": "71665"},
-    "damac": {"name": "Damac", "slug": "damac-fc", "id": "50532"},
-    "al-fayha": {"name": "Al-Fayha", "slug": "al-fayha-fc", "id": "50531"},
-    "al-khaleej": {"name": "Al-Khaleej", "slug": "al-khaleej", "id": "6070"},
-    "al-riyadh": {"name": "Al-Riyadh", "slug": "al-riad", "id": "31008"},
-    "al-fateh": {"name": "Al-Fateh", "slug": "al-fateh", "id": "27221"},
-    "al-kholood": {"name": "Al-Kholood", "slug": "al-kholood", "id": "91427"},
-    "al-taawoun": {"name": "Al-Taawoun", "slug": "al-taawoun-fc", "id": "28844"},
-    "al-ettifaq": {"name": "Al-Ettifaq", "slug": "al-ettifaq", "id": "7732"},
-    "al-shabab": {"name": "Al-Shabab", "slug": "al-shabab-riad", "id": "9840"},
-    "al-ahli": {"name": "Al-Ahli", "slug": "al-ahli-dschidda", "id": "18487"},
-    "al-qadsiah": {"name": "Al-Qadsiah", "slug": "al-qadisiyah-fc", "id": "26069"},
-    "al-nassr": {"name": "Al-Nassr", "slug": "al-nasr-riad", "id": "18544"},
-    "al-hilal": {"name": "Al-Hilal", "slug": "al-hilal-riad", "id": "1114"},
-    "al-ittihad": {"name": "Al-Ittihad", "slug": "al-ittihad-dschidda", "id": "8023"},
-    "sport recife": {"name": "Sport Recife", "slug": "sport-club-do-recife", "id": "8718"},
-    "juventude": {"name": "Juventude", "slug": "esporte-clube-juventude", "id": "10492"},
-    "vasco": {"name": "Vasco", "slug": "vasco-da-gama-rio-de-janeiro", "id": "978"},
-    "fortaleza": {"name": "Fortaleza", "slug": "fortaleza-esporte-clube", "id": "10870"},
-    "vitória": {"name": "Vitória", "slug": "esporte-clube-vitoria", "id": "2125"},
-    "grêmio": {"name": "Grêmio", "slug": "gremio-porto-alegre", "id": "210"},
-    "santos": {"name": "Santos", "slug": "fc-santos", "id": "221"},
-    "corinthians": {"name": "Corinthians", "slug": "corinthians-sao-paulo", "id": "199"},
-    "ceará sc": {"name": "Ceará SC", "slug": "ceara-sporting-club", "id": "2029"},
-    "sc inter": {"name": "SC Inter", "slug": "sc-internacional-porto-alegre", "id": "6600"},
-    "atlético-mg": {"name": "Atlético-MG", "slug": "clube-atletico-mineiro", "id": "330"},
-    "fluminense": {"name": "Fluminense", "slug": "fluminense-rio-de-janeiro", "id": "2462"},
-    "bragantino": {"name": "Bragantino", "slug": "red-bull-bragantino", "id": "8793"},
-    "são paulo": {"name": "São Paulo", "slug": "fc-sao-paulo", "id": "585"},
-    "mirassol": {"name": "Mirassol", "slug": "mirassol-futebol-clube-sp-", "id": "3876"},
-    "botafogo": {"name": "Botafogo", "slug": "botafogo-rio-de-janeiro", "id": "537"},
-    "bahia": {"name": "Bahia", "slug": "esporte-clube-bahia", "id": "10010"},
-    "palmeiras": {"name": "Palmeiras", "slug": "se-palmeiras-sao-paulo", "id": "1023"},
-    "cruzeiro": {"name": "Cruzeiro", "slug": "ec-cruzeiro-belo-horizonte", "id": "609"},
-    "flamengo": {"name": "Flamengo", "slug": "flamengo-rio-de-janeiro", "id": "614"},
-    "psg": {"name": "PSG", "slug": "fc-paris-saint-germain", "id": "583"},
-    "marsilya": {"name": "Marsilya", "slug": "olympique-marseille", "id": "244"},
-    "monaco": {"name": "Monaco", "slug": "as-monaco", "id": "162"},
-    "nice": {"name": "Nice", "slug": "ogc-nizza", "id": "417"},
-    "lille": {"name": "Lille", "slug": "losc-lille", "id": "1082"},
-    "lyon": {"name": "Lyon", "slug": "olympique-lyon", "id": "1041"},
-    "strasbourg": {"name": "Strasbourg", "slug": "rc-strassburg-alsace", "id": "667"},
-    "lens": {"name": "Lens", "slug": "rc-lens", "id": "826"},
-    "brest": {"name": "Brest", "slug": "stade-brest-29", "id": "3911"},
-    "toulouse": {"name": "Toulouse", "slug": "fc-toulouse", "id": "415"},
-    "aj auxerre": {"name": "AJ Auxerre", "slug": "aj-auxerre", "id": "290"},
-    "rennes": {"name": "Rennes", "slug": "fc-stade-rennes", "id": "273"},
-    "nantes": {"name": "Nantes", "slug": "fc-nantes", "id": "995"},
-    "angers": {"name": "Angers", "slug": "sco-angers", "id": "1420"},
-    "le havre": {"name": "Le Havre", "slug": "ac-le-havre", "id": "738"},
-    "lorient": {"name": "Lorient", "slug": "fc-lorient", "id": "1158"},
-    "paris fc": {"name": "Paris FC", "slug": "paris-fc", "id": "10004"},
-    "metz": {"name": "Metz", "slug": "fc-metz", "id": "347"},
-    "hoffenheim": {"name": "Hoffenheim", "slug": "tsg-1899-hoffenheim", "id": "533"},
-    "heidenheim": {"name": "Heidenheim", "slug": "1-fc-heidenheim-1846", "id": "2036"},
-    "köln": {"name": "Köln", "slug": "1-fc-koln", "id": "3"},
-    "hamburg": {"name": "Hamburg", "slug": "hamburger-sv", "id": "41"},
-    "st. pauli": {"name": "St. Pauli", "slug": "fc-st-pauli", "id": "35"},
-    "u. berlin": {"name": "U. Berlin", "slug": "1-fc-union-berlin", "id": "89"},
-    "augsburg": {"name": "Augsburg", "slug": "fc-augsburg", "id": "167"},
-    "wolfsburg": {"name": "Wolfsburg", "slug": "vfl-wolfsburg", "id": "82"},
-    "stuttgart": {"name": "Stuttgart", "slug": "vfb-stuttgart", "id": "79"},
-    "gladbach": {"name": "Gladbach", "slug": "borussia-monchengladbach", "id": "18"},
-    "bremen": {"name": "Bremen", "slug": "sv-werder-bremen", "id": "86"},
-    "leipzig": {"name": "Leipzig", "slug": "rasenballsport-leipzig", "id": "23826"},
-    "mainz": {"name": "Mainz", "slug": "1-fsv-mainz-05", "id": "39"},
-    "freiburg": {"name": "Freiburg", "slug": "sc-freiburg", "id": "60"},
-    "frankfurt": {"name": "Frankfurt", "slug": "eintracht-frankfurt", "id": "24"},
-    "leverkusen": {"name": "Leverkusen", "slug": "bayer-04-leverkusen", "id": "15"},
-    "real oviedo": {"name": "Real Oviedo", "slug": "real-oviedo", "id": "2497"},
-    "elche": {"name": "Elche", "slug": "fc-elche", "id": "1531"},
-    "levante": {"name": "Levante", "slug": "ud-levante", "id": "3368"},
-    "espanyol": {"name": "Espanyol", "slug": "espanyol-barcelona", "id": "714"},
-    "girona": {"name": "Girona", "slug": "fc-girona", "id": "12321"},
-    "alavés": {"name": "Alavés", "slug": "deportivo-alaves", "id": "1108"},
-    "getafe": {"name": "Getafe", "slug": "fc-getafe", "id": "3709"},
-    "valencia": {"name": "Valencia", "slug": "fc-valencia", "id": "1049"},
-    "sociedad": {"name": "Sociedad", "slug": "real-sociedad-san-sebastian", "id": "681"},
-    "mallorca": {"name": "Mallorca", "slug": "rcd-mallorca", "id": "237"},
-    "osasuna": {"name": "Osasuna", "slug": "ca-osasuna", "id": "331"},
-    "celta vigo": {"name": "Celta Vigo", "slug": "celta-vigo", "id": "940"},
-    "rayo": {"name": "Rayo", "slug": "rayo-vallecano", "id": "367"},
-    "real betis": {"name": "Real Betis", "slug": "real-betis-sevilla", "id": "150"},
-    "villarreal": {"name": "Villarreal", "slug": "fc-villarreal", "id": "1050"},
-    "athletic bilbao": {"name": "Athletic Bilbao", "slug": "athletic-bilbao", "id": "621"},
-    "everton": {"name": "Everton", "slug": "fc-everton", "id": "29"},
-    "leeds": {"name": "Leeds", "slug": "leeds-united", "id": "399"},
-    "brentford": {"name": "Brentford", "slug": "fc-brentford", "id": "1148"},
-    "nottingham": {"name": "Nottingham", "slug": "nottingham-forest", "id": "703"},
-    "crystal palace": {"name": "Crystal Palace", "slug": "crystal-palace", "id": "873"},
-    "wolves": {"name": "Wolves", "slug": "wolverhampton-wanderers", "id": "543"},
-    "burnley": {"name": "Burnley", "slug": "fc-burnley", "id": "1132"},
-    "tottenham": {"name": "Tottenham", "slug": "tottenham-hotspur", "id": "148"},
-    "west ham": {"name": "West Ham", "slug": "west-ham-united", "id": "379"},
-    "sunderland": {"name": "Sunderland", "slug": "afc-sunderland", "id": "289"},
-    "fulham": {"name": "Fulham", "slug": "fc-fulham", "id": "931"},
-    "brighton": {"name": "Brighton", "slug": "brighton-amp-hove-albion", "id": "1237"},
-    "newcastle": {"name": "Newcastle", "slug": "newcastle-united", "id": "762"},
-    "aston villa": {"name": "Aston Villa", "slug": "aston-villa", "id": "405"},
-    "liverpool": {"name": "Liverpool", "slug": "fc-liverpool", "id": "31"},
-    "bournemouth": {"name": "Bournemouth", "slug": "afc-bournemouth", "id": "989"},
-    "barcelona": {"name": "Barcelona", "slug": "fc-barcelona", "id": "131"},
-    "real madrid": {"name": "Real Madrid", "slug": "real-madrid", "id": "418"},
-    "man united": {"name": "Man United", "slug": "manchester-united", "id": "985"},
-    "atletico madrid": {"name": "Atletico Madrid", "slug": "atletico-madrid", "id": "13"},
-    "man city": {"name": "Man City", "slug": "manchester-city", "id": "281"},
-    "chelsea": {"name": "Chelsea", "slug": "chelsea", "id": "631"},
-    "dortmund": {"name": "Dortmund", "slug": "borussia-dortmund", "id": "16"},
-    "sevilla": {"name": "Sevilla", "slug": "fc-sevilla", "id": "368"},
-    "arsenal": {"name": "Arsenal", "slug": "fc-arsenal", "id": "11"},
-    "bayern münih": {"name": "Bayern Münih", "slug": "fc-bayern-munchen", "id": "27"},
-    "galatasaray": {"name": "Galatasaray", "slug": "galatasaray-istanbul", "id": "141"},
-    "fenerbahçe": {"name": "Fenerbahçe", "slug": "fenerbahce-istanbul", "id": "36"},
-    "beşiktaş": {"name": "Beşiktaş", "slug": "besiktas-istanbul", "id": "114"},
-    "trabzonspor": {"name": "Trabzonspor", "slug": "trabzonspor", "id": "449"},
-    "göztepe": {"name": "Göztepe", "slug": "goztepe", "id": "1467"},
-    "başakşehir": {"name": "Başakşehir", "slug": "istanbul-basaksehir-fk", "id": "6890"},
-    "ç. rizespor": {"name": "Ç. Rizespor", "slug": "caykur-rizespor", "id": "126"},
-    "samsunspor": {"name": "Samsunspor", "slug": "samsunspor", "id": "152"},
-    "kasımpaşa": {"name": "Kasımpaşa", "slug": "kasimpasa", "id": "10484"},
-    "eyüpspor": {"name": "Eyüpspor", "slug": "eyupspor", "id": "7160"},
-    "alanyaspor": {"name": "Alanyaspor", "slug": "alanyaspor", "id": "11282"},
-    "antalyaspor": {"name": "Antalyaspor", "slug": "antalyaspor", "id": "589"},
-    "gaziantep fk": {"name": "Gaziantep FK", "slug": "gaziantep-fk", "id": "2832"},
-    "konyaspor": {"name": "Konyaspor", "slug": "konyaspor", "id": "2293"},
-    "kayserispor": {"name": "Kayserispor", "slug": "kayserispor", "id": "3205"},
-    "karagümrük": {"name": "Karagümrük", "slug": "fatih-karagumruk", "id": "6646"},
-    "kocaelispor": {"name": "Kocaelispor", "slug": "kocaelispor", "id": "120"},
-    "gençlerbirliği": {"name": "Gençlerbirliği", "slug": "genclerbirligi-ankara", "id": "820"},
+    "lazio": {"name": "Lazio", "slug": "lazio-rom", "id": "398", "besoccer_slug": "lazio"},
+    "fiorentina": {"name": "Fiorentina", "slug": "ac-florenz", "id": "430", "besoccer_slug": "fiorentina"},
+    "roma": {"name": "Roma", "slug": "as-rom", "id": "12", "besoccer_slug": "roma"},
+    "atalanta": {"name": "Atalanta", "slug": "atalanta-bergamo", "id": "800", "besoccer_slug": "atalanta"},
+    "napoli": {"name": "Napoli", "slug": "ssc-neapel", "id": "6195", "besoccer_slug": "napoli"},
+    "milan": {"name": "Milan", "slug": "ac-mailand", "id": "5", "besoccer_slug": "milan"},
+    "juventus": {"name": "Juventus", "slug": "juventus-turin", "id": "506", "besoccer_slug": "juventus-fc"},
+    "inter": {"name": "Inter", "slug": "inter-mailand", "id": "46", "besoccer_slug": "internazionale"},
+    "al-hazem": {"name": "Al-Hazem", "slug": "al-hazm", "id": "9131", "besoccer_slug": "al-hazm-rass"},
+    "al-najma": {"name": "Al-Najma", "slug": "al-najma", "id": "32328", "besoccer_slug": "al-najma"},
+    "neom sc": {"name": "NEOM SC", "slug": "al-suqoor", "id": "34911", "besoccer_slug": "al-suqoor"},
+    "al-okhdood": {"name": "Al-Okhdood", "slug": "al-akhdoud-club", "id": "71665", "besoccer_slug": "al-akhdoud-saudi"},
+    "damac": {"name": "Damac", "slug": "damac-fc", "id": "50532", "besoccer_slug": "dhamk-club"},
+    "al-fayha": {"name": "Al-Fayha", "slug": "al-fayha-fc", "id": "50531", "besoccer_slug": "al-feiha"},
+    "al-khaleej": {"name": "Al-Khaleej", "slug": "al-khaleej", "id": "6070", "besoccer_slug": "al-khaleej"},
+    "al-riyadh": {"name": "Al-Riyadh", "slug": "al-riad", "id": "31008", "besoccer_slug": "al-riyadh"},
+    "al-fateh": {"name": "Al-Fateh", "slug": "al-fateh", "id": "27221", "besoccer_slug": "al-fateh"},
+    "al-kholood": {"name": "Al-Kholood", "slug": "al-kholood", "id": "91427", "besoccer_slug": "al-kholood-saudi"},
+    "al-taawoun": {"name": "Al-Taawoun", "slug": "al-taawoun-fc", "id": "28844", "besoccer_slug": "al-taawon"},
+    "al-ettifaq": {"name": "Al-Ettifaq", "slug": "al-ettifaq", "id": "7732", "besoccer_slug": "al-ittifaq-dammam"},
+    "al-shabab": {"name": "Al-Shabab", "slug": "al-shabab-riad", "id": "9840", "besoccer_slug": "al-shabab"},
+    "al-ahli": {"name": "Al-Ahli", "slug": "al-ahli-dschidda", "id": "18487", "besoccer_slug": "al-ahli-jeddah"},
+    "al-qadsiah": {"name": "Al-Qadsiah", "slug": "al-qadisiyah-fc", "id": "26069", "besoccer_slug": "al-quadisiya-khobar"},
+    "al-nassr": {"name": "Al-Nassr", "slug": "al-nasr-riad", "id": "18544", "besoccer_slug": "al-nassr"},
+    "al-hilal": {"name": "Al-Hilal", "slug": "al-hilal-riad", "id": "1114", "besoccer_slug": "al-hilal"},
+    "al-ittihad": {"name": "Al-Ittihad", "slug": "al-ittihad-dschidda", "id": "8023", "besoccer_slug": "al-ittihad"},
+    "sport recife": {"name": "Sport Recife", "slug": "sport-club-do-recife", "id": "8718", "besoccer_slug": ""},
+    "juventude": {"name": "Juventude", "slug": "esporte-clube-juventude", "id": "10492", "besoccer_slug": ""},
+    "vasco": {"name": "Vasco", "slug": "vasco-da-gama-rio-de-janeiro", "id": "978", "besoccer_slug": "vasco-da-gama"},
+    "fortaleza": {"name": "Fortaleza", "slug": "fortaleza-esporte-clube", "id": "10870", "besoccer_slug": ""},
+    "vitória": {"name": "Vitória", "slug": "esporte-clube-vitoria", "id": "2125", "besoccer_slug": "vitoria"},
+    "grêmio": {"name": "Grêmio", "slug": "gremio-porto-alegre", "id": "210", "besoccer_slug": "gremio-porto-alegre"},
+    "santos": {"name": "Santos", "slug": "fc-santos", "id": "221", "besoccer_slug": "santos-fc"},
+    "corinthians": {"name": "Corinthians", "slug": "corinthians-sao-paulo", "id": "199", "besoccer_slug": "corinthians-sao-paulo"},
+    "ceará sc": {"name": "Ceará SC", "slug": "ceara-sporting-club", "id": "2029", "besoccer_slug": ""},
+    "sc inter": {"name": "SC Inter", "slug": "sc-internacional-porto-alegre", "id": "6600", "besoccer_slug": "internacional"},
+    "atlético-mg": {"name": "Atlético-MG", "slug": "clube-atletico-mineiro", "id": "330", "besoccer_slug": "atletico-mineiro"},
+    "fluminense": {"name": "Fluminense", "slug": "fluminense-rio-de-janeiro", "id": "2462", "besoccer_slug": "fluminense-rio-janeiro"},
+    "bragantino": {"name": "Bragantino", "slug": "red-bull-bragantino", "id": "8793", "besoccer_slug": "bragantino"},
+    "são paulo": {"name": "São Paulo", "slug": "fc-sao-paulo", "id": "585", "besoccer_slug": "sao-paulo-fc"},
+    "mirassol": {"name": "Mirassol", "slug": "mirassol-futebol-clube-sp-", "id": "3876", "besoccer_slug": "mirassol"},
+    "botafogo": {"name": "Botafogo", "slug": "botafogo-rio-de-janeiro", "id": "537", "besoccer_slug": "botafogo-rio-janeiro"},
+    "bahia": {"name": "Bahia", "slug": "esporte-clube-bahia", "id": "10010", "besoccer_slug": "ec-bahia"},
+    "palmeiras": {"name": "Palmeiras", "slug": "se-palmeiras-sao-paulo", "id": "1023", "besoccer_slug": "palmeiras"},
+    "cruzeiro": {"name": "Cruzeiro", "slug": "ec-cruzeiro-belo-horizonte", "id": "609", "besoccer_slug": "cruzeiro-belo-horizonte"},
+    "flamengo": {"name": "Flamengo", "slug": "flamengo-rio-de-janeiro", "id": "614", "besoccer_slug": "flamengo-rio-janeiro"},
+    "psg": {"name": "PSG", "slug": "fc-paris-saint-germain", "id": "583", "besoccer_slug": "paris-saint-germain-fc"},
+    "marsilya": {"name": "Marsilya", "slug": "olympique-marseille", "id": "244", "besoccer_slug": "olympique-marsella"},
+    "monaco": {"name": "Monaco", "slug": "as-monaco", "id": "162", "besoccer_slug": "monaco"},
+    "nice": {"name": "Nice", "slug": "ogc-nizza", "id": "417", "besoccer_slug": "nice"},
+    "lille": {"name": "Lille", "slug": "losc-lille", "id": "1082", "besoccer_slug": "losc-lille"},
+    "lyon": {"name": "Lyon", "slug": "olympique-lyon", "id": "1041", "besoccer_slug": "olympique-lyonnais"},
+    "strasbourg": {"name": "Strasbourg", "slug": "rc-strassburg-alsace", "id": "667", "besoccer_slug": "strasbourg"},
+    "lens": {"name": "Lens", "slug": "rc-lens", "id": "826", "besoccer_slug": "lens"},
+    "brest": {"name": "Brest", "slug": "stade-brest-29", "id": "3911", "besoccer_slug": "stade-brestois-29"},
+    "toulouse": {"name": "Toulouse", "slug": "fc-toulouse", "id": "415", "besoccer_slug": "toulouse-fc"},
+    "aj auxerre": {"name": "AJ Auxerre", "slug": "aj-auxerre", "id": "290", "besoccer_slug": "auxerre"},
+    "rennes": {"name": "Rennes", "slug": "fc-stade-rennes", "id": "273", "besoccer_slug": "stade-rennes"},
+    "nantes": {"name": "Nantes", "slug": "fc-nantes", "id": "995", "besoccer_slug": "nantes"},
+    "angers": {"name": "Angers", "slug": "sco-angers", "id": "1420", "besoccer_slug": "angers-sco"},
+    "le havre": {"name": "Le Havre", "slug": "ac-le-havre", "id": "738", "besoccer_slug": "havre-ac"},
+    "lorient": {"name": "Lorient", "slug": "fc-lorient", "id": "1158", "besoccer_slug": "lorient"},
+    "paris fc": {"name": "Paris FC", "slug": "paris-fc", "id": "10004", "besoccer_slug": "paris-sg"},
+    "metz": {"name": "Metz", "slug": "fc-metz", "id": "347", "besoccer_slug": "metz"},
+    "hoffenheim": {"name": "Hoffenheim", "slug": "tsg-1899-hoffenheim", "id": "533", "besoccer_slug": "tsg-1899-hoffenheim"},
+    "heidenheim": {"name": "Heidenheim", "slug": "1-fc-heidenheim-1846", "id": "2036", "besoccer_slug": "heidenheim"},
+    "köln": {"name": "Köln", "slug": "1-fc-koln", "id": "3", "besoccer_slug": "1-fc-koln"},
+    "hamburg": {"name": "Hamburg", "slug": "hamburger-sv", "id": "41", "besoccer_slug": "hamburger-sv"},
+    "st. pauli": {"name": "St. Pauli", "slug": "fc-st-pauli", "id": "35", "besoccer_slug": "st-pauli"},
+    "u. berlin": {"name": "U. Berlin", "slug": "1-fc-union-berlin", "id": "89", "besoccer_slug": "1-fc-union-berlin"},
+    "augsburg": {"name": "Augsburg", "slug": "fc-augsburg", "id": "167", "besoccer_slug": "fc-augsburg"},
+    "wolfsburg": {"name": "Wolfsburg", "slug": "vfl-wolfsburg", "id": "82", "besoccer_slug": "wolfsburg"},
+    "stuttgart": {"name": "Stuttgart", "slug": "vfb-stuttgart", "id": "79", "besoccer_slug": "stuttgart"},
+    "gladbach": {"name": "Gladbach", "slug": "borussia-monchengladbach", "id": "18", "besoccer_slug": "borussia-monchengla"},
+    "bremen": {"name": "Bremen", "slug": "sv-werder-bremen", "id": "86", "besoccer_slug": "werder-bremen"},
+    "leipzig": {"name": "Leipzig", "slug": "rasenballsport-leipzig", "id": "23826", "besoccer_slug": "rb-leipzig"},
+    "mainz": {"name": "Mainz", "slug": "1-fsv-mainz-05", "id": "39", "besoccer_slug": "mainz-amat"},
+    "freiburg": {"name": "Freiburg", "slug": "sc-freiburg", "id": "60", "besoccer_slug": "sc-freiburg"},
+    "frankfurt": {"name": "Frankfurt", "slug": "eintracht-frankfurt", "id": "24", "besoccer_slug": "eintracht-frankfurt"},
+    "leverkusen": {"name": "Leverkusen", "slug": "bayer-04-leverkusen", "id": "15", "besoccer_slug": "bayer-leverkusen"},
+    "real oviedo": {"name": "Real Oviedo", "slug": "real-oviedo", "id": "2497", "besoccer_slug": "real-oviedo"},
+    "elche": {"name": "Elche", "slug": "fc-elche", "id": "1531", "besoccer_slug": "elche"},
+    "levante": {"name": "Levante", "slug": "ud-levante", "id": "3368", "besoccer_slug": "levante"},
+    "espanyol": {"name": "Espanyol", "slug": "espanyol-barcelona", "id": "714", "besoccer_slug": "espanyol"},
+    "girona": {"name": "Girona", "slug": "fc-girona", "id": "12321", "besoccer_slug": "girona-fc"},
+    "alavés": {"name": "Alavés", "slug": "deportivo-alaves", "id": "1108", "besoccer_slug": "alaves"},
+    "getafe": {"name": "Getafe", "slug": "fc-getafe", "id": "3709", "besoccer_slug": "getafe"},
+    "valencia": {"name": "Valencia", "slug": "fc-valencia", "id": "1049", "besoccer_slug": "valencia-cf"},
+    "sociedad": {"name": "Sociedad", "slug": "real-sociedad-san-sebastian", "id": "681", "besoccer_slug": "real-sociedad"},
+    "mallorca": {"name": "Mallorca", "slug": "rcd-mallorca", "id": "237", "besoccer_slug": "mallorca"},
+    "osasuna": {"name": "Osasuna", "slug": "ca-osasuna", "id": "331", "besoccer_slug": "osasuna"},
+    "celta vigo": {"name": "Celta Vigo", "slug": "celta-vigo", "id": "940", "besoccer_slug": "celta"},
+    "rayo": {"name": "Rayo", "slug": "rayo-vallecano", "id": "367", "besoccer_slug": "rayo-vallecano"},
+    "real betis": {"name": "Real Betis", "slug": "real-betis-sevilla", "id": "150", "besoccer_slug": "betis"},
+    "villarreal": {"name": "Villarreal", "slug": "fc-villarreal", "id": "1050", "besoccer_slug": "villarreal"},
+    "athletic bilbao": {"name": "Athletic Bilbao", "slug": "athletic-bilbao", "id": "621", "besoccer_slug": "athletic-bilbao"},
+    "everton": {"name": "Everton", "slug": "fc-everton", "id": "29", "besoccer_slug": "everton-fc"},
+    "leeds": {"name": "Leeds", "slug": "leeds-united", "id": "399", "besoccer_slug": "leeds-united-afc"},
+    "brentford": {"name": "Brentford", "slug": "fc-brentford", "id": "1148", "besoccer_slug": "brentford"},
+    "nottingham": {"name": "Nottingham", "slug": "nottingham-forest", "id": "703", "besoccer_slug": "nottingham-forest-fc"},
+    "crystal palace": {"name": "Crystal Palace", "slug": "crystal-palace", "id": "873", "besoccer_slug": "crystal-palace-fc"},
+    "wolves": {"name": "Wolves", "slug": "wolverhampton-wanderers", "id": "543", "besoccer_slug": "wolverhampton"},
+    "burnley": {"name": "Burnley", "slug": "fc-burnley", "id": "1132", "besoccer_slug": "burnley-fc"},
+    "tottenham": {"name": "Tottenham", "slug": "tottenham-hotspur", "id": "148", "besoccer_slug": "tottenham-hotspur-fc"},
+    "west ham": {"name": "West Ham", "slug": "west-ham-united", "id": "379", "besoccer_slug": "west-ham-united"},
+    "sunderland": {"name": "Sunderland", "slug": "afc-sunderland", "id": "289", "besoccer_slug": "sunderland-afc"},
+    "fulham": {"name": "Fulham", "slug": "fc-fulham", "id": "931", "besoccer_slug": "fulham"},
+    "brighton": {"name": "Brighton", "slug": "brighton-amp-hove-albion", "id": "1237", "besoccer_slug": "brighton-amp-hov"},
+    "newcastle": {"name": "Newcastle", "slug": "newcastle-united", "id": "762", "besoccer_slug": "newcastle-united-fc"},
+    "aston villa": {"name": "Aston Villa", "slug": "aston-villa", "id": "405", "besoccer_slug": "aston-villa-fc"},
+    "liverpool": {"name": "Liverpool", "slug": "fc-liverpool", "id": "31", "besoccer_slug": "liverpool"},
+    "bournemouth": {"name": "Bournemouth", "slug": "afc-bournemouth", "id": "989", "besoccer_slug": "afc-bournemouth"},
+    "barcelona": {"name": "Barcelona", "slug": "fc-barcelona", "id": "131", "besoccer_slug": "barcelona"},
+    "real madrid": {"name": "Real Madrid", "slug": "real-madrid", "id": "418", "besoccer_slug": "real-madrid"},
+    "man united": {"name": "Man United", "slug": "manchester-united", "id": "985", "besoccer_slug": "manchester-united-fc"},
+    "atletico madrid": {"name": "Atletico Madrid", "slug": "atletico-madrid", "id": "13", "besoccer_slug": "atletico-madrid"},
+    "man city": {"name": "Man City", "slug": "manchester-city", "id": "281", "besoccer_slug": "manchester-city-fc"},
+    "chelsea": {"name": "Chelsea", "slug": "chelsea", "id": "631", "besoccer_slug": "chelsea-fc"},
+    "dortmund": {"name": "Dortmund", "slug": "borussia-dortmund", "id": "16", "besoccer_slug": "borussia-dortmund"},
+    "sevilla": {"name": "Sevilla", "slug": "fc-sevilla", "id": "368", "besoccer_slug": "sevilla"},
+    "arsenal": {"name": "Arsenal", "slug": "fc-arsenal", "id": "11", "besoccer_slug": "arsenal"},
+    "bayern münih": {"name": "Bayern Münih", "slug": "fc-bayern-munchen", "id": "27", "besoccer_slug": "bayern-munchen"},
+    "galatasaray": {"name": "Galatasaray", "slug": "galatasaray-istanbul", "id": "141", "besoccer_slug": "galatasaray-sk"},
+    "fenerbahçe": {"name": "Fenerbahçe", "slug": "fenerbahce-istanbul", "id": "36", "besoccer_slug": "fenerbahce"},
+    "beşiktaş": {"name": "Beşiktaş", "slug": "besiktas-istanbul", "id": "114", "besoccer_slug": "besiktas"},
+    "trabzonspor": {"name": "Trabzonspor", "slug": "trabzonspor", "id": "449", "besoccer_slug": "trabzonspor"},
+    "göztepe": {"name": "Göztepe", "slug": "goztepe", "id": "1467", "besoccer_slug": "goztepe"},
+    "başakşehir": {"name": "Başakşehir", "slug": "istanbul-basaksehir-fk", "id": "6890", "besoccer_slug": "istanbul-bb"},
+    "ç. rizespor": {"name": "Ç. Rizespor", "slug": "caykur-rizespor", "id": "126", "besoccer_slug": "caykur-rizespor"},
+    "samsunspor": {"name": "Samsunspor", "slug": "samsunspor", "id": "152", "besoccer_slug": "samsunspor"},
+    "kasımpaşa": {"name": "Kasımpaşa", "slug": "kasimpasa", "id": "10484", "besoccer_slug": "kasimpasa"},
+    "eyüpspor": {"name": "Eyüpspor", "slug": "eyupspor", "id": "7160", "besoccer_slug": "eyupspor"},
+    "alanyaspor": {"name": "Alanyaspor", "slug": "alanyaspor", "id": "11282", "besoccer_slug": "alanyaspor"},
+    "antalyaspor": {"name": "Antalyaspor", "slug": "antalyaspor", "id": "589", "besoccer_slug": "antalyaspor"},
+    "gaziantep fk": {"name": "Gaziantep FK", "slug": "gaziantep-fk", "id": "2832", "besoccer_slug": "gaziantep-bb"},
+    "konyaspor": {"name": "Konyaspor", "slug": "konyaspor", "id": "2293", "besoccer_slug": "konyaspor"},
+    "kayserispor": {"name": "Kayserispor", "slug": "kayserispor", "id": "3205", "besoccer_slug": "kayserispor"},
+    "karagümrük": {"name": "Karagümrük", "slug": "fatih-karagumruk", "id": "6646", "besoccer_slug": "fatih-karagumruk"},
+    "kocaelispor": {"name": "Kocaelispor", "slug": "kocaelispor", "id": "120", "besoccer_slug": "kocaelispor"},
+    "gençlerbirliği": {"name": "Gençlerbirliği", "slug": "genclerbirligi-ankara", "id": "820", "besoccer_slug": "genclerbirligi-sk"},
 }
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
@@ -632,12 +630,13 @@ def scrape_suspensions(team_slug, team_id, squad):
         return []
 
 
-def scrape_besoccer_suspensions(besoccer_slug: str) -> list | None:
+def scrape_besoccer_suspensions(besoccer_slug: str, squad: List[dict] = None) -> list | None:
     """
     BeSoccer'dan sakatlık ve ceza bilgilerini çeker.
     
     Args:
         besoccer_slug: BeSoccer'daki takım slug'ı (örn: 'bologna', 'galatasaray')
+        squad: Oyuncu kadrosu (pozisyon eşleştirmesi için)
     
     Returns:
         Cezalı/sakatlı oyuncuların listesi veya None
@@ -649,7 +648,7 @@ def scrape_besoccer_suspensions(besoccer_slug: str) -> list | None:
         
         injuries_suspensions = []
         
-        # ← DEĞİŞTİ: Önce ul.item-list'i bul, sonra içindeki li'leri al
+        # Önce ul.item-list'i bul, sonra içindeki li'leri al
         item_list = soup.find("ul", class_="item-list")
         
         if not item_list:
@@ -677,14 +676,27 @@ def scrape_besoccer_suspensions(besoccer_slug: str) -> list | None:
             
             print(f"[BeSoccer DEBUG] Oyuncu: {player_name} - Sebep: {reason}", file=sys.stderr)
             
-            # Sadece kırmızı kart ve suspensionları al
-            # Sakatlıkları da istiyorsan bu if'i kaldır
-            if "red card" in reason.lower() or "suspension" in reason.lower():
-                injuries_suspensions.append({
-                    "name": player_name,
-                    "reason": reason,
-                    "source": "besoccer"
-                })
+            # Pozisyon eşleştirme (squad'dan)
+            position = ""
+            if squad:
+                matched = next((p for p in squad if p["name"] == player_name), None)
+                position = matched["position"] if matched else ""
+            
+            # Status belirleme (Kırmızı Kart, Sarı Kart, Sakatlık)
+            status = ""
+            if "red card" in reason.lower():
+                status = "Kırmızı Kart"
+            elif "yellow" in reason.lower() or "suspension" in reason.lower():
+                status = "Sarı Kart"
+            else:
+                status = "Sakatlık"
+            
+            injuries_suspensions.append({
+                "name": player_name,
+                "position": position,
+                "status": status,
+                "details": reason
+            })
         
         time.sleep(random.uniform(1.5, 3.0))
         
@@ -697,28 +709,28 @@ def scrape_besoccer_suspensions(besoccer_slug: str) -> list | None:
         return None
 
 
-def scrape_besoccer_suspensions_cached(besoccer_slug: str, team_name: str,
-                                       cache_mgr: CacheManager) -> list | None:
+def scrape_besoccer_suspensions_cached(besoccer_slug: str, team_name: str, 
+                                        squad: List[dict], cache_mgr: CacheManager) -> list | None:
     """Cache-aware BeSoccer suspension scraping"""
     url = f"https://www.besoccer.com/team/injuries-suspensions/{besoccer_slug}"
-
+    
     # Hash oluştur
     content_hash = cache_mgr.get_besoccer_suspension_hash(url)
     if not content_hash:
-        return scrape_besoccer_suspensions(besoccer_slug)
-
-    if not cache_mgr.should_scrape(team_name, 'new_suspensions', content_hash):
-        print(f"[CACHE HIT] {team_name}/new_suspensions (BeSoccer)")
+        return scrape_besoccer_suspensions(besoccer_slug, squad)
+    
+    if not cache_mgr.should_scrape(team_name, 'suspensions', content_hash):
+        print(f"[CACHE HIT] {team_name}/suspensions (BeSoccer)")
         return None
-
-    print(f"[SCRAPING] {team_name}/new_suspensions (BeSoccer)")
-    suspensions = scrape_besoccer_suspensions(besoccer_slug)
-
-    print(f"[SONUÇ] {team_name}/new_suspensions = {len(suspensions) if suspensions else 0} kayıt")
-
+    
+    print(f"[SCRAPING] {team_name}/suspensions (BeSoccer)")
+    suspensions = scrape_besoccer_suspensions(besoccer_slug, squad)
+    
+    print(f"[SONUÇ] {team_name}/suspensions = {len(suspensions) if suspensions else 0} kayıt (BeSoccer)")
+    
     if suspensions is not None:
-        cache_mgr.update_cache(team_name, 'new_suspensions', content_hash)
-
+        cache_mgr.update_cache(team_name, 'suspensions', content_hash)
+    
     return suspensions
 
 def scrape_suspensions_cached(team_slug: str, team_id: str, squad: List[dict],
@@ -1060,13 +1072,6 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     # 2. Sakatlıklar ve Cezalılar (Kadro gerekli, ama cache'den gelebilir)
     injuries = None
     suspensions = None
-    suspensions_kader = None
-    new_suspensions = None
-
-    if besoccer_slug:
-        new_suspensions = scrape_besoccer_suspensions_cached(besoccer_slug, team_doc, cache_mgr)
-    else:
-        print(f"[UYARI] {name} için besoccer_slug tanımlı değil, atlanıyor", file=sys.stderr)
 
     # Eğer squad None ise (cache hit), mevcut squad'ı Firestore'dan çek
     if squad is None:
@@ -1076,20 +1081,21 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
                 existing_squad = doc.to_dict().get('squad', [])
                 # Sakatlık/ceza scrape için mevcut squad'ı kullan
                 injuries = scrape_injuries_cached(slug, team_id, existing_squad, team_doc, cache_mgr)
-                suspensions = scrape_suspensions_cached(slug, team_id, existing_squad, team_doc, cache_mgr)
-                suspensions_kader = scrape_suspensions_kader_cached(slug, team_id, team_doc, cache_mgr)
         except Exception as e:
             print(f"[HATA] Firestore'dan squad alınamadı: {e}", file=sys.stderr)
     else:
         # Yeni squad scrape edildi, onunla devam et
         injuries = scrape_injuries_cached(slug, team_id, squad, team_doc, cache_mgr)
-        suspensions = scrape_suspensions_cached(slug, team_id, squad, team_doc, cache_mgr)
-        suspensions_kader = scrape_suspensions_kader_cached(slug, team_id, team_doc, cache_mgr)
     
     # 3. Bağımsız veriler (Cache-aware)
     position = get_league_position_cached(name, league_key, cache_mgr)
     form = get_recent_form_cached(name, league_key, cache_mgr)
     stats = scrape_stats_cached(slug, team_id, team_doc, cache_mgr)
+    
+    if besoccer_slug:
+        suspensions = scrape_besoccer_suspensions_cached(besoccer_slug, team_doc, existing_squad, cache_mgr)
+    else:
+        print(f"[UYARI] {name} için besoccer_slug tanımlı değil, suspension atlanıyor", file=sys.stderr)
     
     # 4. Veriyi birleştir (None olanlar eklenmez = eski veri korunur)
     data = {
@@ -1106,21 +1112,8 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     if injuries is not None:
         data["injuries"] = injuries
 
-    if new_suspensions is not None:
-        data["new_suspensions"] = new_suspensions
-    
-    if suspensions is not None or suspensions_kader is not None:
-        combined_suspensions = []
-        
-        # suspensions varsa ekle
-        if suspensions is not None:
-            combined_suspensions.extend(suspensions)
-        
-        # suspensions_kader varsa ekle
-        if suspensions_kader is not None:
-            combined_suspensions.extend(suspensions_kader)
-        
-        data["suspensions"] = combined_suspensions
+    if suspensions is not None:
+        data["suspensions"] = suspensions
     
     if form is not None:
         data["recent_form"] = form
