@@ -181,20 +181,33 @@ class CacheManager:
             suspended_players = []
 
             for row in soup.find_all("tr", class_=["odd", "even"]):
-                ausfall_span = row.find("span", class_="ausfall-table")
+                # ← DEĞİŞTİ: Hem eski hem yeni yapıyı ara
+                ausfall_span = row.find("span", class_="ausfall-table") or row.find("span", class_="svg-icon")
+
                 if ausfall_span:
+                    # Oyuncu adını bul
                     name_td = row.find("td", class_="hauptlink")
                     if name_td:
-                        player_name = name_td.get_text(strip=True)
-                        ceza_bilgi = ausfall_span.get("title", "")
-                        suspended_players.append(f"{player_name}:{ceza_bilgi}")
+                        # <a> tag'i içindeki ismi al
+                        name_link = name_td.find("a", href=True)
+                        if name_link:
+                            # Metni al (span hariç)
+                            player_name = "".join(name_link.find_all(string=True, recursive=False)).strip()
+
+                            # Eğer boşsa, tüm text'i al
+                            if not player_name:
+                                player_name = name_link.get_text(strip=True)
+
+                            # Ceza bilgisini al
+                            ceza_bilgi = ausfall_span.get("title", "")
+                            suspended_players.append(f"{player_name}:{ceza_bilgi}")
 
             # Oyuncuları sırala
             suspended_players.sort()
 
-            # ← ÖNEMLİ DEĞİŞİKLİK: Boş liste için özel işaret
+            # Boş liste için özel işaret
             if not suspended_players:
-                hash_data = "NO_SUSPENSIONS"  # Boş liste için özel değer
+                hash_data = "NO_SUSPENSIONS"
             else:
                 hash_data = "|".join(suspended_players)
 
