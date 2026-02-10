@@ -123,10 +123,16 @@ class CacheManager:
         try:
             soup = get_soup(url)
 
+            # ← DEĞİŞTİ: Doğru selector
+            item_list = soup.find("ul", class_="item-list")
+
+            if not item_list:
+                return hashlib.sha256("NO_DATA_BESOCCER".encode('utf-8')).hexdigest()
+
             # Cezalı/sakatlı oyuncuları bul
             player_data = []
 
-            items = soup.find_all("li")
+            items = item_list.find_all("li")
 
             for item in items:
                 name_div = item.find("div", class_="main-text")
@@ -629,52 +635,63 @@ def scrape_suspensions(team_slug, team_id, squad):
 def scrape_besoccer_suspensions(besoccer_slug: str) -> list | None:
     """
     BeSoccer'dan sakatlık ve ceza bilgilerini çeker.
-
+    
     Args:
         besoccer_slug: BeSoccer'daki takım slug'ı (örn: 'bologna', 'galatasaray')
-
+    
     Returns:
         Cezalı/sakatlı oyuncuların listesi veya None
     """
     url = f"https://www.besoccer.com/team/injuries-suspensions/{besoccer_slug}"
-
+    
     try:
         soup = get_soup(url)
-
+        
         injuries_suspensions = []
-
-        # Tüm oyuncu item'larını bul
-        items = soup.find_all("li")
-
+        
+        # ← DEĞİŞTİ: Önce ul.item-list'i bul, sonra içindeki li'leri al
+        item_list = soup.find("ul", class_="item-list")
+        
+        if not item_list:
+            print(f"[BeSoccer] {besoccer_slug} için item-list bulunamadı", file=sys.stderr)
+            return []
+        
+        items = item_list.find_all("li")
+        
+        print(f"[BeSoccer DEBUG] {besoccer_slug} için {len(items)} li bulundu", file=sys.stderr)
+        
         for item in items:
             # main-text (oyuncu adı)
             name_div = item.find("div", class_="main-text")
             if not name_div:
                 continue
-
+            
             player_name = name_div.get_text(strip=True)
-
+            
             # sub-text1 (ceza/sakatlık türü)
             reason_div = item.find("div", class_="sub-text1")
             if not reason_div:
                 continue
-
+            
             reason = reason_div.get_text(strip=True)
-
-            # Sadece kırmızı kart olanları al (istersen tümünü alabilirsin)
-            # Eğer sakatlıkları da istiyorsan bu if'i kaldır
+            
+            print(f"[BeSoccer DEBUG] Oyuncu: {player_name} - Sebep: {reason}", file=sys.stderr)
+            
+            # Sadece kırmızı kart ve suspensionları al
+            # Sakatlıkları da istiyorsan bu if'i kaldır
             if "red card" in reason.lower() or "suspension" in reason.lower():
                 injuries_suspensions.append({
                     "name": player_name,
-                    "reason": reason
+                    "reason": reason,
+                    "source": "besoccer"
                 })
-
+        
         time.sleep(random.uniform(1.5, 3.0))
-
+        
         print(f"[BeSoccer] {besoccer_slug} için {len(injuries_suspensions)} kayıt bulundu", file=sys.stderr)
-
+        
         return injuries_suspensions if injuries_suspensions else []
-
+    
     except Exception as e:
         print(f"[HATA] BeSoccer scrape başarısız ({besoccer_slug}): {e}", file=sys.stderr)
         return None
