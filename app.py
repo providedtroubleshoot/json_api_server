@@ -73,7 +73,8 @@ class CacheManager:
         'squad': 10080,         
         'injuries': 10080,        
         'suspensions': 10080,    
-        'suspensions_kader': 10080, 
+        'suspensions_kader': 10080,
+        'new_suspensions': 10080,
         'position': 1440,         
         'form': 10080,            
         'stats': 4320,         
@@ -113,6 +114,46 @@ class CacheManager:
         
         except Exception as e:
             print(f"[CACHE HATA] Hash oluşturulamadı ({url}): {e}", file=sys.stderr)
+            return None
+
+    def get_besoccer_suspension_hash(self, url: str) -> str | None:
+        """
+        BeSoccer suspension sayfası için özel hash.
+        """
+        try:
+            soup = get_soup(url)
+
+            # Cezalı/sakatlı oyuncuları bul
+            player_data = []
+
+            items = soup.find_all("li")
+
+            for item in items:
+                name_div = item.find("div", class_="main-text")
+                reason_div = item.find("div", class_="sub-text1")
+
+                if name_div and reason_div:
+                    player_name = name_div.get_text(strip=True)
+                    reason = reason_div.get_text(strip=True)
+
+                    if "red card" in reason.lower() or "suspension" in reason.lower():
+                        player_data.append(f"{player_name}:{reason}")
+
+            # Sırala
+            player_data.sort()
+
+            # Hash oluştur
+            if player_data:
+                hash_data = "|".join(player_data)
+            else:
+                hash_data = "NO_SUSPENSIONS_BESOCCER"
+
+            print(f"[BESOCCER HASH] {hash_data[:100]}", file=sys.stderr)
+
+            return hashlib.sha256(hash_data.encode('utf-8')).hexdigest()
+
+        except Exception as e:
+            print(f"[CACHE HATA] BeSoccer hash oluşturulamadı: {e}", file=sys.stderr)
             return None
     
     def should_scrape(self, team_name: str, data_type: str, current_hash: str) -> bool:
@@ -277,15 +318,15 @@ TEAMS = {
     "lecce": {"name": "Lecce", "slug": "us-lecce", "id": "1005"},
     "cremonese": {"name": "Cremonese", "slug": "us-cremonese", "id": "2239"},
     "cagliari": {"name": "Cagliari", "slug": "cagliari-calcio", "id": "1390"},
-    "verona": {"name": "Verona", "slug": "hellas-verona", "id": "276"},
+    "verona": {"name": "Verona", "slug": "hellas-verona", "id": "276", "besoccer_slug": "hellas-verona-fc"},
     "pisa": {"name": "Pisa", "slug": "ac-pisa-1909", "id": "4172"},
     "genoa": {"name": "Genoa", "slug": "genua-cfc", "id": "252"},
-    "udinese": {"name": "Udinese", "slug": "udinese-calcio", "id": "410"},
-    "sassuolo": {"name": "Sassuolo", "slug": "us-sassuolo", "id": "6574"},
-    "parma": {"name": "Parma", "slug": "parma-calcio-1913", "id": "130"},
+    "udinese": {"name": "Udinese", "slug": "udinese-calcio", "id": "410", "besoccer_slug": "udinese"},
+    "sassuolo": {"name": "Sassuolo", "slug": "us-sassuolo", "id": "6574", "besoccer_slug": "us-sassuolo-calcio"},
+    "parma": {"name": "Parma", "slug": "parma-calcio-1913", "id": "130", "besoccer_slug": "parma-fc" },
     "torino": {"name": "Torino", "slug": "fc-turin", "id": "416"},
     "como": {"name": "Como", "slug": "como-1907", "id": "1047"},
-    "bologna": {"name": "Bologna", "slug": "fc-bologna", "id": "1025"},
+    "bologna": {"name": "Bologna", "slug": "fc-bologna", "id": "1025", "besoccer_slug": "bologna"},
     "lazio": {"name": "Lazio", "slug": "lazio-rom", "id": "398"},
     "fiorentina": {"name": "Fiorentina", "slug": "ac-florenz", "id": "430"},
     "roma": {"name": "Roma", "slug": "as-rom", "id": "12"},
@@ -583,6 +624,85 @@ def scrape_suspensions(team_slug, team_id, squad):
     except Exception as e:
         print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
         return []
+
+
+def scrape_besoccer_suspensions(besoccer_slug: str) -> list | None:
+    """
+    BeSoccer'dan sakatlık ve ceza bilgilerini çeker.
+
+    Args:
+        besoccer_slug: BeSoccer'daki takım slug'ı (örn: 'bologna', 'galatasaray')
+
+    Returns:
+        Cezalı/sakatlı oyuncuların listesi veya None
+    """
+    url = f"https://www.besoccer.com/team/injuries-suspensions/{besoccer_slug}"
+
+    try:
+        soup = get_soup(url)
+
+        injuries_suspensions = []
+
+        # Tüm oyuncu item'larını bul
+        items = soup.find_all("li")
+
+        for item in items:
+            # main-text (oyuncu adı)
+            name_div = item.find("div", class_="main-text")
+            if not name_div:
+                continue
+
+            player_name = name_div.get_text(strip=True)
+
+            # sub-text1 (ceza/sakatlık türü)
+            reason_div = item.find("div", class_="sub-text1")
+            if not reason_div:
+                continue
+
+            reason = reason_div.get_text(strip=True)
+
+            # Sadece kırmızı kart olanları al (istersen tümünü alabilirsin)
+            # Eğer sakatlıkları da istiyorsan bu if'i kaldır
+            if "red card" in reason.lower() or "suspension" in reason.lower():
+                injuries_suspensions.append({
+                    "name": player_name,
+                    "reason": reason
+                })
+
+        time.sleep(random.uniform(1.5, 3.0))
+
+        print(f"[BeSoccer] {besoccer_slug} için {len(injuries_suspensions)} kayıt bulundu", file=sys.stderr)
+
+        return injuries_suspensions if injuries_suspensions else []
+
+    except Exception as e:
+        print(f"[HATA] BeSoccer scrape başarısız ({besoccer_slug}): {e}", file=sys.stderr)
+        return None
+
+
+def scrape_besoccer_suspensions_cached(besoccer_slug: str, team_name: str,
+                                       cache_mgr: CacheManager) -> list | None:
+    """Cache-aware BeSoccer suspension scraping"""
+    url = f"https://www.besoccer.com/team/injuries-suspensions/{besoccer_slug}"
+
+    # Hash oluştur
+    content_hash = cache_mgr.get_besoccer_suspension_hash(url)
+    if not content_hash:
+        return scrape_besoccer_suspensions(besoccer_slug)
+
+    if not cache_mgr.should_scrape(team_name, 'new_suspensions', content_hash):
+        print(f"[CACHE HIT] {team_name}/new_suspensions (BeSoccer)")
+        return None
+
+    print(f"[SCRAPING] {team_name}/new_suspensions (BeSoccer)")
+    suspensions = scrape_besoccer_suspensions(besoccer_slug)
+
+    print(f"[SONUÇ] {team_name}/new_suspensions = {len(suspensions) if suspensions else 0} kayıt")
+
+    if suspensions is not None:
+        cache_mgr.update_cache(team_name, 'new_suspensions', content_hash)
+
+    return suspensions
 
 def scrape_suspensions_cached(team_slug: str, team_id: str, squad: List[dict],
                               team_name: str, cache_mgr: CacheManager) -> List[dict] | None:
@@ -912,6 +1032,7 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     name = team_info["name"]
     slug = team_info["slug"]
     team_id = team_info["id"]
+    besoccer_slug = team_info.get("besoccer_slug")
     team_doc = name.lower()
     
     print(f"🔄 {name} için cache-aware veri çekme başlıyor...", file=sys.stderr)
@@ -923,7 +1044,13 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     injuries = None
     suspensions = None
     suspensions_kader = None
-    
+    new_suspensions = None
+
+    if besoccer_slug:
+        new_suspensions = scrape_besoccer_suspensions_cached(besoccer_slug, team_doc, cache_mgr)
+    else:
+        print(f"[UYARI] {name} için besoccer_slug tanımlı değil, atlanıyor", file=sys.stderr)
+
     # Eğer squad None ise (cache hit), mevcut squad'ı Firestore'dan çek
     if squad is None:
         try:
@@ -961,6 +1088,9 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     
     if injuries is not None:
         data["injuries"] = injuries
+
+    if new_suspensions is not None:
+        data["new_suspensions"] = new_suspensions
     
     if suspensions is not None or suspensions_kader is not None:
         combined_suspensions = []
