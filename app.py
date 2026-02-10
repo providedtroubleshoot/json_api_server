@@ -72,7 +72,9 @@ class CacheManager:
     CACHE_DURATIONS = {
         'squad': 10080,         
         'injuries': 10080,        
-        'suspensions': 10080,
+        'suspensions': 10080,    
+        'suspensions_kader': 10080,
+        'new_suspensions': 10080,
         'position': 1440,         
         'form': 10080,            
         'stats': 4320,         
@@ -140,8 +142,8 @@ class CacheManager:
                     player_name = name_div.get_text(strip=True)
                     reason = reason_div.get_text(strip=True)
 
-                    # ← FİLTRE KALDIRILDI: Tüm sakatlık ve cezaları hash'e dahil et
-                    player_data.append(f"{player_name}:{reason}")
+                    if "red card" in reason.lower() or "suspension" in reason.lower():
+                        player_data.append(f"{player_name}:{reason}")
 
             # Sırala
             player_data.sort()
@@ -630,13 +632,12 @@ def scrape_suspensions(team_slug, team_id, squad):
         return []
 
 
-def scrape_besoccer_suspensions(besoccer_slug: str, squad: List[dict] = None) -> list | None:
+def scrape_besoccer_suspensions(besoccer_slug: str) -> list | None:
     """
     BeSoccer'dan sakatlık ve ceza bilgilerini çeker.
     
     Args:
         besoccer_slug: BeSoccer'daki takım slug'ı (örn: 'bologna', 'galatasaray')
-        squad: Oyuncu kadrosu (pozisyon eşleştirmesi için)
     
     Returns:
         Cezalı/sakatlı oyuncuların listesi veya None
@@ -648,7 +649,7 @@ def scrape_besoccer_suspensions(besoccer_slug: str, squad: List[dict] = None) ->
         
         injuries_suspensions = []
         
-        # Önce ul.item-list'i bul, sonra içindeki li'leri al
+        # ← DEĞİŞTİ: Önce ul.item-list'i bul, sonra içindeki li'leri al
         item_list = soup.find("ul", class_="item-list")
         
         if not item_list:
@@ -676,27 +677,14 @@ def scrape_besoccer_suspensions(besoccer_slug: str, squad: List[dict] = None) ->
             
             print(f"[BeSoccer DEBUG] Oyuncu: {player_name} - Sebep: {reason}", file=sys.stderr)
             
-            # Pozisyon eşleştirme (squad'dan)
-            position = ""
-            if squad:
-                matched = next((p for p in squad if p["name"] == player_name), None)
-                position = matched["position"] if matched else ""
-            
-            # Status belirleme (Kırmızı Kart, Sarı Kart, Sakatlık)
-            status = ""
-            if "red card" in reason.lower():
-                status = "Kırmızı Kart"
-            elif "yellow" in reason.lower() or "suspension" in reason.lower():
-                status = "Sarı Kart"
-            else:
-                status = "Sakatlık"
-            
-            injuries_suspensions.append({
-                "name": player_name,
-                "position": position,
-                "status": status,
-                "details": reason
-            })
+            # Sadece kırmızı kart ve suspensionları al
+            # Sakatlıkları da istiyorsan bu if'i kaldır
+            if "red card" in reason.lower() or "suspension" in reason.lower():
+                injuries_suspensions.append({
+                    "name": player_name,
+                    "reason": reason,
+                    "source": "besoccer"
+                })
         
         time.sleep(random.uniform(1.5, 3.0))
         
@@ -709,28 +697,28 @@ def scrape_besoccer_suspensions(besoccer_slug: str, squad: List[dict] = None) ->
         return None
 
 
-def scrape_besoccer_suspensions_cached(besoccer_slug: str, team_name: str, 
-                                        squad: List[dict], cache_mgr: CacheManager) -> list | None:
+def scrape_besoccer_suspensions_cached(besoccer_slug: str, team_name: str,
+                                       cache_mgr: CacheManager) -> list | None:
     """Cache-aware BeSoccer suspension scraping"""
     url = f"https://www.besoccer.com/team/injuries-suspensions/{besoccer_slug}"
-    
+
     # Hash oluştur
     content_hash = cache_mgr.get_besoccer_suspension_hash(url)
     if not content_hash:
-        return scrape_besoccer_suspensions(besoccer_slug, squad)
-    
-    if not cache_mgr.should_scrape(team_name, 'suspensions', content_hash):
-        print(f"[CACHE HIT] {team_name}/suspensions (BeSoccer)")
+        return scrape_besoccer_suspensions(besoccer_slug)
+
+    if not cache_mgr.should_scrape(team_name, 'new_suspensions', content_hash):
+        print(f"[CACHE HIT] {team_name}/new_suspensions (BeSoccer)")
         return None
-    
-    print(f"[SCRAPING] {team_name}/suspensions (BeSoccer)")
-    suspensions = scrape_besoccer_suspensions(besoccer_slug, squad)
-    
-    print(f"[SONUÇ] {team_name}/suspensions = {len(suspensions) if suspensions else 0} kayıt (BeSoccer)")
-    
+
+    print(f"[SCRAPING] {team_name}/new_suspensions (BeSoccer)")
+    suspensions = scrape_besoccer_suspensions(besoccer_slug)
+
+    print(f"[SONUÇ] {team_name}/new_suspensions = {len(suspensions) if suspensions else 0} kayıt")
+
     if suspensions is not None:
-        cache_mgr.update_cache(team_name, 'suspensions', content_hash)
-    
+        cache_mgr.update_cache(team_name, 'new_suspensions', content_hash)
+
     return suspensions
 
 def scrape_suspensions_cached(team_slug: str, team_id: str, squad: List[dict],
@@ -1061,57 +1049,46 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     name = team_info["name"]
     slug = team_info["slug"]
     team_id = team_info["id"]
-    team_doc = name.lower()
     besoccer_slug = team_info.get("besoccer_slug")
+    team_doc = name.lower()
     
     print(f"🔄 {name} için cache-aware veri çekme başlıyor...", file=sys.stderr)
     
     # 1. Kadro (Cache-aware)
     squad = scrape_squad_cached(slug, team_id, team_doc, cache_mgr)
     
-    # ← ÖNEMLİ: existing_squad'ı EN BAŞTA tanımla
-    existing_squad = []
-    
-    # 2. Sakatlıklar (Kadro gerekli, ama cache'den gelebilir)
+    # 2. Sakatlıklar ve Cezalılar (Kadro gerekli, ama cache'den gelebilir)
     injuries = None
-    
+    suspensions = None
+    suspensions_kader = None
+
     # Eğer squad None ise (cache hit), mevcut squad'ı Firestore'dan çek
     if squad is None:
         try:
             doc = DB.collection("team_data").document(team_doc).get()
             if doc.exists:
                 existing_squad = doc.to_dict().get('squad', [])
-                # Sadece sakatlık scrape et
+                # Sakatlık/ceza scrape için mevcut squad'ı kullan
                 injuries = scrape_injuries_cached(slug, team_id, existing_squad, team_doc, cache_mgr)
-            # ← EKLE: doc.exists False ise ne olsun?
-            else:
-                print(f"[UYARI] {name} için Firestore'da veri yok, boş squad kullanılıyor", file=sys.stderr)
-                existing_squad = []
+                suspensions = scrape_suspensions_cached(slug, team_id, existing_squad, team_doc, cache_mgr)
+                suspensions_kader = scrape_suspensions_kader_cached(slug, team_id, team_doc, cache_mgr)
         except Exception as e:
             print(f"[HATA] Firestore'dan squad alınamadı: {e}", file=sys.stderr)
-            existing_squad = []
     else:
         # Yeni squad scrape edildi, onunla devam et
-        existing_squad = squad
         injuries = scrape_injuries_cached(slug, team_id, squad, team_doc, cache_mgr)
+        suspensions = scrape_suspensions_cached(slug, team_id, squad, team_doc, cache_mgr)
+        suspensions_kader = scrape_suspensions_kader_cached(slug, team_id, team_doc, cache_mgr)
     
     # 3. Bağımsız veriler (Cache-aware)
     position = get_league_position_cached(name, league_key, cache_mgr)
     form = get_recent_form_cached(name, league_key, cache_mgr)
     stats = scrape_stats_cached(slug, team_id, team_doc, cache_mgr)
     
-    # 4. BeSoccer'dan suspension (artık ana kaynak bu)
-    suspensions = None
-    if besoccer_slug:
-        # ← Artık existing_squad her durumda tanımlı
-        suspensions = scrape_besoccer_suspensions_cached(besoccer_slug, team_doc, existing_squad, cache_mgr)
-    else:
-        print(f"[UYARI] {name} için besoccer_slug tanımlı değil, suspension atlanıyor", file=sys.stderr)
-    
-    # 5. Veriyi birleştir (None olanlar eklenmez = eski veri korunur)
+    # 4. Veriyi birleştir (None olanlar eklenmez = eski veri korunur)
     data = {
         "team": name,
-        "last_checked": datetime.now(timezone.utc).isoformat()
+        "last_checked": datetime.now(timezone.utc).isoformat()  # Her zaman güncelle
     }
     
     if position is not None:
@@ -1123,8 +1100,18 @@ def generate_team_data(team_info: dict, league_key: str, cache_mgr: CacheManager
     if injuries is not None:
         data["injuries"] = injuries
     
-    if suspensions is not None:
-        data["suspensions"] = suspensions
+    if suspensions is not None or suspensions_kader is not None:
+        combined_suspensions = []
+        
+        # suspensions varsa ekle
+        if suspensions is not None:
+            combined_suspensions.extend(suspensions)
+        
+        # suspensions_kader varsa ekle
+        if suspensions_kader is not None:
+            combined_suspensions.extend(suspensions_kader)
+        
+        data["suspensions"] = combined_suspensions
     
     if form is not None:
         data["recent_form"] = form
