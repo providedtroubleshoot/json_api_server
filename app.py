@@ -557,44 +557,71 @@ def scrape_stats_cached(team_slug: str, team_id: str, team_name: str, cache_mgr:
 def scrape_suspensions(team_slug, team_id, squad):
     try:
         url_squad = f"https://www.transfermarkt.com.tr/{team_slug}/startseite/verein/{team_id}"
-        # get_soup zaten proxy kullanıyor
         soup = get_soup(url_squad) 
         suspensions = []
-
+        
         # Oyuncu tablosunu bul
         table = soup.find("table", class_="items")
         if not table:
             print(f"{team_slug} için oyuncu tablosu bulunamadı", file=sys.stderr)
             return suspensions
-
-        # Oyuncu satırlarını tara (odd ve even sınıfları)
+        
+        # Oyuncu satırlarını tara
         rows = table.find_all("tr", class_=["odd", "even"])
+        print(f"[DEBUG] {team_slug} için {len(rows)} satır bulundu", file=sys.stderr)
+        
         for row in rows:
             table_inline = row.find("table", class_="inline-table")
             if table_inline:
                 name_tag = table_inline.find("a", href=True)
                 if name_tag:
-                    player_name = name_tag.get_text(strip=True)
-                    span_tag = name_tag.find("span", class_=["ausfall-1-table", "ausfall-2-table", "ausfall-3-table"])
+                    # Hem eski hem yeni yapıyı ara
+                    span_tag = (
+                        name_tag.find("span", class_=["ausfall-1-table", "ausfall-2-table", "ausfall-3-table"]) or
+                        name_tag.find("span", class_="svg-icon")
+                    )
+                    
                     if span_tag:
+                        # ← DEBUG EKLE
+                        print(f"[DEBUG] Cezalı oyuncu bulundu! Span: {span_tag}", file=sys.stderr)
+                        
+                        # Oyuncu adını al (span'ı çıkararak)
+                        player_name = "".join(name_tag.find_all(string=True, recursive=False)).strip()
+                        if not player_name:
+                            player_name = name_tag.get_text(strip=True)
+                        
+                        print(f"[DEBUG] Oyuncu adı: '{player_name}'", file=sys.stderr)
+                        
                         suspension_type = span_tag.get("title", "").strip()
+                        print(f"[DEBUG] Ceza tipi: '{suspension_type}'", file=sys.stderr)
+                        
                         status = (
-                            "Kırmızı Kart" if "Kırmızı kart cezalısı" in suspension_type else
+                            "Kırmızı Kart" if "Kırmızı kart cezalısı" in suspension_type or "kart cezalısı" in suspension_type.lower() else
                             "Sarı Kart" if "Sarı kart cezalısı" in suspension_type else
                             "Bilinmeyen Ceza"
                         )
+                        
                         matched = next((p for p in squad if p["name"] == player_name), None)
                         position = matched["position"] if matched else "Bilinmiyor"
+                        
+                        print(f"[DEBUG] Pozisyon: '{position}'", file=sys.stderr)
+                        
                         suspensions.append({
                             "name": player_name,
                             "position": position,
                             "status": status,
                             "details": suspension_type
                         })
-
+                        
+                        print(f"[DEBUG] ✓ Eklendi: {player_name}", file=sys.stderr)
+        
+        print(f"[DEBUG SONUÇ] {team_slug} için toplam {len(suspensions)} cezalı oyuncu", file=sys.stderr)
         return suspensions
+        
     except Exception as e:
         print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
         return []
 
 def scrape_suspensions_cached(team_slug: str, team_id: str, squad: List[dict],
