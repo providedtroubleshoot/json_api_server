@@ -583,15 +583,39 @@ def scrape_suspensions(team_slug, team_id, squad):
         print(f"Cezalılar veri hatası ({team_slug}): {e}", file=sys.stderr)
         return []
 
-
-def scrape_besoccer_suspensions(soup: BeautifulSoup, squad: List[dict] = None) -> list:
+def find_besoccer_injuries_container(soup: BeautifulSoup):
     """
-    Sadece soup üzerinden veriyi parse eder.
-    Sayfayı çekmez.
+    BeSoccer farklı DOM varyantları için güvenli container bulucu
     """
-    injuries_suspensions = []
 
+    # 1. Desktop DOM (ideal)
     container = soup.find("div", id="mod_injuries_suspensions")
+    if container:
+        return container
+
+    # 2. Panel başlığına göre (mobile / hybrid)
+    for panel in soup.find_all("div", class_="panel"):
+        title = panel.find("h2", class_="panel-title")
+        if title and "current status" in title.get_text(strip=True).lower():
+            return panel
+
+    # 3. Son çare
+    return soup.find("div", class_="player-list")
+
+
+
+
+def scrape_besoccer_suspensions(
+    soup: BeautifulSoup,
+    squad: List[dict] = None
+) -> list:
+    """
+    Sadece soup üzerinden sakat / cezalı listesini parse eder
+    """
+
+    results = []
+
+    container = find_besoccer_injuries_container(soup)
     if not container:
         return []
 
@@ -599,9 +623,9 @@ def scrape_besoccer_suspensions(soup: BeautifulSoup, squad: List[dict] = None) -
     if not item_list:
         return []
 
-    for item in item_list.find_all("li"):
-        name_div = item.find("div", class_="main-text")
-        reason_div = item.find("div", class_="sub-text1")
+    for li in item_list.find_all("li"):
+        name_div = li.find("div", class_="main-text")
+        reason_div = li.find("div", class_="sub-text1")
 
         if not name_div or not reason_div:
             continue
@@ -609,28 +633,29 @@ def scrape_besoccer_suspensions(soup: BeautifulSoup, squad: List[dict] = None) -
         player_name = name_div.get_text(strip=True)
         reason = reason_div.get_text(strip=True)
 
-        # Pozisyon eşleştirme (squad'dan)
+        # Pozisyon (squad eşleşmesi)
         position = ""
         if squad:
             matched = next((p for p in squad if p["name"] == player_name), None)
             position = matched["position"] if matched else ""
 
-        # Status belirleme
-        status = "Sakatlık"
-        if "red card" in reason.lower():
+        # Status
+        r = reason.lower()
+        if "red card" in r:
             status = "Kırmızı Kart"
-        elif "yellow" in reason.lower() or "suspension" in reason.lower():
+        elif "yellow" in r or "suspension" in r:
             status = "Sarı Kart"
+        else:
+            status = "Sakatlık"
 
-        injuries_suspensions.append({
+        results.append({
             "name": player_name,
             "position": position,
             "status": status,
             "details": reason
         })
 
-    return injuries_suspensions
-
+    return results
 
 def scrape_besoccer_suspensions_cached(
     besoccer_slug: str,
@@ -639,9 +664,9 @@ def scrape_besoccer_suspensions_cached(
     cache_mgr: CacheManager
 ) -> list | None:
     """
-    Cache-aware BeSoccer suspension scraping.
-    Sayfayı sadece BİR KEZ çeker.
+    BeSoccer sakat / cezalı scraping (cache + tek fetch)
     """
+
     url = f"https://www.besoccer.com/team/injuries-suspensions/{besoccer_slug}"
 
     try:
@@ -649,49 +674,42 @@ def scrape_besoccer_suspensions_cached(
         soup = get_soup(url)
 
         if not soup:
-            print(f"[HATA] {besoccer_slug} için soup oluşturulamadı", file=sys.stderr)
             return None
 
-        container = soup.find("div", id="mod_injuries_suspensions")
+        container = find_besoccer_injuries_container(soup)
+
         if not container:
-            print(f"[BeSoccer] {besoccer_slug} için mod_injuries_suspensions yok", file=sys.stderr)
-            content_hash = hashlib.sha256("NO_DATA_BESOCCER".encode()).hexdigest()
-            suspensions = []
+            content_hash = hashlib.sha256(b"NO_DATA_BESOCCER").hexdigest()
+            data = []
         else:
             item_list = container.find("ul", class_="item-list")
 
             if not item_list:
-                print(f"[BeSoccer] {besoccer_slug} için item-list yok (boş)", file=sys.stderr)
-                content_hash = hashlib.sha256("NO_DATA_BESOCCER".encode()).hexdigest()
-                suspensions = []
+                content_hash = hashlib.sha256(b"NO_DATA_BESOCCER").hexdigest()
+                data = []
             else:
-                raw_data = []
+                raw = []
                 for li in item_list.find_all("li"):
-                    name_div = li.find("div", class_="main-text")
-                    reason_div = li.find("div", class_="sub-text1")
-                    if name_div and reason_div:
-                        raw_data.append(
-                            f"{name_div.get_text(strip=True)}:{reason_div.get_text(strip=True)}"
-                        )
+                    n = li.find("div", class_="main-text")
+                    r = li.find("div", class_="sub-text1")
+                    if n and r:
+                        raw.append(f"{n.get_text(strip=True)}:{r.get_text(strip=True)}")
 
-                raw_data.sort()
-
-                hash_string = "|".join(raw_data) if raw_data else "NO_DATA_BESOCCER"
+                raw.sort()
+                hash_string = "|".join(raw) if raw else "NO_DATA_BESOCCER"
                 content_hash = hashlib.sha256(hash_string.encode()).hexdigest()
 
-                print(f"[BESOCCER HASH] {hash_string[:120]}", file=sys.stderr)
-
-                suspensions = scrape_besoccer_suspensions(soup, squad)
+                data = scrape_besoccer_suspensions(soup, squad)
 
         if not cache_mgr.should_scrape(team_name, "suspensions", content_hash):
             print(f"[CACHE HIT] {team_name}/suspensions (BeSoccer)", file=sys.stderr)
             return None
 
-        print(f"[SONUÇ] {team_name}/suspensions = {len(suspensions)} kayıt (BeSoccer)", file=sys.stderr)
         cache_mgr.update_cache(team_name, "suspensions", content_hash)
+        print(f"[SONUÇ] {team_name}/suspensions = {len(data)} kayıt (BeSoccer)", file=sys.stderr)
 
         time.sleep(random.uniform(1.5, 3.0))
-        return suspensions
+        return data
 
     except Exception as e:
         print(f"[HATA] BeSoccer scrape başarısız ({besoccer_slug}): {e}", file=sys.stderr)
