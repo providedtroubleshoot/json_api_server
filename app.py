@@ -582,9 +582,7 @@ def scrape_suspensions(team_slug, team_id, squad):
                     )
                     
                     if span_tag:
-                        # ← DEBUG EKLE
-                        print(f"[DEBUG] Cezalı oyuncu bulundu! Span: {span_tag}", file=sys.stderr)
-                        
+                      
                         # Oyuncu adını al (span'ı çıkararak)
                         player_name = "".join(name_tag.find_all(string=True, recursive=False)).strip()
                         if not player_name:
