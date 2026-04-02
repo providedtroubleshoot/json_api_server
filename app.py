@@ -20,15 +20,13 @@ load_dotenv()
 
 app = Flask(__name__)
 
+SCRAPE_DO_TOKEN = os.getenv("SCRAPE_DO_TOKEN")
+
 # Proxy ayarları
 PROXY_URL = os.getenv("PROXY_URL")
 # Proxy'yi requests kütüphanesinin anlayacağı formatta ayarla
 # PROXY_URL'in "user:pass@host:port" formatında olduğunu varsayıyoruz.
-PROXIES = {
-    "http": PROXY_URL,
-    "https": PROXY_URL,
-} if PROXY_URL else None
-
+PROXIES = None
 
 # Firebase / Firestore başlatma
 def init_firestore():
@@ -450,14 +448,40 @@ def get_team_info(team_key: str) -> dict:
     return TEAMS[key]
 
 def get_soup(url: str) -> BeautifulSoup:
-    """Verilen URL'den HTML çekip BeautifulSoup objesine dönüştürür (Proxy kullanarak)."""
-    # Proxy kullanılıp kullanılmadığını logla
-    if PROXIES:
-        print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
-
-    res = requests.get(url, proxies=PROXIES, impersonate="chrome120", timeout=18)
-    res.raise_for_status()
-    return BeautifulSoup(res.text, "lxml") # lxml parser'ı artık yüklü olmalı
+    """Scrape.do API'si üzerinden HTML çeker."""
+    if not SCRAPE_DO_TOKEN:
+        raise RuntimeError("SCRAPE_DO_TOKEN tanımlı değil!")
+    
+    # Rate limiting için bekleme
+    time.sleep(random.uniform(1, 2))  # ← EKLE
+    
+    # URL'i encode et
+    encoded_url = urllib.parse.quote(url, safe='')
+    
+    # Scrape.do API URL'i oluştur
+    scrape_do_url = f"http://api.scrape.do/?url={encoded_url}&token={SCRAPE_DO_TOKEN}"
+    
+    print(f"[SCRAPE.DO] İstek gönderiliyor: {url[:80]}...", file=sys.stderr)
+    
+    try:
+        # Scrape.do'ya normal GET request
+        res = requests.get(scrape_do_url, timeout=30)
+        res.raise_for_status()
+        
+        # HTML uzunluğunu kontrol et
+        html_length = len(res.text)
+        print(f"[SCRAPE.DO] Başarılı - HTML uzunluğu: {html_length} karakter", file=sys.stderr)
+        
+        return BeautifulSoup(res.text, "lxml")
+    
+    except requests.HTTPError as e:
+        print(f"[HTTP HATA] {e.response.status_code}: {url}", file=sys.stderr)
+        print(f"[RESPONSE] {e.response.text[:500]}", file=sys.stderr)
+        raise
+    
+    except Exception as e:
+        print(f"[HATA] get_soup başarısız ({url}): {e}", file=sys.stderr)
+        raise
 
 def extract_first_int(s: str) -> int:
     """Bir string içindeki ilk tam sayıyı ayıkla. Yoksa 0 döner."""
