@@ -14,6 +14,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import re
 from requests.exceptions import HTTPError, RequestException
+import urllib.parse
 
 # Ortam değişkenlerini yükle (.env dosyasından)
 load_dotenv()
