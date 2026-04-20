@@ -5,8 +5,9 @@ import time
 import random
 from typing import Dict, List
 import hashlib
+from playwright.sync_api import sync_playwright
+from playwright_stealth import stealth_sync
 from datetime import datetime, timedelta, timezone
-from curl_cffi import requests
 from bs4 import BeautifulSoup	
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
@@ -28,6 +29,8 @@ PROXIES = {
     "http": PROXY_URL,
     "https": PROXY_URL,
 } if PROXY_URL else None
+
+_browser = None
 
 # Firebase / Firestore başlatma
 def init_firestore():
@@ -447,15 +450,47 @@ def get_team_info(team_key: str) -> dict:
         raise ValueError(f"{team_key} takımı bulunamadı. Geçerli takımlar: {list(TEAMS.keys())}")
     return TEAMS[key]
 
-def get_soup(url: str) -> BeautifulSoup:
-    """Verilen URL'den HTML çekip BeautifulSoup objesine dönüştürür (Proxy kullanarak)."""
-    # Proxy kullanılıp kullanılmadığını logla
-    if PROXIES:
-        print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
+def get_playwright_browser():
+    global _browser
+    if _browser is None:
+        p = sync_playwright().start()
+        _browser = p.chromium.launch(
+            headless=True,                    # Production'da True
+            proxy={"server": PROXY_URL} if PROXY_URL else None
+        )
+    return _browser
 
-    res = requests.get(url, proxies=PROXIES, impersonate="chrome120", timeout=18)
-    res.raise_for_status()
-    return BeautifulSoup(res.text, "lxml") # lxml parser'ı artık yüklü olmalı
+
+def get_soup(url: str) -> BeautifulSoup:
+    """Playwright ile sayfayı açar, stealth uygular ve BeautifulSoup döner."""
+    print(f"[PLAYWRIGHT] → {url}", file=sys.stderr)
+
+    browser = get_playwright_browser()
+    context = browser.new_context(
+        viewport={"width": 1920, "height": 1080},
+        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+        locale="tr-TR",
+        timezone_id="Europe/Istanbul"
+    )
+    page = context.new_page()
+    stealth_sync(page)  # Anti-detection
+
+    try:
+        page.goto(url, wait_until="networkidle", timeout=30000)
+        # İnsan gibi davran: random scroll + delay
+        page.evaluate("window.scrollBy(0, 400)")
+        time.sleep(random.uniform(1.8, 3.5))
+        page.evaluate("window.scrollBy(0, 600)")
+        time.sleep(random.uniform(1.2, 2.8))
+
+        html = page.content()
+        return BeautifulSoup(html, "lxml")
+
+    except Exception as e:
+        print(f"[PLAYWRIGHT HATA] {url}: {e}", file=sys.stderr)
+        raise
+    finally:
+        context.close()  # context kapat, browser'ı açık tut (performans)
 
 def extract_first_int(s: str) -> int:
     """Bir string içindeki ilk tam sayıyı ayıkla. Yoksa 0 döner."""
