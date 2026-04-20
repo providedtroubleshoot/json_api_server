@@ -6,7 +6,7 @@ import random
 from typing import Dict, List
 import hashlib
 from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth_sync
+from playwright_stealth import Stealth
 from datetime import datetime, timedelta, timezone
 from bs4 import BeautifulSoup	
 from dotenv import load_dotenv
@@ -29,8 +29,6 @@ PROXIES = {
     "http": PROXY_URL,
     "https": PROXY_URL,
 } if PROXY_URL else None
-
-_browser = None
 
 # Firebase / Firestore başlatma
 def init_firestore():
@@ -450,47 +448,43 @@ def get_team_info(team_key: str) -> dict:
         raise ValueError(f"{team_key} takımı bulunamadı. Geçerli takımlar: {list(TEAMS.keys())}")
     return TEAMS[key]
 
-def get_playwright_browser():
-    global _browser
-    if _browser is None:
-        p = sync_playwright().start()
-        _browser = p.chromium.launch(
-            headless=True,                    # Production'da True
+def get_soup(url: str) -> BeautifulSoup:
+    """Playwright v2 + Stealth (2026 uyumlu)"""
+    print(f"[PLAYWRIGHT v2] → {url}", file=sys.stderr)
+    
+    with Stealth().use_sync(sync_playwright()) as p:   # ← Yeni stealth yöntemi
+        browser = p.chromium.launch(
+            headless=True,
             proxy={"server": PROXY_URL} if PROXY_URL else None
         )
-    return _browser
-
-
-def get_soup(url: str) -> BeautifulSoup:
-    """Playwright ile sayfayı açar, stealth uygular ve BeautifulSoup döner."""
-    print(f"[PLAYWRIGHT] → {url}", file=sys.stderr)
-
-    browser = get_playwright_browser()
-    context = browser.new_context(
-        viewport={"width": 1920, "height": 1080},
-        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
-        locale="tr-TR",
-        timezone_id="Europe/Istanbul"
-    )
-    page = context.new_page()
-    stealth_sync(page)  # Anti-detection
-
-    try:
-        page.goto(url, wait_until="networkidle", timeout=30000)
-        # İnsan gibi davran: random scroll + delay
-        page.evaluate("window.scrollBy(0, 400)")
-        time.sleep(random.uniform(1.8, 3.5))
-        page.evaluate("window.scrollBy(0, 600)")
-        time.sleep(random.uniform(1.2, 2.8))
-
-        html = page.content()
-        return BeautifulSoup(html, "lxml")
-
-    except Exception as e:
-        print(f"[PLAYWRIGHT HATA] {url}: {e}", file=sys.stderr)
-        raise
-    finally:
-        context.close()  # context kapat, browser'ı açık tut (performans)
+        
+        context = browser.new_context(
+            viewport={"width": 1920, "height": 1080},
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+            locale="tr-TR",
+            timezone_id="Europe/Istanbul"
+        )
+        
+        page = context.new_page()
+        
+        try:
+            page.goto(url, wait_until="networkidle", timeout=30000)
+            
+            # İnsan gibi davran (anti-detection)
+            page.evaluate("window.scrollBy(0, 400)")
+            time.sleep(random.uniform(1.8, 3.5))
+            page.evaluate("window.scrollBy(0, 600)")
+            time.sleep(random.uniform(1.2, 2.8))
+            
+            html = page.content()
+            return BeautifulSoup(html, "lxml")
+            
+        except Exception as e:
+            print(f"[PLAYWRIGHT HATA] {url}: {e}", file=sys.stderr)
+            raise
+        finally:
+            context.close()
+            browser.close()   # her seferinde temiz kapatıyoruz
 
 def extract_first_int(s: str) -> int:
     """Bir string içindeki ilk tam sayıyı ayıkla. Yoksa 0 döner."""
