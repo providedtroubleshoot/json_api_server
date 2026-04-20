@@ -29,6 +29,8 @@ PROXIES = {
     "https": PROXY_URL,
 } if PROXY_URL else None
 
+_session: requests.Session | None = None
+
 
 # Firebase / Firestore başlatma
 def init_firestore():
@@ -441,7 +443,6 @@ TEAMS = {
     "gençlerbirliği": {"name": "Gençlerbirliği", "slug": "genclerbirligi-ankara", "id": "820"},
 }
 
-HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 def get_team_info(team_key: str) -> dict:
     key = team_key.lower()
@@ -449,51 +450,54 @@ def get_team_info(team_key: str) -> dict:
         raise ValueError(f"{team_key} takımı bulunamadı. Geçerli takımlar: {list(TEAMS.keys())}")
     return TEAMS[key]
 
+def get_session() -> requests.Session:
+    """Singleton session döndürür, yoksa oluşturur."""
+    global _session
+    if _session is None:
+        _session = requests.Session()
+        _session.headers.update({
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Cache-Control": "max-age=0",
+            "Sec-Ch-Ua": '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Referer": "https://www.transfermarkt.com.tr/",
+            "Origin": "https://www.transfermarkt.com.tr",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "same-origin",
+            "Upgrade-Insecure-Requests": "1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+        })
+        if PROXIES:
+            _session.proxies.update(PROXIES)
+            print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
+    return _session
+
 def get_soup(url: str) -> BeautifulSoup:
-    """Verilen URL'den HTML çekip BeautifulSoup objesine dönüştürür (Proxy kullanarak)."""
-    # Proxy kullanılıp kullanılmadığını logla
-    if PROXIES:
-        print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
-
-    headers = {
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Cache-Control": "max-age=0",
-        "Sec-Ch-Ua": '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-        "Sec-Ch-Ua-Mobile": "?0",
-        "Sec-Ch-Ua-Platform": '"Windows"',
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Upgrade-Insecure-Requests": "1",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
-    }
-
+    """Verilen URL'den HTML çekip BeautifulSoup objesine dönüştürür."""
+    session = get_session()
+    
     try:
-        # Bekleme süresi ekle (botları yavaşlatır)
         time.sleep(random.uniform(2, 4))
         
-        res = requests.get(
+        res = session.get(
             url,
-            proxies=PROXIES,
-            headers=headers,
             impersonate="chrome131",
-            timeout=30,
+            timeout=18,
             allow_redirects=True
         )
-        
+
         # Human verification kontrolü
         if "challenge" in res.text.lower() or "verify you are human" in res.text.lower():
             print(f"[CLOUDFLARE] Human verification algılandı!", file=sys.stderr)
-            # İkinci deneme - biraz daha bekle
             time.sleep(5)
-            res = requests.get(url, proxies=PROXIES, headers=headers, impersonate="chrome131", timeout=18)
-        
+            res = session.get(url, impersonate="chrome131", timeout=18)
+
         res.raise_for_status()
         return BeautifulSoup(res.text, "lxml")
-    
+
     except Exception as e:
         print(f"[HATA] get_soup başarısız ({url}): {e}", file=sys.stderr)
         raise
