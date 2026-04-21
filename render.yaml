@@ -2,7 +2,7 @@ version: "1"
 services:
 - type: web
   name: json_api_server
-  env: docker
+  runtime: docker
   repo: https://github.com/providedtroubleshoot/json_api_server
   plan: free
   region: frankfurt
