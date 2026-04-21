@@ -455,6 +455,14 @@ def get_soup(url: str) -> BeautifulSoup:
     with Stealth().use_sync(sync_playwright()) as p:   # ← Yeni stealth yöntemi
         browser = p.chromium.launch(
             headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--disable-setuid-sandbox",
+                "--single-process",
+                "--no-zygote"
+            ],
             proxy={"server": PROXY_URL} if PROXY_URL else None
         )
         
