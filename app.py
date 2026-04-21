@@ -6,7 +6,6 @@ import random
 from typing import Dict, List
 import hashlib
 from playwright.sync_api import sync_playwright
-from playwright_stealth import Stealth
 from datetime import datetime, timedelta, timezone
 from bs4 import BeautifulSoup	
 from dotenv import load_dotenv
@@ -453,7 +452,7 @@ def get_team_info(team_key: str) -> dict:
     return TEAMS[key]
 
 def get_soup(url: str) -> BeautifulSoup:
-    """2026 uyumlu Stealth + Global Browser (en stabil hali)"""
+    """Global browser + Manuel Stealth (2026'da en stabil ve sorunsuz yöntem)"""
     global _browser
     
     print(f"[PLAYWRIGHT GLOBAL] → {url}", file=sys.stderr)
@@ -469,7 +468,8 @@ def get_soup(url: str) -> BeautifulSoup:
                     "--no-sandbox",
                     "--disable-setuid-sandbox",
                     "--disable-dev-shm-usage",
-                    "--disable-gpu"
+                    "--disable-gpu",
+                    "--disable-blink-features=AutomationControlled"
                 ]
             )
     
@@ -482,12 +482,18 @@ def get_soup(url: str) -> BeautifulSoup:
     
     page = context.new_page()
     
-    # ←←← 2026'da doğru stealth yöntemi
-    Stealth().use_sync_context(context)   # v2 API'si
+    # Manuel Stealth (playwright-stealth paketine gerek kalmadı)
+    page.add_init_script("""
+        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+        Object.defineProperty(navigator, 'languages', {get: () => ['tr-TR', 'tr']});
+        window.chrome = { runtime: {} };
+    """)
     
     try:
         page.goto(url, wait_until="networkidle", timeout=45000)
         
+        # İnsan gibi scroll
         page.evaluate("window.scrollBy(0, 400)")
         time.sleep(random.uniform(1.5, 3.0))
         page.evaluate("window.scrollBy(0, 600)")
