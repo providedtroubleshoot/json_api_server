@@ -6,7 +6,7 @@ import random
 from typing import Dict, List
 import hashlib
 from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth_sync
+from playwright_stealth import Stealth
 from datetime import datetime, timedelta, timezone
 from bs4 import BeautifulSoup	
 from dotenv import load_dotenv
@@ -453,14 +453,14 @@ def get_team_info(team_key: str) -> dict:
     return TEAMS[key]
 
 def get_soup(url: str) -> BeautifulSoup:
-    """Global browser + stealth_sync (2026'da en stabil yöntem)"""
+    """2026 uyumlu Stealth + Global Browser (en stabil hali)"""
     global _browser
     
     print(f"[PLAYWRIGHT GLOBAL] → {url}", file=sys.stderr)
     
     with _browser_lock:
         if _browser is None:
-            print("[PLAYWRIGHT] İlk kez browser başlatılıyor...", file=sys.stderr)
+            print("[PLAYWRIGHT] Browser başlatılıyor...", file=sys.stderr)
             p = sync_playwright().start()
             _browser = p.chromium.launch(
                 headless=True,
@@ -469,12 +469,10 @@ def get_soup(url: str) -> BeautifulSoup:
                     "--no-sandbox",
                     "--disable-setuid-sandbox",
                     "--disable-dev-shm-usage",
-                    "--disable-gpu",
-                    "--disable-blink-features=AutomationControlled"
+                    "--disable-gpu"
                 ]
             )
     
-    # Her istek için yeni context (browser tek kalıyor)
     context = _browser.new_context(
         viewport={"width": 1920, "height": 1080},
         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
@@ -484,13 +482,12 @@ def get_soup(url: str) -> BeautifulSoup:
     
     page = context.new_page()
     
-    # ←←← EN ÖNEMLİ SATIR: Stealth burada uygulanıyor
-    stealth_sync(page)
+    # ←←← 2026'da doğru stealth yöntemi
+    Stealth().use_sync_context(context)   # v2 API'si
     
     try:
         page.goto(url, wait_until="networkidle", timeout=45000)
         
-        # İnsan gibi davran
         page.evaluate("window.scrollBy(0, 400)")
         time.sleep(random.uniform(1.5, 3.0))
         page.evaluate("window.scrollBy(0, 600)")
