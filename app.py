@@ -6,7 +6,7 @@ import random
 from typing import Dict, List
 import hashlib
 from playwright.sync_api import sync_playwright
-from playwright_stealth import Stealth
+from playwright_stealth import stealth_sync
 from datetime import datetime, timedelta, timezone
 from bs4 import BeautifulSoup	
 from dotenv import load_dotenv
@@ -453,22 +453,28 @@ def get_team_info(team_key: str) -> dict:
     return TEAMS[key]
 
 def get_soup(url: str) -> BeautifulSoup:
-    """Tek global browser + context ile scrape (RAM dostu)"""
+    """Global browser + stealth_sync (2026'da en stabil yöntem)"""
     global _browser
     
     print(f"[PLAYWRIGHT GLOBAL] → {url}", file=sys.stderr)
     
-    with _browser_lock:  # Thread-safe
+    with _browser_lock:
         if _browser is None:
-            print("[PLAYWRIGHT] Browser başlatılıyor (ilk kez)...", file=sys.stderr)
+            print("[PLAYWRIGHT] İlk kez browser başlatılıyor...", file=sys.stderr)
             p = sync_playwright().start()
             _browser = p.chromium.launch(
                 headless=True,
                 proxy={"server": PROXY_URL} if PROXY_URL else None,
-                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+                args=[
+                    "--no-sandbox",
+                    "--disable-setuid-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-gpu",
+                    "--disable-blink-features=AutomationControlled"
+                ]
             )
     
-    # Her seferinde yeni context (ama aynı browser)
+    # Her istek için yeni context (browser tek kalıyor)
     context = _browser.new_context(
         viewport={"width": 1920, "height": 1080},
         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
@@ -476,15 +482,15 @@ def get_soup(url: str) -> BeautifulSoup:
         timezone_id="Europe/Istanbul"
     )
     
-    # Stealth'i context'e uygula
-    Stealth().apply_to_context(context)
-    
     page = context.new_page()
+    
+    # ←←← EN ÖNEMLİ SATIR: Stealth burada uygulanıyor
+    stealth_sync(page)
     
     try:
         page.goto(url, wait_until="networkidle", timeout=45000)
         
-        # İnsan gibi yavaş scroll
+        # İnsan gibi davran
         page.evaluate("window.scrollBy(0, 400)")
         time.sleep(random.uniform(1.5, 3.0))
         page.evaluate("window.scrollBy(0, 600)")
@@ -497,7 +503,7 @@ def get_soup(url: str) -> BeautifulSoup:
         print(f"[PLAYWRIGHT HATA] {url}: {e}", file=sys.stderr)
         raise
     finally:
-        context.close()  # Sadece context kapat, browser'ı açık tut
+        context.close()
 
 def extract_first_int(s: str) -> int:
     """Bir string içindeki ilk tam sayıyı ayıkla. Yoksa 0 döner."""
