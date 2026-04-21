@@ -16,6 +16,7 @@ from firebase_admin import credentials, firestore
 import re
 from requests.exceptions import HTTPError, RequestException
 
+
 # Ortam değişkenlerini yükle (.env dosyasından)
 load_dotenv()
 
@@ -29,6 +30,9 @@ PROXIES = {
     "http": PROXY_URL,
     "https": PROXY_URL,
 } if PROXY_URL else None
+
+_browser = None
+_browser_lock = threading.Lock()
 
 # Firebase / Firestore başlatma
 def init_firestore():
@@ -449,50 +453,51 @@ def get_team_info(team_key: str) -> dict:
     return TEAMS[key]
 
 def get_soup(url: str) -> BeautifulSoup:
-    """Playwright v2 + Stealth (2026 uyumlu)"""
-    print(f"[PLAYWRIGHT v2] → {url}", file=sys.stderr)
+    """Tek global browser + context ile scrape (RAM dostu)"""
+    global _browser
     
-    with Stealth().use_sync(sync_playwright()) as p:   # ← Yeni stealth yöntemi
-        browser = p.chromium.launch(
-            headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-gpu",
-                "--disable-setuid-sandbox",
-                "--single-process",
-                "--no-zygote"
-            ],
-            proxy={"server": PROXY_URL} if PROXY_URL else None
-        )
+    print(f"[PLAYWRIGHT GLOBAL] → {url}", file=sys.stderr)
+    
+    with _browser_lock:  # Thread-safe
+        if _browser is None:
+            print("[PLAYWRIGHT] Browser başlatılıyor (ilk kez)...", file=sys.stderr)
+            p = sync_playwright().start()
+            _browser = p.chromium.launch(
+                headless=True,
+                proxy={"server": PROXY_URL} if PROXY_URL else None,
+                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+            )
+    
+    # Her seferinde yeni context (ama aynı browser)
+    context = _browser.new_context(
+        viewport={"width": 1920, "height": 1080},
+        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+        locale="tr-TR",
+        timezone_id="Europe/Istanbul"
+    )
+    
+    # Stealth'i context'e uygula
+    Stealth().apply_to_context(context)
+    
+    page = context.new_page()
+    
+    try:
+        page.goto(url, wait_until="networkidle", timeout=45000)
         
-        context = browser.new_context(
-            viewport={"width": 1920, "height": 1080},
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
-            locale="tr-TR",
-            timezone_id="Europe/Istanbul"
-        )
+        # İnsan gibi yavaş scroll
+        page.evaluate("window.scrollBy(0, 400)")
+        time.sleep(random.uniform(1.5, 3.0))
+        page.evaluate("window.scrollBy(0, 600)")
+        time.sleep(random.uniform(1.2, 2.8))
         
-        page = context.new_page()
+        html = page.content()
+        return BeautifulSoup(html, "lxml")
         
-        try:
-            page.goto(url, wait_until="networkidle", timeout=30000)
-            
-            # İnsan gibi davran (anti-detection)
-            page.evaluate("window.scrollBy(0, 400)")
-            time.sleep(random.uniform(1.8, 3.5))
-            page.evaluate("window.scrollBy(0, 600)")
-            time.sleep(random.uniform(1.2, 2.8))
-            
-            html = page.content()
-            return BeautifulSoup(html, "lxml")
-            
-        except Exception as e:
-            print(f"[PLAYWRIGHT HATA] {url}: {e}", file=sys.stderr)
-            raise
-        finally:
-            context.close()
-            browser.close()   # her seferinde temiz kapatıyoruz
+    except Exception as e:
+        print(f"[PLAYWRIGHT HATA] {url}: {e}", file=sys.stderr)
+        raise
+    finally:
+        context.close()  # Sadece context kapat, browser'ı açık tut
 
 def extract_first_int(s: str) -> int:
     """Bir string içindeki ilk tam sayıyı ayıkla. Yoksa 0 döner."""
@@ -1156,7 +1161,19 @@ def generate_json_api():
         # hataları yakalar ve 500/400 döndürür.
         error_message = f"Maç ön kontrol hatası: {str(e)}"
         print(f"[KRİTİK HATA] API Başlangıç Hatası: {error_message}", file=sys.stderr)
-        return jsonify({"status": "fatal_error", "message": error_message}), 500
+        return jsonify({"status": "fatal_error", "message": error_message}), 
+        
+@app.teardown_appcontext
+def close_browser(exception):
+    """Uygulama kapanırken global browser'ı temizle"""
+    global _browser
+    if _browser:
+        try:
+            _browser.close()
+            _browser = None
+            print("[PLAYWRIGHT] Browser kapatıldı (shutdown)", file=sys.stderr)
+        except Exception as e:
+            print(f"[PLAYWRIGHT] Browser kapatılırken hata: {e}", file=sys.stderr)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
