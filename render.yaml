@@ -2,10 +2,13 @@ version: "1"
 services:
 - type: web
   name: json_api_server
-  runtime: docker
+  runtime: python
   repo: https://github.com/providedtroubleshoot/json_api_server
   plan: free
   region: frankfurt
+
+  buildCommand: "pip install -r requirements.txt"
+  startCommand: "python app.py"
 
   envVars:
   - key: PROXY_URL
