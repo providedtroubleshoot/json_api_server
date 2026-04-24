@@ -448,15 +448,15 @@ def get_team_info(team_key: str) -> dict:
     return TEAMS[key]
 
 def get_soup(url: str) -> BeautifulSoup:
+    """Verilen URL'den HTML çekip BeautifulSoup objesine dönüştürür (Proxy kullanarak)."""
 
- """Verilen URL'den HTML çekip BeautifulSoup objesine dönüştürür (Proxy kullanarak)."""
     # Proxy kullanılıp kullanılmadığını logla
     if PROXIES:
         print(f"[UYARI] Proxy kullanılıyor: {PROXY_URL}", file=sys.stderr)
 
     res = requests.get(url, proxies=PROXIES, impersonate="chrome120", timeout=18)
     res.raise_for_status()
-    return BeautifulSoup(res.text, "lxml") # lxml parser'ı artık yüklü olmalı
+    return BeautifulSoup(res.text, "lxml")
 
 def extract_first_int(s: str) -> int:
     """Bir string içindeki ilk tam sayıyı ayıkla. Yoksa 0 döner."""
