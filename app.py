@@ -1120,19 +1120,7 @@ def generate_json_api():
         # hataları yakalar ve 500/400 döndürür.
         error_message = f"Maç ön kontrol hatası: {str(e)}"
         print(f"[KRİTİK HATA] API Başlangıç Hatası: {error_message}", file=sys.stderr)
-        return jsonify({"status": "fatal_error", "message": error_message}), 
+        return jsonify({"status": "fatal_error", "message": error_message})
         
-@app.teardown_appcontext
-def close_browser(exception):
-    """Uygulama kapanırken global browser'ı temizle"""
-    global _browser
-    if _browser:
-        try:
-            _browser.close()
-            _browser = None
-            print("[PLAYWRIGHT] Browser kapatıldı (shutdown)", file=sys.stderr)
-        except Exception as e:
-            print(f"[PLAYWRIGHT] Browser kapatılırken hata: {e}", file=sys.stderr)
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
