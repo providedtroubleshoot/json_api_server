@@ -811,7 +811,8 @@ def get_league_url(league_key: str) -> str | None:
         "sa1": "https://www.transfermarkt.com.tr/saudi-professional-league/tabelle/wettbewerb/SA1",
         "it1": "https://www.transfermarkt.com.tr/serie-a/tabelle/wettbewerb/IT1",
         "hl1": "https://www.transfermarkt.com.tr/eredivisie/tabelle/wettbewerb/NL1",
-        "pt1": "https://www.transfermarkt.com.tr/liga-nos/tabelle/wettbewerb/PO1"
+        "pt1": "https://www.transfermarkt.com.tr/liga-nos/tabelle/wettbewerb/PO1",
+        "wc": "https://www.transfermarkt.co.uk/weltmeisterschaft/gesamtspielplan/pokalwettbewerb/FIWC"
     }
     return url_map.get(league_key.lower())
 
