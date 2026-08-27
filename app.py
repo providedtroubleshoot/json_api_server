@@ -270,7 +270,7 @@ TEAMS = {
     "académico viseu": {"name": "Académico Viseu", "slug": "academico-viseu-fc", "id": "7788"},
     "ado den haag": {"name": "ADO Den Haag", "slug": "ado-den-haag", "id": "1268"},
     "sc cambuur": {"name": "SC Cambuur", "slug": "sc-cambuur-leeuwarden", "id": "133"},
-    "willem ii": {"name": "Willem II", "slug": willem-ii-tilburg", "id": "403"},
+    "willem ii": {"name": "Willem II", "slug": "willem-ii-tilburg", "id": "403"},
     "chapecoense": {"name": "Chapecoense", "slug": "chapecoense", "id": "17776"},
     "remo": {"name": "Remo", "slug": "clube-do-remo-pa-", "id": "10997"},
     "coritiba": {"name": "Coritiba", "slug": "coritiba-fc", "id": "776"},
