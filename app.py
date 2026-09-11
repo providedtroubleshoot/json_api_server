@@ -333,7 +333,7 @@ TEAMS = {
     "inter": {"name": "Inter", "slug": "inter-mailand", "id": "46"},
     "al-hazem": {"name": "Al-Hazem", "slug": "al-hazm", "id": "9131"},
     "al-najma": {"name": "Al-Najma", "slug": "al-najma", "id": "32328"},
-    "neom sc": {"name": "NEOM SC", "slug": "al-suqoor", "id": "34911"},
+    "neom": {"name": "NEOM", "slug": "al-suqoor", "id": "34911"},
     "al-okhdood": {"name": "Al-Okhdood", "slug": "al-akhdoud-club", "id": "71665"},
     "damac": {"name": "Damac", "slug": "damac-fc", "id": "50532"},
     "al-fayha": {"name": "Al-Fayha", "slug": "al-fayha-fc", "id": "50531"},
