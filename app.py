@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, auth, app_check
 import re
 from requests.exceptions import HTTPError, RequestException
 
@@ -29,6 +29,15 @@ PROXIES = {
     "https": PROXY_URL,
 } if PROXY_URL else None
 
+GEMINI_API_KEYS = [
+    os.getenv("GEMINI_API_KEY_1"),
+    os.getenv("GEMINI_API_KEY_2")
+]
+GEMINI_API_KEYS = [key for key in GEMINI_API_KEYS if key]
+
+ALLOWED_MODELS = {
+    "gemini-2.5-flash"
+}
 # Firebase / Firestore başlatma
 def init_firestore():
     """Firebase Firestore istemcisini başlatır ve döndürür."""
@@ -465,6 +474,19 @@ TEAMS = {
     "gençlerbirliği": {"name": "Gençlerbirliği", "slug": "genclerbirligi-ankara", "id": "820"},
 }
 
+def verify_firebase_request():
+    authorization = request.headers.get("Authorization", "")
+
+    if not authorization.startswith("Bearer "):
+        return None
+
+    token = authorization.removeprefix("Bearer ").strip()
+
+    try:
+        decoded_token = auth.verify_id_token(token)
+        return decoded_token["uid"]
+    except Exception:
+        return None
 
 def get_team_info(team_key: str) -> dict:
     key = team_key.lower()
@@ -1147,6 +1169,60 @@ def generate_json_api():
         error_message = f"Maç ön kontrol hatası: {str(e)}"
         print(f"[KRİTİK HATA] API Başlangıç Hatası: {error_message}", file=sys.stderr)
         return jsonify({"status": "fatal_error", "message": error_message})
-        
+
+@app.post("/generate-content")
+def generate_content():
+    # Şimdilik yalnızca endpoint iskeleti.
+    # Bir sonraki adımda kimlik doğrulamayı ekleyeceğiz.
+    uid = verify_firebase_request()
+
+    if uid is None:
+        return jsonify(error="Unauthorized"), 401
+
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        return jsonify(error="Invalid request"), 400
+
+    model = request.args.get("model", "gemini-2.5-flash")
+    if model not in ALLOWED_MODELS:
+        return jsonify(error="Unsupported model"), 400
+
+    if not isinstance(body.get("contents"), list):
+        return jsonify(error="Invalid Gemini request"), 400
+
+    if not GEMINI_API_KEYS:
+        app.logger.error("No Gemini API keys configured")
+        return jsonify(error="Service unavailable"), 503
+
+    for api_key in GEMINI_API_KEYS:
+        try:
+            response = requests.post(
+                f"https://generativelanguage.googleapis.com/"
+                f"v1beta/models/{model}:generateContent",
+                headers={
+                    "x-goog-api-key": api_key,
+                    "Content-Type": "application/json",
+                },
+                json=body,
+                timeout=(5, 45),
+            )
+        except requests.RequestException:
+            app.logger.warning("Gemini network request failed")
+            return jsonify(error="Service unavailable"), 502
+
+        if response.ok:
+            return jsonify(response.json()), 200
+
+        if response.status_code == 429:
+            continue
+
+        app.logger.warning(
+            "Gemini request failed with status %s",
+            response.status_code,
+        )
+        return jsonify(error="Prediction failed"), 502
+
+    return jsonify(error="Gemini quota exhausted"), 429
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
