@@ -488,6 +488,19 @@ def verify_firebase_request():
     except Exception:
         return None
 
+def verify_app_check_request():
+    token = request.headers.get("X-Firebase-AppCheck", "").strip()
+
+    if not token:
+        return False
+
+    try:
+        app_check.verify_token(token)
+        return True
+    except Exception:
+        app.logger.warning("App Check token verification failed")
+        return False
+
 def get_team_info(team_key: str) -> dict:
     key = team_key.lower()
     if key not in TEAMS:
@@ -1178,6 +1191,9 @@ def generate_content():
 
     if uid is None:
         return jsonify(error="Unauthorized"), 401
+
+    if not verify_app_check_request():
+        return jsonify(error="Invalid App Check token"), 401
 
     body = request.get_json(silent=True)
     if not isinstance(body, dict):
